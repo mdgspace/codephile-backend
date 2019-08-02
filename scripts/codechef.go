@@ -41,15 +41,15 @@ func zero_pad(year *string) {
 	}
 }
 
-// func main() {
-// 	graph := GetGraphData("ritikkne")
-// 	profile := GetProfileInfo("ritikkne")
-// 	submittions := GetSubmissions("ritikkne")
+func main() {
+	graph := GetGraphData("ritikkne")
+	profile := GetProfileInfo("ritikkne")
+	submittions := GetSubmissions("ritikkne")
 
-// 	fmt.Println(submittions)
-// 	fmt.Println(profile)
-// 	fmt.Println(graph)
-// }
+	fmt.Println(submittions)
+	fmt.Println(profile)
+	fmt.Println(graph)
+}
 
 func Get_Request(path string) []byte {
 	resp, err := http.Get(path)
