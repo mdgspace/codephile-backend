@@ -29,14 +29,15 @@ type SolvedProblems struct {
 	problem string
 	link    string
 }
+
 func main(){
-	Profile := GetProfileInfo("letschange")
+	Profile := GetProfileInfo("boemogensen")
 	fmt.Println(Profile)
-	submissions := GetSubmissions("letschange")
+	submissions := GetSubmissions("boemogensen")
 	fmt.Println(submissions)
-	problems := GetProblems("letschange")
+	problems := GetProblems("boemogensen")
 	fmt.Println(problems)
-	solved := GetSolvedProblems("letschange")
+	solved := GetSolvedProblems("boemogensen")
 	fmt.Println(solved)
 }
 
