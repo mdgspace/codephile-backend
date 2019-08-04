@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"github.com/gocolly/colly"
 )
 
@@ -47,10 +48,12 @@ func GetProfileInfo(handle string) ProfileInfo {
 	var Profile ProfileInfo
 
 	c.OnHTML("#user-profile-left", func(e *colly.HTMLElement) {
-		Name := e.ChildText("h3")
+		Name := e.ChildText("h3")		
 		UserName := e.ChildText("h4")		
-		School := e.ChildText(":nth-child(7)")
-		WorldRank := e.ChildText(":nth-child(6)")
+		List := strings.Split(e.ChildText(":nth-child(7)"), ":")
+		School := List[1]
+		List = strings.Split(e.ChildText(":nth-child(6)"), ":")
+		WorldRank := List[1]
 		Profile = ProfileInfo{Name, UserName, School, WorldRank}
 	})
 
