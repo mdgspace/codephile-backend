@@ -30,6 +30,17 @@ type Profile struct {
 	Email   string
 }
 
+type CodephileUser struct {
+	Id       string
+	Username string
+	password string
+	Handle   []Handle
+}
+type Handle struct {
+	Website  string
+	Username string
+}
+
 func AddUser(u User) string {
 	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	UserList[u.Id] = &u
