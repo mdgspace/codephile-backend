@@ -1,9 +1,7 @@
 package db
 
 import (
-	"crypto/tls"
 	"github.com/globalsign/mgo"
-	"net"
 	"time"
 )
 
@@ -28,11 +26,6 @@ func (s *Service) New() error {
 		panic(err)
 	}
 	dialInfo.Timeout = 10 * time.Second
-	tlsConfig := &tls.Config{}
-	dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-		conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
-		return conn, err
-	}
 	s.baseSession, err = mgo.DialWithInfo(dialInfo)
 	return err
 }

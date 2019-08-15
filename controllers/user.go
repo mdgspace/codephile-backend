@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
-
-	"github.com/mdg-iitr/Codephile/models"
-
 	"github.com/astaxie/beego"
+	"github.com/globalsign/mgo/bson"
+	"github.com/mdg-iitr/Codephile/models"
+	"github.com/gorilla/schema"
 )
+
+var decoder = schema.NewDecoder()
 
 // Operations about Users
 type UserController struct {
@@ -20,10 +22,14 @@ type UserController struct {
 // @Failure 403 body is empty
 // @router /signup [post]
 func (u *UserController) CreateUser() {
-	var user models.User
-	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid := models.AddUser(user)
-	u.Data["json"] = map[string]string{"uid": uid}
+	user := u.parseRequestBody()
+	id, err := models.AddUser(user)
+	if err != nil {
+		u.Data["json"] = map[string]string{"error": err.Error()}
+	} else
+	{
+		u.Data["json"] = map[string]string{"id": id}
+	}
 	u.ServeJSON()
 }
 
@@ -32,20 +38,8 @@ func (u *UserController) CreateUser() {
 // @Success 200 {object} models.User
 // @router /all [get]
 func (u *UserController) GetAll() {
-	// users := models.GetAllUsers()
-	// u.Data["json"] = users
-	// u.ServeJSON()
-	user:=models.CodephileUser{
-		Handle:[]models.Handle{
-			models.Handle{
-				Username:"prateek2211",
-				Website:"Codeforces",
-			},
-		},
-		Id:"01",
-		Username:"dexter44",
-	}
-	u.Data["json"]=&user
+	users := models.GetAllUsers()
+	u.Data["json"] = users
 	u.ServeJSON()
 }
 
@@ -57,10 +51,10 @@ func (u *UserController) GetAll() {
 // @router /:uid [get]
 func (u *UserController) Get() {
 	uid := u.GetString(":uid")
-	if uid != "" {
-		user, err := models.GetUser(uid)
+	if uid != "" && bson.IsObjectIdHex(uid) {
+		user, err := models.GetUser(bson.ObjectIdHex(uid))
 		if err != nil {
-			u.Data["json"] = err.Error()
+			u.Data["json"] = map[string]string{"error": err.Error()}
 		} else {
 			u.Data["json"] = user
 		}
@@ -77,12 +71,11 @@ func (u *UserController) Get() {
 // @router /:uid [put]
 func (u *UserController) Put() {
 	uid := u.GetString(":uid")
-	if uid != "" {
-		var user models.User
-		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		uu, err := models.UpdateUser(uid, &user)
+	if uid != "" && bson.IsObjectIdHex(uid) {
+		newUser := u.parseRequestBody()
+		uu, err := models.UpdateUser(bson.ObjectIdHex(uid), &newUser)
 		if err != nil {
-			u.Data["json"] = err.Error()
+			u.Data["json"] = map[string]string{"error": err.Error()}
 		} else {
 			u.Data["json"] = uu
 		}
@@ -111,14 +104,14 @@ func (u *UserController) Put() {
 // @Failure 403 user not exist
 // @router /login [post]
 func (u *UserController) Login() {
-	username := u.GetString("username")
-	password := u.GetString("password")
-	if models.Login(username, password) {
-		u.Data["json"] = "login success"
-	} else {
-		u.Data["json"] = "user not exist"
-	}
-	u.ServeJSON()
+	// username := u.GetString("username")
+	// password := u.GetString("password")
+	// if models.Login(username, password) {
+	// 	u.Data["json"] = "login success"
+	// } else {
+	// 	u.Data["json"] = "user not exist"
+	// }
+	// u.ServeJSON()
 }
 
 // @Title logout
@@ -126,6 +119,22 @@ func (u *UserController) Login() {
 // @Success 200 {string} logout success
 // @router /logout [post]
 func (u *UserController) Logout() {
-	u.Data["json"] = "logout success"
-	u.ServeJSON()
+	// u.Data["json"] = "logout success"
+	// u.ServeJSON()
+}
+func (u *UserController) parseRequestBody() models.User {
+	var (
+		user models.User
+		err  error
+	)
+	if u.Ctx.Request.Header.Get("content-type") == "application/json" {
+		err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	} else {
+		decoder.IgnoreUnknownKeys(true)
+		err = decoder.Decode(&user, u.Ctx.Request.PostForm)
+	}
+	if err != nil {
+		panic(err)
+	}
+	return user
 }
