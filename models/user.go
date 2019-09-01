@@ -80,6 +80,20 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 	}
 	return nil, errors.New("User Not Exist")
 }
+func AutheticateUser(username string, password string) (*User, bool) {
+	var user User
+	collection := db.NewCollectionSession("coduser")
+	defer collection.Close()
+	err := collection.Session.Find(bson.M{"username": username}).One(&user)
+	//fmt.Println(err.Error())
+	if err != nil {
+		return nil, false
+	}
+	if user.Password == password {
+		return &user, true
+	}
+	return nil, false
+}
 
 // func Login(username, password string) bool {
 // 	for _, u := range UserList {

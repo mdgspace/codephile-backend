@@ -3,9 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
 	"github.com/globalsign/mgo/bson"
-	"github.com/mdg-iitr/Codephile/models"
 	"github.com/gorilla/schema"
+	"github.com/mdg-iitr/Codephile/models"
+	"github.com/mdg-iitr/Codephile/services/auth"
 )
 
 var decoder = schema.NewDecoder()
@@ -83,19 +86,6 @@ func (u *UserController) Put() {
 	u.ServeJSON()
 }
 
-// // @Title Delete
-// // @Description delete the user
-// // @Param	uid		path 	string	true		"The uid you want to delete"
-// // @Success 200 {string} delete success!
-// // @Failure 403 uid is empty
-// // @router /:uid [delete]
-// func (u *UserController) Delete() {
-// 	uid := u.GetString(":uid")
-// 	models.DeleteUser(uid)
-// 	u.Data["json"] = "delete success!"
-// 	u.ServeJSON()
-// }
-
 // @Title Login
 // @Description Logs user into the system
 // @Param	username		query 	string	true		"The username for login"
@@ -104,14 +94,14 @@ func (u *UserController) Put() {
 // @Failure 403 user not exist
 // @router /login [post]
 func (u *UserController) Login() {
-	// username := u.GetString("username")
-	// password := u.GetString("password")
-	// if models.Login(username, password) {
-	// 	u.Data["json"] = "login success"
-	// } else {
-	// 	u.Data["json"] = "user not exist"
-	// }
-	// u.ServeJSON()
+	username := u.Ctx.Request.FormValue("username")
+	password := u.Ctx.Request.FormValue("password")
+	if user, isValid := models.AutheticateUser(username, password); isValid {
+		u.Data["json"] = map[string]string{"token": auth.GenerateToken(user.ID.Hex())}
+	} else {
+		u.Data["json"] = map[string]string{"error": "invalid user credential"}
+	}
+	u.ServeJSON()
 }
 
 // @Title logout
@@ -119,8 +109,18 @@ func (u *UserController) Login() {
 // @Success 200 {string} logout success
 // @router /logout [post]
 func (u *UserController) Logout() {
-	// u.Data["json"] = "logout success"
-	// u.ServeJSON()
+	requestToken, _ := request.ParseFromRequest(u.Ctx.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+		return []byte(beego.AppConfig.String("HMACKEY")), nil
+	})
+	if requestToken.Valid && !auth.IsTokenExpired(requestToken) {
+		err := auth.BlacklistToken(requestToken)
+		if err == nil {
+			u.Data["json"] = map[string]string{"status": "Logout successful"}
+		}
+	} else {
+		u.Data["json"] = map[string]string{"status": "Invalid Credentials"}
+	}
+	u.ServeJSON()
 }
 func (u *UserController) parseRequestBody() models.User {
 	var (
