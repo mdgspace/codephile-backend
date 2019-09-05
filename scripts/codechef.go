@@ -64,6 +64,21 @@ func Get_Request(path string) []byte {
 	return byteValue
 }
 
+func CheckHandle(handle string) bool {
+	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
+	resp, err := http.Get(path)
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+
+	if resp.StatusCode == 200 {
+		return true
+	}
+
+	return false
+}
+
 func GetGraphData(handle string) []GraphPoint {
 	r, _ := regexp.Compile("\\[.*?\\]")
 
