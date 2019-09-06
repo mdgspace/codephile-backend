@@ -6,6 +6,7 @@ Environment variable is a way to store/pass some sensitive/config information th
 
 To setup environment variables, create a `.env` file at conf directory of project containing following information:
 ```
+PORT = <The port to be used>
 DBPath = <Connection string of local database>
 DBName = <Name of database>
 HMACKEY = <HMAC Encryption key>

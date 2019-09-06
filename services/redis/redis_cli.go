@@ -1,9 +1,9 @@
 package redis
 
 import (
-	"github.com/astaxie/beego"
 	"github.com/go-redis/redis"
 	"log"
+	"os"
 )
 
 var client *redis.Client
@@ -11,8 +11,8 @@ var client *redis.Client
 func GetRedisClient() *redis.Client {
 	if client == nil {
 		client = redis.NewClient(&redis.Options{
-			Addr:     beego.AppConfig.DefaultString("REDISURL", "localhost:6379"),
-			Password: beego.AppConfig.DefaultString("REDISPASSWD", ""),
+			Addr:     os.Getenv("REDISURL"),
+			Password: os.Getenv("REDISPASSWD"),
 			DB:       0, // use default DB
 		})
 		_, err := client.Ping().Result()
