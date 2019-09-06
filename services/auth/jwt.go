@@ -7,6 +7,7 @@ import (
 	"github.com/mdg-iitr/Codephile/services/redis"
 	r "github.com/go-redis/redis"
 	"log"
+	"os"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func GenerateToken(uid string) string {
 		Issuer:    "mdg",
 		Subject:   uid,
 	})
-	tokenString, err := token.SignedString([]byte(beego.AppConfig.String("HMACKEY")))
+	tokenString, err := token.SignedString([]byte(os.Getenv("HMACKEY")))
 	if err != nil {
 		log.Fatal(err)
 	}

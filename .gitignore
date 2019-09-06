@@ -1,6 +1,6 @@
 Codephile
 lastupdate.tmp
-.env
+/conf/.env
 
 .DS_Store
 WebIM/WebIM

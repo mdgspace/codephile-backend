@@ -1,6 +1,8 @@
 package db
 
-import ("github.com/astaxie/beego")
+import ("github.com/astaxie/beego"
+	"os"
+)
 
 var maxPool int
 
@@ -16,7 +18,7 @@ func init() {
 
 func checkAndInitServiceConnection() {
 	if service.baseSession == nil {
-		service.URL = beego.AppConfig.String("DBPath")
+		service.URL = os.Getenv("DBPath")
 		err := service.New()
 		if err != nil {
 			panic(err)

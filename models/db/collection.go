@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo"
+	"os"
 )
 
 type Collection struct {
@@ -18,7 +18,7 @@ func (c *Collection) Connect() {
 
 func NewCollectionSession(name string) *Collection {
 	var c = Collection{
-		db: newDBSession(beego.AppConfig.String("DBName")),
+		db: newDBSession(os.Getenv("DBName")),
 		name: name,
 	}
 	c.Connect()

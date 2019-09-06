@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/services/auth"
+	"os"
 )
 
 var decoder = schema.NewDecoder()
@@ -110,7 +111,7 @@ func (u *UserController) Login() {
 // @router /logout [post]
 func (u *UserController) Logout() {
 	requestToken, _ := request.ParseFromRequest(u.Ctx.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
-		return []byte(beego.AppConfig.String("HMACKEY")), nil
+		return []byte(os.Getenv("HMACKEY")), nil
 	})
 	if requestToken.Valid && !auth.IsTokenExpired(requestToken) {
 		err := auth.BlacklistToken(requestToken)
