@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/mdg-iitr/Codephile/conf"
 	"github.com/astaxie/beego"
 	_ "github.com/mdg-iitr/Codephile/routers"
 )
