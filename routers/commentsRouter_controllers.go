@@ -7,6 +7,15 @@ import (
 
 func init() {
 
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ContestController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ContestController"],
+        beego.ControllerComments{
+            Method: "GetContests",
+            Router: `/`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"],
         beego.ControllerComments{
             Method: "Post",
@@ -102,6 +111,15 @@ func init() {
             Method: "CreateUser",
             Router: `/signup`,
             AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
+        beego.ControllerComments{
+            Method: "Verify",
+            Router: `/verify/:site`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

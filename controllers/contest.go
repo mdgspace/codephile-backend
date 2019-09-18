@@ -17,7 +17,7 @@ type ContestController struct {
 
 // @Title GetContests
 // @Description displays all contests
-// @Success 200 {object} models.FinalResult
+// @Success 200 {object} models.S
 // @Failure 403 error
 // @router / [get]
 func (u *ContestController) GetContests() {
