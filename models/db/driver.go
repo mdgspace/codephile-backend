@@ -1,6 +1,9 @@
 package db
 
-import ("github.com/astaxie/beego"
+import (
+	"github.com/astaxie/beego"
+	"github.com/joho/godotenv"
+	"log"
 	"os"
 )
 
@@ -13,6 +16,10 @@ func init() {
 		panic(err)
 	}
 	// init method to start db
+	err = godotenv.Load("conf/.env")
+	if err != nil {
+		log.Println("No .env file found")
+	}
 	checkAndInitServiceConnection()
 }
 

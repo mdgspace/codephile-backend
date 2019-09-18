@@ -139,3 +139,14 @@ func (u *UserController) parseRequestBody() models.User {
 	}
 	return user
 }
+
+// @Title Verify site handles
+// @Description verify user handles across different websites
+// @Param	site		path 	string	true		"site name"
+// @Param	handle		query 	string	true		"handle to verify"
+// @Success 200 handle correct
+// @Failure 403 incorrect site or handle
+// @router /verify/:site [get]
+func (u *UserController)Verify()  {
+	//scripts.CheckHandle("")
+}

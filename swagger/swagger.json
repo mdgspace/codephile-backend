@@ -1,0 +1,510 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Codephile Official API",
+        "description": "Documentation for Codephile API",
+        "version": "1.0.0",
+        "contact": {
+            "email": "mdg@iitr.ac.in"
+        },
+        "license": {}
+    },
+    "basePath": "/v1",
+    "paths": {
+        "/contests/": {
+            "get": {
+                "tags": [
+                    "contests"
+                ],
+                "description": "displays all contests",
+                "operationId": "ContestController.GetContests",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.S"
+                        }
+                    },
+                    "403": {
+                        "description": "error"
+                    }
+                }
+            }
+        },
+        "/object/": {
+            "get": {
+                "tags": [
+                    "object"
+                ],
+                "description": "get all objects",
+                "operationId": "ObjectController.GetAll",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Object"
+                        }
+                    },
+                    "403": {
+                        "description": ":objectId is empty"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "object"
+                ],
+                "description": "create object",
+                "operationId": "ObjectController.Create",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The object content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} models.Object.Id"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/object/{objectId}": {
+            "get": {
+                "tags": [
+                    "object"
+                ],
+                "description": "find object by objectid",
+                "operationId": "ObjectController.Get",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "objectId",
+                        "description": "the objectid you want to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Object"
+                        }
+                    },
+                    "403": {
+                        "description": ":objectId is empty"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "object"
+                ],
+                "description": "update the object",
+                "operationId": "ObjectController.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "objectId",
+                        "description": "The objectid you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Object"
+                        }
+                    },
+                    "403": {
+                        "description": ":objectId is empty"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "object"
+                ],
+                "description": "delete the object",
+                "operationId": "ObjectController.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "objectId",
+                        "description": "The objectId you want to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} delete success!"
+                    },
+                    "403": {
+                        "description": "objectId is empty"
+                    }
+                }
+            }
+        },
+        "/user/all": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "get all Users",
+                "operationId": "UserController.GetAll",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Logs user into the system",
+                "operationId": "UserController.Login",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "username",
+                        "description": "The username for login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "password",
+                        "description": "The password for login",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} login success"
+                    },
+                    "403": {
+                        "description": "user not exist"
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Logs out current logged in user session",
+                "operationId": "UserController.logout",
+                "responses": {
+                    "200": {
+                        "description": "{string} logout success"
+                    }
+                }
+            }
+        },
+        "/user/signup": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "create users",
+                "operationId": "UserController.CreateUser",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for user content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{int} models.User.Id"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/user/verify/{site}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "verify user handles across different websites",
+                "operationId": "UserController.Verify site handles",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "site",
+                        "description": "site name",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "handle",
+                        "description": "handle to verify",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "handle correct"
+                    },
+                    "403": {
+                        "description": "incorrect site or handle"
+                    }
+                }
+            }
+        },
+        "/user/{uid}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "get user by uid",
+                "operationId": "UserController.Get",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "403": {
+                        "description": ":uid is empty"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "description": "update the user",
+                "operationId": "UserController.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "The uid you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for user content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "403": {
+                        "description": ":uid is not int"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "bson.ObjectId": {
+            "title": "ObjectId",
+            "type": "object"
+        },
+        "models.Handle": {
+            "title": "Handle",
+            "type": "object",
+            "properties": {
+                "codechef": {
+                    "type": "string"
+                },
+                "codeforces": {
+                    "type": "string"
+                },
+                "hackerearth": {
+                    "type": "string"
+                },
+                "hackerrank": {
+                    "type": "string"
+                },
+                "spoj": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Object": {
+            "title": "Object",
+            "type": "object",
+            "properties": {
+                "ObjectId": {
+                    "type": "string"
+                },
+                "PlayerName": {
+                    "type": "string"
+                },
+                "Score": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.Ongoing": {
+            "title": "Ongoing",
+            "type": "object",
+            "properties": {
+                "EndTime": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Platform": {
+                    "type": "string"
+                },
+                "challenge_type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Result": {
+            "title": "Result",
+            "type": "object",
+            "properties": {
+                "ongoing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Ongoing"
+                    }
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "upcoming": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Upcoming"
+                    }
+                }
+            }
+        },
+        "models.S": {
+            "title": "S",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/models.Result"
+                }
+            }
+        },
+        "models.Upcoming": {
+            "title": "Upcoming",
+            "type": "object",
+            "properties": {
+                "Duration": {
+                    "type": "string"
+                },
+                "EndTime": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Platform": {
+                    "type": "string"
+                },
+                "StartTime": {
+                    "type": "string"
+                },
+                "challenge_type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "title": "User",
+            "type": "object",
+            "properties": {
+                "handle": {
+                    "$ref": "#/definitions/models.Handle"
+                },
+                "id": {
+                    "$ref": "#/definitions/bson.ObjectId"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "object",
+            "description": "Operations about object\n"
+        },
+        {
+            "name": "user",
+            "description": "Operations about Users\n"
+        },
+        {
+            "name": "contests",
+            "description": "Controller to display contests\n"
+        }
+    ]
+}
