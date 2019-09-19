@@ -8,6 +8,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/gorilla/schema"
 	"github.com/mdg-iitr/Codephile/models"
+	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"os"
 )
@@ -144,9 +145,31 @@ func (u *UserController) parseRequestBody() models.User {
 // @Description verify user handles across different websites
 // @Param	site		path 	string	true		"site name"
 // @Param	handle		query 	string	true		"handle to verify"
-// @Success 200 handle correct
+// @Success 200 {string} Handle valid
 // @Failure 403 incorrect site or handle
 // @router /verify/:site [get]
-func (u *UserController)Verify()  {
-	//scripts.CheckHandle("")
+func (u *UserController) Verify() {
+	handle := u.GetString("handle")
+	site := u.GetString(":site")
+	var valid = false
+	switch site {
+	case "codechef":
+		valid = scripts.CheckCodechefHandle(handle)
+		break;
+	case "codeforces":
+		valid = scripts.CheckCodeforcesHandle(handle)
+		break;
+	case "spoj":
+		valid = scripts.CheckSpojHandle(handle)
+		break;
+	case "hackerrank":
+		valid = scripts.CheckHackerrankHandle(handle)
+		break;
+	}
+	if valid {
+		u.Data["json"] = map[string]string{"status": "Handle valid"}
+	} else {
+		u.Ctx.ResponseWriter.WriteHeader(403)
+	}
+	u.ServeJSON()
 }

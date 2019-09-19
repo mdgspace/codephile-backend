@@ -58,19 +58,6 @@ type CodeforcesContest struct {
 	Archived    bool   `json:"archived"`
 }
 
-func Get_Request(path string) []byte {
-	resp, err := http.Get(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	byteValue, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return byteValue
-}
-
 //UnmarshalJSON implements the unmarshaler interface for CodeforcesProfileInfo
 func (data *CodeforcesProfileInfo) UnmarshalJSON(b []byte) error {
 	var profile map[string]interface{}
@@ -159,7 +146,7 @@ func (contests *CodeforcesContests) UnmarshalJSON(b []byte) error {
 func GetCodeforcesProfileInfo(handle string) CodeforcesProfileInfo {
 	var profile CodeforcesProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + handle
-	data := Get_Request(url)
+	data := GetRequest(url)
 	json.Unmarshal(data, &profile)
 	return profile
 }
@@ -167,21 +154,35 @@ func GetCodeforcesProfileInfo(handle string) CodeforcesProfileInfo {
 func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	var points CodeforcesGraphPoints
 	url := "http://codeforces.com/api/user.rating?handle=" + handle
-	data := Get_Request(url)
+	data := GetRequest(url)
 	json.Unmarshal(data, &points)
 	fmt.Println(points.Count)
 	return points
 }
 func GetCodeforcesSubmissions(handle string) CodeforcesSubmissions {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=1&count=10"
-	data := Get_Request(url)
+	data := GetRequest(url)
 	var submissions CodeforcesSubmissions
 	json.Unmarshal(data, &submissions)
 	return submissions
 }
 func GetCodeforcesContests() CodeforcesContests {
-	data := Get_Request("https://codeforces.com/api/contest.list?gym=false")
+	data := GetRequest("https://codeforces.com/api/contest.list?gym=false")
 	var contests CodeforcesContests
 	json.Unmarshal(data, &contests)
 	return contests
+}
+func CheckCodeforcesHandle(handle string) bool {
+	resp, err := http.Get("http://codeforces.com/api/user.info?handles=" + handle)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	data, _ := ioutil.ReadAll(resp.Body)
+	var i interface{}
+	err = json.Unmarshal(data, &i)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return i.(map[string]interface{})["status"] != "FAILED"
 }
