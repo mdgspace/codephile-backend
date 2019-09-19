@@ -283,7 +283,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "handle correct"
+                        "description": "{string} Handle valid"
                     },
                     "403": {
                         "description": "incorrect site or handle"

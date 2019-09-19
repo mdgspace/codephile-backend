@@ -3,7 +3,6 @@ package scripts
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -14,19 +13,19 @@ import (
 	"github.com/gocolly/colly"
 )
 
-type GraphPoint struct {
+type CodechefGraphPoint struct {
 	ContestName string
 	Date        time.Time
 	Rating      float64
 }
 
-type ProfileInfo struct {
+type CodechefProfileInfo struct {
 	Name     string
 	UserName string
 	School   string
 }
 
-type Submission struct {
+type CodechefSubmission struct {
 	Name         string
 	URL          string
 	CreationDate string
@@ -41,30 +40,8 @@ func zero_pad(year *string) {
 	}
 }
 
-// func main() {
-// 	graph := GetGraphData("ritikkne")
-// 	profile := GetProfileInfo("ritikkne")
-// 	submittions := GetSubmissions("ritikkne")
 
-// 	fmt.Println(submittions)
-// 	fmt.Println(profile)
-// 	fmt.Println(graph)
-// }
-
-func Get_Request(path string) []byte {
-	resp, err := http.Get(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	byteValue, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return byteValue
-}
-
-func CheckHandle(handle string) bool {
+func CheckCodechefHandle(handle string) bool {
 	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
 	resp, err := http.Get(path)
 	if err != nil {
@@ -79,11 +56,11 @@ func CheckHandle(handle string) bool {
 	return false
 }
 
-func GetGraphData(handle string) []GraphPoint {
+func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 	r, _ := regexp.Compile("\\[.*?\\]")
 
 	c := colly.NewCollector()
-	var long_contest_data []GraphPoint
+	var long_contest_data []CodechefGraphPoint
 
 	c.OnHTML("script", func(e *colly.HTMLElement) {
 
@@ -115,7 +92,7 @@ func GetGraphData(handle string) []GraphPoint {
 				contest_name := fmt.Sprintf("%s Long Challenge 20%s", time.Format("January"), time.Format("06"))
 				// contest_url := fmt.Sprintf("https://www.codechef.com/%s%s", time.Format("JAN"), time.Format("06"))
 
-				long_contest_data = append(long_contest_data, GraphPoint{contest_name, time, ranking})
+				long_contest_data = append(long_contest_data, CodechefGraphPoint{contest_name, time, ranking})
 			}
 
 			// fmt.Println(long_contest_data)
@@ -126,7 +103,7 @@ func GetGraphData(handle string) []GraphPoint {
 				fmt.Println(err)
 			}
 
-			var lunch_contest_data []GraphPoint
+			var lunch_contest_data []CodechefGraphPoint
 
 			for _, event := range data1 {
 
@@ -142,7 +119,7 @@ func GetGraphData(handle string) []GraphPoint {
 				contest_name := fmt.Sprintf("%s Lunch Time 20%s", time.Format("January"), time.Format("06"))
 				// contest_url := fmt.Sprintf("https://www.codechef.com/" + code)
 
-				lunch_contest_data = append(lunch_contest_data, GraphPoint{contest_name, time, ranking})
+				lunch_contest_data = append(lunch_contest_data, CodechefGraphPoint{contest_name, time, ranking})
 			}
 
 			// fmt.Println(lunch_contest_data)
@@ -161,9 +138,9 @@ func GetGraphData(handle string) []GraphPoint {
 
 }
 
-func GetProfileInfo(handle string) ProfileInfo {
+func GetCodechefProfileInfo(handle string) CodechefProfileInfo {
 	path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=20", handle)
-	byteValue := Get_Request(path)
+	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
 	json.Unmarshal(byteValue, &JsonInterFace)
 	Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
@@ -179,18 +156,18 @@ func GetProfileInfo(handle string) ProfileInfo {
 	Name := Profile["name"].(string)
 	// rating := Profile["rating"]
 	UserName := Profile["username"].(string)
-	return ProfileInfo{Name, UserName, Institution}
+	return CodechefProfileInfo{Name, UserName, Institution}
 }
 
-func GetSubmissions(handle string) []Submission {
+func GetCodechefSubmissions(handle string) []CodechefSubmission {
 
 	user_url := "http://www.codechef.com/recent/user?user_handle=" + handle
-	byteValue := Get_Request(user_url)
+	byteValue := GetRequest(user_url)
 	var JsonInterFace interface{}
 	json.Unmarshal(byteValue, &JsonInterFace)
 	data := JsonInterFace.(map[string]interface{})
 
-	var submissions []Submission
+	var submissions []CodechefSubmission
 
 	max_page := int(data["max_page"].(float64))
 	content := data["content"].(string)
@@ -200,7 +177,7 @@ func GetSubmissions(handle string) []Submission {
 	for i := 1; i < max_page; i++ {
 		user_url = fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, i)
 
-		byteValue = Get_Request(user_url)
+		byteValue = GetRequest(user_url)
 		json.Unmarshal(byteValue, &JsonInterFace)
 		data = JsonInterFace.(map[string]interface{})
 
@@ -214,9 +191,9 @@ func GetSubmissions(handle string) []Submission {
 
 }
 
-func GetSubmissionsFromString(content string) []Submission {
+func GetSubmissionsFromString(content string) []CodechefSubmission {
 
-	var submissions []Submission
+	var submissions []CodechefSubmission
 
 	data := strings.Split(content, "<tr >")
 	for i := 1; i < 4; i++ {
@@ -238,7 +215,7 @@ func GetSubmissionsFromString(content string) []Submission {
 		prob := strings.TrimRight(strings.Split(contents[2], ">")[1], "</a")
 		url := "http://www.codechef.com" + prob
 
-		// Submission status
+		// SpojSubmission status
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
 		st := "AC"
 		if stat == "tick-icon" {
@@ -271,7 +248,7 @@ func GetSubmissionsFromString(content string) []Submission {
 
 		//  Language
 		// lang := strings.TrimRight(contents[4], "</td>")
-		submissions = append(submissions, Submission{prob, url, tos, st, points})
+		submissions = append(submissions, CodechefSubmission{prob, url, tos, st, points})
 
 	}
 
