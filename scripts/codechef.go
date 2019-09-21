@@ -3,6 +3,7 @@ package scripts
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mdg-iitr/Codephile/models/submission"
 	"log"
 	"net/http"
 	"regexp"
@@ -25,21 +26,12 @@ type CodechefProfileInfo struct {
 	School   string
 }
 
-type CodechefSubmission struct {
-	Name         string
-	URL          string
-	CreationDate string
-	status       string
-	points       string
-}
-
 func zero_pad(year *string) {
 	fmt.Println(len(*year))
 	if len(*year) == 1 {
 		*year = "0" + *year
 	}
 }
-
 
 func CheckCodechefHandle(handle string) bool {
 	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
@@ -159,7 +151,7 @@ func GetCodechefProfileInfo(handle string) CodechefProfileInfo {
 	return CodechefProfileInfo{Name, UserName, Institution}
 }
 
-func GetCodechefSubmissions(handle string) []CodechefSubmission {
+func GetCodechefSubmissions(handle string) []submission.CodechefSubmission {
 
 	user_url := "http://www.codechef.com/recent/user?user_handle=" + handle
 	byteValue := GetRequest(user_url)
@@ -167,7 +159,7 @@ func GetCodechefSubmissions(handle string) []CodechefSubmission {
 	json.Unmarshal(byteValue, &JsonInterFace)
 	data := JsonInterFace.(map[string]interface{})
 
-	var submissions []CodechefSubmission
+	var submissions []submission.CodechefSubmission
 
 	max_page := int(data["max_page"].(float64))
 	content := data["content"].(string)
@@ -191,9 +183,9 @@ func GetCodechefSubmissions(handle string) []CodechefSubmission {
 
 }
 
-func GetSubmissionsFromString(content string) []CodechefSubmission {
+func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 
-	var submissions []CodechefSubmission
+	var submissions []submission.CodechefSubmission
 
 	data := strings.Split(content, "<tr >")
 	for i := 1; i < 4; i++ {
@@ -213,7 +205,7 @@ func GetSubmissionsFromString(content string) []CodechefSubmission {
 
 		// Problem name/url
 		prob := strings.TrimRight(strings.Split(contents[2], ">")[1], "</a")
-		url := "http://www.codechef.com" + prob
+		url := "http://www.codechef.com/problems/" + prob
 
 		// SpojSubmission status
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
@@ -248,7 +240,7 @@ func GetSubmissionsFromString(content string) []CodechefSubmission {
 
 		//  Language
 		// lang := strings.TrimRight(contents[4], "</td>")
-		submissions = append(submissions, CodechefSubmission{prob, url, tos, st, points})
+		submissions = append(submissions, submission.CodechefSubmission{prob, url, tos, st, points})
 
 	}
 

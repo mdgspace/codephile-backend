@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mdg-iitr/Codephile/models/submission"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -17,19 +17,6 @@ type CodeforcesProfileInfo struct {
 	UserName string
 	School   string
 	JoinDate time.Time
-}
-
-// CodeforcesSubmissions represents the submissions for codeforces
-type CodeforcesSubmissions struct {
-	Data  []CodeforcesSubmission
-	Count int
-}
-
-// CodeforcesSubmission represents the single submissions for codeforces
-type CodeforcesSubmission struct {
-	URL          string
-	CreationDate time.Time
-	Name         string
 }
 
 // CodeforcesGraphPoint represents a single point for codeforces
@@ -73,26 +60,6 @@ func (data *CodeforcesProfileInfo) UnmarshalJSON(b []byte) error {
 	data.JoinDate = time.Unix(int64(result["registrationTimeSeconds"].(float64)), 0)
 	if result["organization"] != nil {
 		data.School = result["organization"].(string)
-	}
-	return err
-}
-
-// UnmarshalJSON implements the unmarshaler interface for CodeforcesSubmissions
-func (sub *CodeforcesSubmissions) UnmarshalJSON(b []byte) error {
-	var data map[string]interface{}
-	err := json.Unmarshal(b, &data)
-	if data["status"] != "OK" {
-		return errors.New("Bad Request")
-	}
-	results := data["result"].([]interface{})
-	sub.Count = len(results)
-	for _, result := range results {
-		problem := result.(map[string]interface{})["problem"].(map[string]interface{})
-		submission := CodeforcesSubmission{}
-		submission.URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)
-		submission.Name = problem["name"].(string)
-		submission.CreationDate = time.Unix(int64(result.(map[string]interface{})["creationTimeSeconds"].(float64)), 0)
-		sub.Data = append(sub.Data, submission)
 	}
 	return err
 }
@@ -159,10 +126,10 @@ func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	fmt.Println(points.Count)
 	return points
 }
-func GetCodeforcesSubmissions(handle string) CodeforcesSubmissions {
+func GetCodeforcesSubmissions(handle string) submission.CodeforcesSubmissions {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=1&count=10"
 	data := GetRequest(url)
-	var submissions CodeforcesSubmissions
+	var submissions submission.CodeforcesSubmissions
 	json.Unmarshal(data, &submissions)
 	return submissions
 }
