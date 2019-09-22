@@ -3,6 +3,7 @@ package scripts
 import (
 	"fmt"
 	"github.com/gocolly/colly"
+	"github.com/mdg-iitr/Codephile/models/submission"
 	"log"
 	"regexp"
 	"strings"
@@ -13,14 +14,6 @@ type SpojProfileInfo struct {
 	UserName  string
 	School    string
 	WorldRank string
-}
-
-type SpojSubmission struct {
-	Name         string
-	URL          string
-	CreationDate string
-	status       string
-	language     string
 }
 
 type SpojProblems struct {
@@ -57,10 +50,10 @@ func GetSpojProfileInfo(handle string) SpojProfileInfo {
 	return Profile
 }
 
-func GetSpojSubmissions(handle string) []SpojSubmission {
+func GetSpojSubmissions(handle string) []submission.SpojSubmission {
 
 	c := colly.NewCollector()
-	var submissions []SpojSubmission
+	var submissions []submission.SpojSubmission
 
 	c.OnHTML("tbody", func(e *colly.HTMLElement) {
 		e.ForEach("tr", func(_ int, elem *colly.HTMLElement) {
@@ -69,7 +62,7 @@ func GetSpojSubmissions(handle string) []SpojSubmission {
 			CreationDate := elem.ChildText(".status_sm span")
 			status := elem.ChildText(".statusres")
 			language := elem.ChildText(".slang span")
-			submissions = append(submissions, SpojSubmission{Name, URL, CreationDate, status, language})
+			submissions = append(submissions, submission.SpojSubmission{Name, URL, CreationDate, status, language})
 		})
 	})
 

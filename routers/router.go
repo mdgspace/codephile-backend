@@ -30,6 +30,11 @@ func init() {
 				&controllers.ContestController{},
 			),
 	    ),
+	    beego.NSNamespace("/submission",
+	        beego.NSInclude(
+				&controllers.SubmissionController{},
+			),
+	    ),
 	)
 	beego.AddNamespace(ns)
 }

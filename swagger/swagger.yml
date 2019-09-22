@@ -110,6 +110,48 @@ paths:
           description: '{string} delete success!'
         "403":
           description: objectId is empty
+  /submission/{site}/{uid}:
+    post:
+      tags:
+      - submission
+      description: Triggers saving of user's submissions across a particular platform
+        into database
+      operationId: SubmissionController.Post
+      parameters:
+      - in: path
+        name: uid
+        description: UID of user
+        required: true
+        type: string
+      - in: path
+        name: site
+        description: Platform site name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: submission successfully saved
+        "403":
+          description: user or site invalid
+  /submission/{uid}:
+    get:
+      tags:
+      - submission
+      description: Get submissions of user across various platforms
+      operationId: SubmissionController.Get
+      parameters:
+      - in: path
+        name: uid
+        description: UID of user
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/submission.Submissions'
+        "403":
+          description: user not exist
   /user/{uid}:
     get:
       tags:
@@ -326,6 +368,75 @@ definitions:
         $ref: '#/definitions/bson.ObjectId'
       username:
         type: string
+  submission.CodechefSubmission:
+    title: CodechefSubmission
+    type: object
+    properties:
+      CreationDate:
+        type: string
+      Name:
+        type: string
+      Points:
+        type: string
+      Status:
+        type: string
+      URL:
+        type: string
+  submission.CodeforcesSubmission:
+    title: CodeforcesSubmission
+    type: object
+    properties:
+      CreationDate:
+        type: string
+        format: datetime
+      Name:
+        type: string
+      URL:
+        type: string
+  submission.HackerrankSubmission:
+    title: HackerrankSubmission
+    type: object
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+  submission.SpojSubmission:
+    title: SpojSubmission
+    type: object
+    properties:
+      CreationDate:
+        type: string
+      Language:
+        type: string
+      Name:
+        type: string
+      Status:
+        type: string
+      URL:
+        type: string
+  submission.Submissions:
+    title: Submissions
+    type: object
+    properties:
+      Codechef:
+        type: array
+        items:
+          $ref: '#/definitions/submission.CodechefSubmission'
+      Codeforces:
+        type: array
+        items:
+          $ref: '#/definitions/submission.CodeforcesSubmission'
+      Hackerrank:
+        type: array
+        items:
+          $ref: '#/definitions/submission.HackerrankSubmission'
+      Spoj:
+        type: array
+        items:
+          $ref: '#/definitions/submission.SpojSubmission'
 tags:
 - name: object
   description: |

@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"encoding/json"
+	"github.com/mdg-iitr/Codephile/models/submission"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,17 +13,6 @@ type HackerrankProfileInfo struct {
 	UserName string
 	JoinDate string
 	School   string
-}
-
-type Submissions struct {
-	Data  []HackerrankSubmission `json:"models"`
-	Count int                    `json:"total"`
-}
-
-type HackerrankSubmission struct {
-	URL          string `json:"url"`
-	CreationDate string `json:"created_at"`
-	Name         string `json:"name"`
 }
 
 type HackerrankGraphPoint struct {
@@ -70,10 +60,10 @@ func GetHackerrankProfileInfo(handle string) HackerrankProfileInfo {
 	return HackerrankProfileInfo{Name, UserName, Date, School}
 }
 
-func GetHackerrankSubmissions(handle string) Submissions {
+func GetHackerrankSubmissions(handle string) submission.HackerrankSubmissions {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/recent_challenges?limit=1000&response_version=v1"
 	byteValue := GetRequest(path)
-	var submissions Submissions
+	var submissions submission.HackerrankSubmissions
 	json.Unmarshal(byteValue, &submissions)
 	for i := 0; i < len(submissions.Data); i++ {
 		submissions.Data[i].URL = "https://www.hackerrank.com" + submissions.Data[i].URL
