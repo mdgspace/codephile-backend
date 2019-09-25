@@ -189,6 +189,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
         beego.ControllerComments{
+            Method: "Search",
+            Router: `/search`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
+        beego.ControllerComments{
             Method: "CreateUser",
             Router: `/signup`,
             AllowHTTPMethods: []string{"post"},

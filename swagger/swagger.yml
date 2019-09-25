@@ -364,6 +364,32 @@ paths:
       responses:
         "200":
           description: '{string} logout success'
+  /user/search:
+    get:
+      tags:
+      - user
+      description: Endpoint to search users
+      operationId: UserController.Search
+      parameters:
+      - in: query
+        name: count
+        description: No of search objects to be returned
+        required: true
+        type: string
+      - in: query
+        name: query
+        description: Search query
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/models.User'
+        "403":
+          description: '"search query is too small"'
   /user/signup:
     post:
       tags:
