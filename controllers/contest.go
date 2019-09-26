@@ -23,7 +23,6 @@ type ContestController struct {
 func (u *ContestController) GetContests() {
 	fetchDataAndParse();
 	contests := models.ReturnContests()
-	log.Println(contests.Result.Ongoing[0].Name)
 	u.Data["json"] = contests
 	u.ServeJSON()
 }

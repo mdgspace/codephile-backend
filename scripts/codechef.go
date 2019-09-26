@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+    "github.com/mdg-iitr/Codephile/models/profile"
 	"github.com/gocolly/colly"
 )
 
@@ -18,12 +18,6 @@ type CodechefGraphPoint struct {
 	ContestName string
 	Date        time.Time
 	Rating      float64
-}
-
-type CodechefProfileInfo struct {
-	Name     string
-	UserName string
-	School   string
 }
 
 func zero_pad(year *string) {
@@ -130,7 +124,7 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 
 }
 
-func GetCodechefProfileInfo(handle string) CodechefProfileInfo {
+func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 	path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=20", handle)
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
@@ -142,13 +136,14 @@ func GetCodechefProfileInfo(handle string) CodechefProfileInfo {
 	// country_code := Profile["country_code"]
 	// country_rank := Profile["country_rank"]
 	// diff := Profile["diff"]
-	// global_rank := Profile["global_rank"]
+	global_rank := Profile["global_rank"].(float64)
+	global_rank_string := strconv.FormatFloat(global_rank,'f',0,64)
 	Institution := Profile["institution"].(string)
 	// institution_type := Profile["institution_type"]
 	Name := Profile["name"].(string)
 	// rating := Profile["rating"]
 	UserName := Profile["username"].(string)
-	return CodechefProfileInfo{Name, UserName, Institution}
+	return profile.ProfileInfo{Name, UserName, Institution,global_rank_string}
 }
 
 func GetCodechefSubmissions(handle string) []submission.CodechefSubmission {

@@ -173,3 +173,31 @@ func (u *UserController) Verify() {
 	}
 	u.ServeJSON()
 }
+
+// @Title Fetch User Info	
+// @Description Fetches user info from different websites and store them into the database
+// @Param	site		path 	string	true		"site name"
+// @Param	handle		query 	string	true		"handle to fetch data from"
+// @Param	uid		query 	string	true		"uid of user"
+// @Success 200 {object} Success
+// @Failure 403 incorrect site or handle
+// @router /fetch/:site [get]
+func (u *UserController) Fetch() {
+	handle := u.GetString("handle")
+	site := u.GetString(":site")
+	uid := u.GetString("uid")
+	if uid != "" && bson.IsObjectIdHex(uid) {
+	_ , err := models.AddorUpdateProfile( bson.ObjectIdHex(uid) , site , handle)
+	    if err == nil {
+		    u.Data["json"] = map[string]string{"status": "Data fetched"}
+	    } else {
+		      // handle the error
+			  u.Data["json"] = map[string]string{"status": "user invalid or database operation failed"}  
+	           }
+	} else{
+		//handle the error(uid of the user isn't valid)
+		u.Data["json"] = map[string]string{"status": "uid is not valid"}
+	}
+	// u.Data["json"] = profile
+	u.ServeJSON()
+}

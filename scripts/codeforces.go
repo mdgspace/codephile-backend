@@ -8,16 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"time"
 )
-
-//CodeforcesProfileInfo represents the user profile for codeforces
-type CodeforcesProfileInfo struct {
-	Name     string
-	UserName string
-	School   string
-	JoinDate time.Time
-}
 
 // CodeforcesGraphPoint represents a single point for codeforces
 type CodeforcesGraphPoint struct {
@@ -43,25 +36,6 @@ type CodeforcesContest struct {
 	EpochStart  int64  `json:"epoch_starttime"`
 	EpochEnd    int64  `json:"epoch_endtime"`
 	Archived    bool   `json:"archived"`
-}
-
-//UnmarshalJSON implements the unmarshaler interface for CodeforcesProfileInfo
-func (data *CodeforcesProfileInfo) UnmarshalJSON(b []byte) error {
-	var profile map[string]interface{}
-	err := json.Unmarshal(b, &profile)
-	if profile["status"] != "OK" {
-		return errors.New("Bad Request")
-	}
-	result := profile["result"].([]interface{})[0].(map[string]interface{})
-	if result["firstName"] != nil && result["lastName"] != nil {
-		data.Name = result["firstName"].(string) + result["lastName"].(string)
-	}
-	data.UserName = result["handle"].(string)
-	data.JoinDate = time.Unix(int64(result["registrationTimeSeconds"].(float64)), 0)
-	if result["organization"] != nil {
-		data.School = result["organization"].(string)
-	}
-	return err
 }
 
 // UnmarshalJSON implements the unmarshaler interface for CodeforcesGraphPoint
@@ -110,8 +84,8 @@ func (contests *CodeforcesContests) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-func GetCodeforcesProfileInfo(handle string) CodeforcesProfileInfo {
-	var profile CodeforcesProfileInfo
+func GetCodeforcesProfileInfo(handle string) profile.ProfileInfo {
+	var profile profile.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + handle
 	data := GetRequest(url)
 	json.Unmarshal(data, &profile)

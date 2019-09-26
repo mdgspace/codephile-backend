@@ -5,15 +5,9 @@ import (
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"io/ioutil"
 	"log"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"net/http"
 )
-
-type HackerrankProfileInfo struct {
-	Name     string
-	UserName string
-	JoinDate string
-	School   string
-}
 
 type HackerrankGraphPoint struct {
 	ContestName string
@@ -47,17 +41,17 @@ func GetRequest(path string) []byte {
 	return byteValue
 }
 
-func GetHackerrankProfileInfo(handle string) HackerrankProfileInfo {
+func GetHackerrankProfileInfo(handle string) profile.ProfileInfo {
 	path := "https://www.hackerrank.com/rest/contests/master/hackers/" + handle + "/profile";
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
 	json.Unmarshal(byteValue, &JsonInterFace)
 	Profile := JsonInterFace.(map[string]interface{})["model"].(map[string]interface{})
 	Name := Profile["name"].(string)
-	Date := Profile["created_at"].(string)
+	// Date := Profile["created_at"].(string)
 	UserName := Profile["username"].(string)
 	School := Profile["school"].(string)
-	return HackerrankProfileInfo{Name, UserName, Date, School}
+	return profile.ProfileInfo{Name, UserName, School, ""}
 }
 
 func GetHackerrankSubmissions(handle string) submission.HackerrankSubmissions {

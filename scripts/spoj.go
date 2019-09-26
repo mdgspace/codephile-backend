@@ -7,14 +7,8 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"github.com/mdg-iitr/Codephile/models/profile"
 )
-
-type SpojProfileInfo struct {
-	Name      string
-	UserName  string
-	School    string
-	WorldRank string
-}
 
 type SpojProblems struct {
 	count     string
@@ -26,10 +20,10 @@ type SolvedProblems struct {
 	link    string
 }
 
-func GetSpojProfileInfo(handle string) SpojProfileInfo {
+func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 
 	c := colly.NewCollector()
-	var Profile SpojProfileInfo
+	var Profile profile.ProfileInfo
 
 	c.OnHTML("#user-profile-left", func(e *colly.HTMLElement) {
 		Name := e.ChildText("h3")
@@ -38,7 +32,7 @@ func GetSpojProfileInfo(handle string) SpojProfileInfo {
 		School := List[1]
 		List = strings.Split(e.ChildText(":nth-child(6)"), ":")
 		WorldRank := List[1]
-		Profile = SpojProfileInfo{Name, UserName, School, WorldRank}
+		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
