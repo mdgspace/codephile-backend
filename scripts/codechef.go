@@ -125,11 +125,29 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 }
 
 func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
-	path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=20", handle)
+
+	/* path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=40", handle)
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
+	// var Profile map[string]interface{}
 	json.Unmarshal(byteValue, &JsonInterFace)
+	pagesToTraverse := int(JsonInterFace.(map[string]interface{})["availablePages"].(float64))
 	Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
+    for i:=1 ; i <= pagesToTraverse ; i++ {
+		newPath := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=%d&itemsPerPage=40", handle , i)
+		newbyteValue := GetRequest(newPath)
+		var newJsonInterFace interface{}
+		json.Unmarshal(newbyteValue , &newJsonInterFace)
+		log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[0])
+		for j:=0 ; j<=39 ; j++ {
+			log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j])//.(map[string]interface{})["username"].(string))
+			if newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})["username"].(string) == handle {
+			  Profile = newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})
+			  break
+			}
+		} 
+	}
+	// Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
 
 	// all_rating := Profile["all_rating"]
 	// country := Profile["country"]
@@ -143,7 +161,30 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 	Name := Profile["name"].(string)
 	// rating := Profile["rating"]
 	UserName := Profile["username"].(string)
-	return profile.ProfileInfo{Name, UserName, Institution,global_rank_string}
+	return profile.ProfileInfo{Name, UserName, Institution,global_rank_string} */
+
+	//scrapping the profile
+	c := colly.NewCollector()
+	var Profile profile.ProfileInfo
+	var School string
+	c.OnHTML(".user-profile-container", func(e *colly.HTMLElement) {
+		Name := e.ChildText("h2")
+		UserName := handle
+		for i:=2 ; i<=10 ; i++ {
+			if e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) label" ,i )) == "Institution:" {
+				School = e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) span" ,i ))
+			}
+		}
+		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
+		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank}
+	})
+
+	c.OnError(func(_ *colly.Response, err error) {
+		fmt.Println("Something went wrong:", err)
+	})
+
+	c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", handle))
+	return Profile
 }
 
 func GetCodechefSubmissions(handle string) []submission.CodechefSubmission {
