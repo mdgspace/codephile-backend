@@ -206,6 +206,36 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.User'
+  /user/fetch/{site}:
+    get:
+      tags:
+      - user
+      description: Fetches user info from different websites and store them into the
+        database
+      operationId: UserController.Fetch User Info
+      parameters:
+      - in: path
+        name: site
+        description: site name
+        required: true
+        type: string
+      - in: query
+        name: handle
+        description: handle to fetch data from
+        required: true
+        type: string
+      - in: query
+        name: uid
+        description: uid of user
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/Success'
+        "403":
+          description: incorrect site or handle
   /user/login:
     post:
       tags:
@@ -278,6 +308,9 @@ paths:
         "403":
           description: incorrect site or handle
 definitions:
+  Success:
+    title: Success
+    type: object
   bson.ObjectId:
     title: ObjectId
     type: object

@@ -7,6 +7,7 @@ import (
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"github.com/mdg-iitr/Codephile/scripts"
 	"log"
+	"github.com/mdg-iitr/Codephile/models/profile"
 )
 
 type User struct {
@@ -151,6 +152,7 @@ func AddSubmissions(user *User, site string) error {
 	}
 	return nil
 }
+
 func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
 	coll := db.NewCollectionSession("coduser")
 	var user User
@@ -160,3 +162,60 @@ func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
 	}
 	return &user.Submissions, nil
 }
+
+func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) ( *User, error) {
+
+	var UserProfile profile.ProfileInfo 
+	//runs code to fetch the particular script's getProfile function
+	switch site {
+    case "codechef":
+		UserProfile = scripts.GetCodechefProfileInfo(handle)
+		break;
+	case "codeforces":
+		UserProfile = scripts.GetCodeforcesProfileInfo(handle)
+		break;
+	case "spoj":
+		UserProfile = scripts.GetSpojProfileInfo(handle)
+		break;
+	case "hackerrank":
+		UserProfile = scripts.GetHackerrankProfileInfo(handle)
+		break;
+	}  // add a default case for non-existent website
+	//Profile fetched. Store in database 
+	 user,err := GetUser(uid)
+	 if err == nil {
+		var ProfileTobeInserted profile.Profile
+		ProfileTobeInserted.Website = site
+		ProfileTobeInserted.Profileinfo = UserProfile
+		// ProfileTobeInserted is all set to be put in the database
+		collection := db.NewCollectionSession("coduser")
+		defer collection.Close()
+		// err2 := collection.Session.Update(bson.D{{"_id" , user.ID}},bson.D{{"$set" , ProfileTobeInserted}})
+		NewNode := site + "Profile"
+		SelectedUser := bson.D{{"_id", user.ID}}
+		Update := bson.D{{"$set" , bson.D{ {NewNode , ProfileTobeInserted }}}}
+		_, err2 := collection.Session.Upsert(SelectedUser,Update)
+		//inserted into the document
+		if err2 == nil{
+			return user , nil
+		} else {
+			return nil, err2
+		}
+	 } else {
+		 //handle the error (Invalid user)
+		  return nil, err 
+	 } 
+}
+
+// func Login(username, password string) bool {
+// 	for _, u := range UserList {
+// 		if u.Username == username && u.Password == password {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func DeleteUser(uid string) {
+// 	delete(UserList, uid)
+// }
