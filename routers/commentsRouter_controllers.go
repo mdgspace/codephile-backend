@@ -16,6 +16,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ContestController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ContestController"],
+        beego.ControllerComments{
+            Method: "GetSpecificContests",
+            Router: `/:site`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"],
         beego.ControllerComments{
             Method: "Post",

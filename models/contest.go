@@ -3,9 +3,10 @@ package models
 import(
 	  "log"
 	  "encoding/json"
+	  "net/http"
+	  "io/ioutil"
+	  "strings"
 )
-
-var FinalResult S
 
 type S struct {
 	Result Result `json:"result"`
@@ -35,18 +36,63 @@ type Result struct {
 	Upcoming  []Upcoming `json:"upcoming"`
 }
 
-func ParseContests(data []byte) {
-	error := json.Unmarshal(data,&FinalResult)
-
-	if error!=nil {
-		log.Println("Error")
-		log.Fatal(error)
-	}
+func ReturnContests() S{
+	data := fetchContests()
+	var FinalResult S
+	err := json.Unmarshal(data, &FinalResult)
 	
+	if err != nil {
+		log.Println("Error")
+		log.Fatal(err)
+	}
+
+    log.Println(FinalResult.Result.Ongoing[0].Platform)
+	log.Println(len(FinalResult.Result.Ongoing))
+	return FinalResult
 }
 
-func ReturnContests() S{
-	 return FinalResult
+func ReturnSpecificContests(site string) S {
+	body := fetchContests()
+	var InitialResult S  //InitialResult stores all the contests
+	var FinalResult S    //FinalResult will store the website's contests only
+	err := json.Unmarshal(body, &InitialResult)
+	
+	if err != nil {
+		log.Println("Error")
+		log.Fatal(err)
+	}   
+	//looping over all the ongoing contests and selecting only those specific to the website
+		for _,v := range InitialResult.Result.Ongoing{
+            if strings.ToLower(v.Platform) == site {
+                FinalResult.Result.Ongoing = append(FinalResult.Result.Ongoing, v) 
+			}
+		}
+	//looping over all the upcoming contests and selecting only those specific to the website
+		for _,v := range InitialResult.Result.Upcoming{
+            if strings.ToLower(v.Platform) == site {
+				FinalResult.Result.Upcoming = append(FinalResult.Result.Upcoming, v)
+			}
+		}
+		//equating the timestamp
+		FinalResult.Result.Timestamp = InitialResult.Result.Timestamp
+		return FinalResult
+}
+
+func fetchContests()(data []byte) {
+	resp, err := http.Get("https://contesttrackerapi.herokuapp.com/")
+
+	if err != nil {
+		log.Println("Error")
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}	
+	return body
 }
 
 
