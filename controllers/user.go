@@ -181,7 +181,7 @@ func (u *UserController) Verify() {
 // @Param	uid		query 	string	true		"uid of user"
 // @Success 200 {object} Success
 // @Failure 403 incorrect site or handle
-// @router /fetch/:site [get]
+// @router /fetch/:site [post]
 func (u *UserController) Fetch() {
 	handle := u.GetString("handle")
 	site := u.GetString(":site")
@@ -199,5 +199,29 @@ func (u *UserController) Fetch() {
 		u.Data["json"] = map[string]string{"status": "uid is not valid"}
 	}
 	// u.Data["json"] = profile
+	u.ServeJSON()
+}
+
+
+// @Title Fetch All User Profiles And returns them	
+// @Description Fetches user info from different websites and returns them
+// @Param	uid		path 	string	true		"UID of user"
+// @Success 200 {object} profile.AllProfiles
+// @Failure 403 invalid user
+// @router /fetch/:uid [get]
+func (u *UserController) ReturnAllProfiles() {
+	uid := u.GetString(":uid")
+	if uid != "" && bson.IsObjectIdHex(uid) {
+		   profiles,err := models.GetProfiles(bson.ObjectIdHex(uid)) 
+		   if err != nil{
+			u.Data["json"] = err.Error()
+			u.Ctx.ResponseWriter.WriteHeader(403)
+		   } else{
+            u.Data["json"] = profiles
+		   }
+	} else{
+		//handle the error(uid of the user isn't valid)
+		u.Data["json"] = map[string]string{"status": "uid is not valid"}
+	}
 	u.ServeJSON()
 }

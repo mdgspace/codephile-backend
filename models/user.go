@@ -207,6 +207,33 @@ func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) ( *User, 
 	 } 
 }
 
+func GetProfiles(ID bson.ObjectId) (profile.AllProfiles ,error){
+	coll := db.NewCollectionSession("coduser")
+	var profiles profile.AllProfiles
+	var profilesToBeReturned profile.AllProfiles  //appends the profile to this variable which will be returned
+	err1 := coll.Session.FindId(ID).Select(bson.M{"codechefProfile": 1}).One(&profiles)
+	profilesToBeReturned.CodechefProfile = profiles.CodechefProfile
+	err2 := coll.Session.FindId(ID).Select(bson.M{"codeforcesProfile": 1}).One(&profiles)
+	profilesToBeReturned.CodeforcesProfile = profiles.CodeforcesProfile
+	err3 := coll.Session.FindId(ID).Select(bson.M{"hackerrankProfile": 1}).One(&profiles)
+	profilesToBeReturned.HackerrankProfile = profiles.HackerrankProfile
+	err4 := coll.Session.FindId(ID).Select(bson.M{"spojProfile": 1}).One(&profiles)
+	profilesToBeReturned.SpojProfile = profiles.SpojProfile
+	if err1 == nil  && err2 == nil  && err3 == nil  && err4 == nil{
+	return profilesToBeReturned, nil
+	} else {
+		if err1 != nil{
+           return profilesToBeReturned, err1
+		} else if err2 != nil {
+			return profilesToBeReturned, err2
+		} else if err3 != nil{
+			return profilesToBeReturned, err3
+		} else {
+			return profilesToBeReturned, err4
+		}
+	}
+}
+
 // func Login(username, password string) bool {
 // 	for _, u := range UserList {
 // 		if u.Username == username && u.Password == password {
