@@ -21,6 +21,25 @@ paths:
             $ref: '#/definitions/models.S'
         "403":
           description: error
+  /contests/{site}:
+    get:
+      tags:
+      - contests
+      description: Returns the contests of a specific website
+      operationId: ContestController.Get Particular Site's Contests
+      parameters:
+      - in: path
+        name: site
+        description: site name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.S'
+        "403":
+          description: incorrect site or unknown error
   /object/:
     get:
       tags:

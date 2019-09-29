@@ -5,9 +5,6 @@ import (
 	"github.com/astaxie/beego"
 	//"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models"
-	"net/http"
-	"io/ioutil"
-	"log"
 )
 
 //Controller to display contests
@@ -21,28 +18,22 @@ type ContestController struct {
 // @Failure 403 error
 // @router / [get]
 func (u *ContestController) GetContests() {
-	fetchDataAndParse();
 	contests := models.ReturnContests()
 	u.Data["json"] = contests
 	u.ServeJSON()
 }
 
-//function to fetch data from URL and parse
-func fetchDataAndParse()  {
-	resp, err := http.Get("https://contesttrackerapi.herokuapp.com/")
-
-	if err != nil {
-		log.Println("Error")
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}	
-	models.ParseContests(body);
+// @Title Get Particular Site's Contests	
+// @Description Returns the contests of a specific website
+// @Param	site		path 	string	true		"site name"
+// @Success 200 {object} models.S
+// @Failure 403 incorrect site or unknown error
+// @router /:site [get]
+func (u *ContestController) GetSpecificContests() {
+	site := u.GetString(":site")
+	contests := models.ReturnSpecificContests(site)
+	u.Data["json"] = contests
+	u.ServeJSON()
 }
 
 
