@@ -275,7 +275,7 @@
             }
         },
         "/user/fetch/{site}": {
-            "get": {
+            "post": {
                 "tags": [
                     "user"
                 ],
@@ -313,6 +313,35 @@
                     },
                     "403": {
                         "description": "incorrect site or handle"
+                    }
+                }
+            }
+        },
+        "/user/fetch/{uid}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Fetches user info from different websites and returns them",
+                "operationId": "UserController.Fetch All User Profiles And returns them",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "UID of user",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/profile.AllProfiles"
+                        }
+                    },
+                    "403": {
+                        "description": "invalid user"
                     }
                 }
             }
@@ -626,6 +655,54 @@
                     "$ref": "#/definitions/bson.ObjectId"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.AllProfiles": {
+            "title": "AllProfiles",
+            "type": "object",
+            "properties": {
+                "codechefProfile": {
+                    "$ref": "#/definitions/profile.Profile"
+                },
+                "codeforcesProfile": {
+                    "$ref": "#/definitions/profile.Profile"
+                },
+                "hackerrankProfile": {
+                    "$ref": "#/definitions/profile.Profile"
+                },
+                "spojProfile": {
+                    "$ref": "#/definitions/profile.Profile"
+                }
+            }
+        },
+        "profile.Profile": {
+            "title": "Profile",
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/profile.ProfileInfo"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.ProfileInfo": {
+            "title": "ProfileInfo",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "school": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }
