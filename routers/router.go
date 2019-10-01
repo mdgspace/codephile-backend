@@ -34,6 +34,11 @@ func init() {
 	        beego.NSInclude(
 				&controllers.SubmissionController{},
 			),
+		),
+		beego.NSNamespace("/follow",
+	        beego.NSInclude(
+				&controllers.FollowController{},
+			),
 	    ),
 	)
 	beego.AddNamespace(ns)
