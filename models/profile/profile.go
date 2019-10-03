@@ -3,7 +3,6 @@ package profile
 import(
 	  "encoding/json"
 	  "errors"
-	//   "	"
 )
 
 type ProfileInfo struct{
@@ -16,6 +15,14 @@ type ProfileInfo struct{
 type Profile struct {
 	Website     string          `bson:"website" json:"website" schema: "website"`
 	Profileinfo ProfileInfo     `bson:"profile" json:"profile" schema: "profile"`
+}
+
+//create an allProfilesStruct
+type AllProfiles struct {
+	CodechefProfile    Profile   `bson:"codechefProfile" json:"codechefProfile"`
+	CodeforcesProfile  Profile   `bson:"codeforcesProfile" json:"codeforcesProfile"`
+	HackerrankProfile  Profile   `bson:"hackerrankProfile" json:"hackerrankProfile"`
+	SpojProfile        Profile   `bson:"spojProfile" json:"spojProfile"`
 }
 
 //UnmarshalJSON implements the unmarshaler interface for CodeforcesProfileInfo
