@@ -18,11 +18,11 @@ type User struct {
 	Submissions submission.Submissions `bson:"submission" json:"-" schema:"-"`
 }
 type Handle struct {
-	Codeforces  string `bson:"codeforces" json:"codeforces" schema:"codeforces"`
-	Codechef    string `bson:"codechef" json:"codechef" schema:"codechef"`
-	Spoj        string `bson:"spoj" json:"spoj" schema:"spoj"`
-	Hackerrank  string `bson:"hackerrank" json:"hackerrank" schema:"hackerrank"`
-	Hackerearth string `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
+	Codeforces  string                 `bson:"codeforces" json:"codeforces" schema:"codeforces"`
+	Codechef    string                 `bson:"codechef" json:"codechef" schema:"codechef"`
+	Spoj        string                 `bson:"spoj" json:"spoj" schema:"spoj"`
+	Hackerrank  string                 `bson:"hackerrank" json:"hackerrank" schema:"hackerrank"`
+	Hackerearth string                 `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
 }
 
 func AddUser(u User) (string, error) {

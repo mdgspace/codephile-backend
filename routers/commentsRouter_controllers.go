@@ -27,6 +27,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
         beego.ControllerComments{
+            Method: "CompareUser",
+            Router: `/compare`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
+        beego.ControllerComments{
             Method: "FollowUser",
             Router: `/following`,
             AllowHTTPMethods: []string{"post"},

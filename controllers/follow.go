@@ -29,3 +29,24 @@ func (f *FollowController) FollowUser(){
 	}
 	f.ServeJSON()
 }
+
+// @Title CompareUser
+// @Description Compares the data of two users
+// @Param	uid1		query 	string	true  "uid of follower"
+// @Param	uid2		query 	string	true  "uid of following"
+// @Success 200 {object} //Enter object type
+// @Failure 403 Invalid uid
+// @router /compare  [get]
+func (f *FollowController) CompareUser(){
+	uid1 := f.GetString("uid1")
+	uid2 := f.GetString("uid2")
+	worldRanks ,err := models.CompareUser(uid1, uid2)      //change assignments
+    if err == nil{
+		//data has been fetched
+		f.Data["json"] = worldRanks
+	} else {
+		//error
+		f.Data["json"] = map[string]string{"status": "error"}
+	}
+	f.ServeJSON()
+}
