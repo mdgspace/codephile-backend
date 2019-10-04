@@ -11,7 +11,7 @@ type FollowController struct {
 }
 
 // @Title FollowUser
-// @Description Adds the "Following" uid to the database
+// @Description Adds the Following user's uid to the database
 // @Param	uid1		query 	string	true  "uid of follower"
 // @Param	uid2		query 	string	true  "uid of following"
 // @Success 200 {string} user followed
@@ -25,7 +25,7 @@ func (f *FollowController) FollowUser(){
 		//user2 has been followed
 		f.Data["json"] = map[string]string{"status":"User Followed"}
 	} else {
-		f.Data["json"] = map[string]string{"status": "error"}
+		f.Data["json"] = map[string]string{"status": err.Error()}
 	}
 	f.ServeJSON()
 }
@@ -46,7 +46,7 @@ func (f *FollowController) CompareUser(){
 		f.Data["json"] = worldRanks
 	} else {
 		//error
-		f.Data["json"] = map[string]string{"status": "error"}
+		f.Data["json"] = map[string]string{"status": err.Error()}
 	}
 	f.ServeJSON()
 }

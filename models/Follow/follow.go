@@ -1,27 +1,27 @@
 package models  //try package models if import cycle error
 
 import (
-	// "errors"
+	"errors"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models"
 )
 
 type Following struct{
-	CodephileHandle string          `bson:"codephile_handle"`
-	ID              bson.ObjectId   `bson:"id"`
+	CodephileHandle string          `bson:"codephile_handle" json:"codephile_handle"`
+	ID              bson.ObjectId   `bson:"id" json:"id"`
 }
 
 type WorldRankComparison struct{
-	WorldRank1   string             `bson:"rank1"`
-	WorldRank2   string             `bson:"rank2"`
+	WorldRank1   string             `bson:"rank1" json:"rank1"`
+	WorldRank2   string             `bson:"rank2" json:"rank2"`
 } 
 
 type AllWorldRanks struct {
-	CodechefWorldRanks      WorldRankComparison    `bson:"codechef_ranks`
-	CodeforcesWorldRanks    WorldRankComparison    `bson:"codeforces_ranks`
-	HackerrankWorldRanks    WorldRankComparison    `bson:"hackerrank_ranks`
-	SpojWorldRanks          WorldRankComparison    `bson:"spoj_ranks`
+	CodechefWorldRanks      WorldRankComparison    `bson:"codechef_ranks json:"codechef_ranks"`
+	CodeforcesWorldRanks    WorldRankComparison    `bson:"codeforces_ranks json:"codeforces_ranks"`
+	HackerrankWorldRanks    WorldRankComparison    `bson:"hackerrank_ranks json:"hackerrank_ranks"`
+	SpojWorldRanks          WorldRankComparison    `bson:"spoj_ranks json:"spoj_ranks"`
 }
 
 func FollowUser(uid1 string, uid2 string) error{
@@ -43,11 +43,12 @@ func FollowUser(uid1 string, uid2 string) error{
 				return err
 			} else {
 				//unable to get the user from database
-                return err1
+				return errors.New("Unable to fetch the user from the database")
+                
 			}
 	 } else {
-		 //uid is not valid
-		 return nil	
+		    //uid is not valid
+		    return errors.New("UID Invalid")	
 	 }
 }
 
@@ -58,8 +59,8 @@ func CompareUser(uid1 string, uid2 string) (AllWorldRanks , error)   {
 			collection := db.NewCollectionSession("coduser")
 			defer collection.Close()
 			//gets the different profiles to fetch world ranks
-			profiles1 , _ := models.GetProfiles(bson.ObjectIdHex(uid1))
-			profiles2 , _ := models.GetProfiles(bson.ObjectIdHex(uid2))
+			profiles1 , err1 := models.GetProfiles(bson.ObjectIdHex(uid1))
+			profiles2 , err2 := models.GetProfiles(bson.ObjectIdHex(uid2))
 			
 			//puts the world ranks in the struct fields
 			worldRanksComparison.CodechefWorldRanks.WorldRank1 = profiles1.CodechefProfile.Profileinfo.WorldRank
@@ -75,10 +76,14 @@ func CompareUser(uid1 string, uid2 string) (AllWorldRanks , error)   {
 			worldRanksComparison.SpojWorldRanks.WorldRank2 = profiles2.SpojProfile.Profileinfo.WorldRank
 			
 			//handle the errors
-			return worldRanksComparison, nil
+			if err1 != nil || err2 != nil {
+				return worldRanksComparison, errors.New("Unable to fetch user from database")
+			} else {
+			    return worldRanksComparison, nil
+			}
     } else {
 	      //uid is not valid
-	      return worldRanksComparison, nil	
+	      return worldRanksComparison, errors.New("UID Invalid")	
     }     
 }
 
