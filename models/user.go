@@ -8,6 +8,7 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 	"log"
 	"github.com/mdg-iitr/Codephile/models/profile"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -29,9 +30,16 @@ func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.Insert(u)
-	if err != nil {
-		panic(err)
+	//hashing the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	//data type of hash is []byte
+	u.Password = string(hash)
+    if err != nil {
+        log.Println(err)
+    }
+	err2 := collection.Session.Insert(u)
+	if err2 != nil {
+		panic(err2)
 	}
 	return u.ID.Hex(), nil
 }
@@ -92,12 +100,18 @@ func AutheticateUser(username string, password string) (*User, bool) {
 	err := collection.Session.Find(bson.M{"username": username}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
+		log.Println(err)
 		return nil, false
 	}
-	if user.Password == password {
+
+    err2 := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(password))
+    if err2 != nil {
+        log.Println(err2)
+        return nil, false
+    } else{
 		return &user, true
 	}
-	return nil, false
+
 }
 
 func AddSubmissions(user *User, site string) error {
