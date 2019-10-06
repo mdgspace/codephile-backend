@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -33,6 +34,21 @@ type Handle struct {
 	Hackerearth string                 `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
 }
 
+func (u *User) UnmarshalJSON(b []byte) error {
+	var m map[string]interface{}
+	err := json.Unmarshal(b, &m)
+	if val, ok := m["password"]; ok {
+		u.Password = val.(string)
+	}
+	if val, ok := m["username"]; ok {
+		u.Username = val.(string)
+	}
+	if val, ok := m["handle"]; ok {
+		d, _ := json.Marshal(val)
+		err = json.Unmarshal(d, &u.Handle)
+	}
+	return err
+}
 func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
 	collection := db.NewCollectionSession("coduser")
