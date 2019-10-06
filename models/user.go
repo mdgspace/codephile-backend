@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/submission"
@@ -10,6 +11,12 @@ import (
 	"github.com/mdg-iitr/Codephile/models/profile"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var index = mgo.Index{
+	Key:        []string{"username"},
+	Unique:     true,
+	Background: true,
+}
 
 type User struct {
 	ID          bson.ObjectId          `bson:"_id" json:"id" schema:"-"`
@@ -30,6 +37,10 @@ func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
+	err := collection.Session.EnsureIndex(index)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	//hashing the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	//data type of hash is []byte
@@ -37,9 +48,9 @@ func AddUser(u User) (string, error) {
     if err != nil {
         log.Println(err)
     }
-	err2 := collection.Session.Insert(u)
-	if err2 != nil {
-		panic(err2)
+	err = collection.Session.Insert(u)
+	if err != nil {
+		return "", errors.New("Could not create user: Username already exists")
 	}
 	return u.ID.Hex(), nil
 }
@@ -88,7 +99,11 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 			u.Handle.Hackerearth = uu.Handle.Hackerearth
 		}
 		collection := db.NewCollectionSession("coduser")
+		err = collection.Session.EnsureIndex(index)
 		_, err := collection.Session.UpsertId(uid, &u)
+		if err != nil {
+			err = errors.New("username already exists")
+		}
 		return u, err
 	}
 	return nil, errors.New("User Not Exist")
@@ -177,12 +192,12 @@ func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
 	return &user.Submissions, nil
 }
 
-func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) ( *User, error) {
+func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) (*User, error) {
 
-	var UserProfile profile.ProfileInfo 
+	var UserProfile profile.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
 	switch site {
-    case "codechef":
+	case "codechef":
 		UserProfile = scripts.GetCodechefProfileInfo(handle)
 		break;
 	case "codeforces":
@@ -194,10 +209,10 @@ func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) ( *User, 
 	case "hackerrank":
 		UserProfile = scripts.GetHackerrankProfileInfo(handle)
 		break;
-	}  // add a default case for non-existent website
+	} // add a default case for non-existent website
 	//Profile fetched. Store in database 
-	 user,err := GetUser(uid)
-	 if err == nil {
+	user, err := GetUser(uid)
+	if err == nil {
 		var ProfileTobeInserted profile.Profile
 		ProfileTobeInserted.Website = site
 		ProfileTobeInserted.Profileinfo = UserProfile
@@ -207,24 +222,24 @@ func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) ( *User, 
 		// err2 := collection.Session.Update(bson.D{{"_id" , user.ID}},bson.D{{"$set" , ProfileTobeInserted}})
 		NewNode := site + "Profile"
 		SelectedUser := bson.D{{"_id", user.ID}}
-		Update := bson.D{{"$set" , bson.D{ {NewNode , ProfileTobeInserted }}}}
-		_, err2 := collection.Session.Upsert(SelectedUser,Update)
+		Update := bson.D{{"$set", bson.D{{NewNode, ProfileTobeInserted}}}}
+		_, err2 := collection.Session.Upsert(SelectedUser, Update)
 		//inserted into the document
-		if err2 == nil{
-			return user , nil
+		if err2 == nil {
+			return user, nil
 		} else {
 			return nil, err2
 		}
-	 } else {
-		 //handle the error (Invalid user)
-		  return nil, err 
-	 } 
+	} else {
+		//handle the error (Invalid user)
+		return nil, err
+	}
 }
 
-func GetProfiles(ID bson.ObjectId) (profile.AllProfiles ,error){
+func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
 	coll := db.NewCollectionSession("coduser")
 	var profiles profile.AllProfiles
-	var profilesToBeReturned profile.AllProfiles  //appends the profile to this variable which will be returned
+	var profilesToBeReturned profile.AllProfiles //appends the profile to this variable which will be returned
 	err1 := coll.Session.FindId(ID).Select(bson.M{"codechefProfile": 1}).One(&profiles)
 	profilesToBeReturned.CodechefProfile = profiles.CodechefProfile
 	err2 := coll.Session.FindId(ID).Select(bson.M{"codeforcesProfile": 1}).One(&profiles)
@@ -233,14 +248,14 @@ func GetProfiles(ID bson.ObjectId) (profile.AllProfiles ,error){
 	profilesToBeReturned.HackerrankProfile = profiles.HackerrankProfile
 	err4 := coll.Session.FindId(ID).Select(bson.M{"spojProfile": 1}).One(&profiles)
 	profilesToBeReturned.SpojProfile = profiles.SpojProfile
-	if err1 == nil  && err2 == nil  && err3 == nil  && err4 == nil{
-	return profilesToBeReturned, nil
+	if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+		return profilesToBeReturned, nil
 	} else {
-		if err1 != nil{
-           return profilesToBeReturned, err1
+		if err1 != nil {
+			return profilesToBeReturned, err1
 		} else if err2 != nil {
 			return profilesToBeReturned, err2
-		} else if err3 != nil{
+		} else if err3 != nil {
 			return profilesToBeReturned, err3
 		} else {
 			return profilesToBeReturned, err4

@@ -6,15 +6,15 @@ import(
 )
 
 type ProfileInfo struct{
-	Name      string   `bson:"name" json:"name" schema: "name"`
-	UserName  string   `bson:"userName" json:"userName" schema: "userName"`
-	School    string   `bson:"school" json:"school" schema: "school"`
-	WorldRank string   `bson:"rank" json:"rank" schema: "rank"`
+	Name      string   `bson:"name" json:"name" schema:"name"`
+	UserName  string   `bson:"userName" json:"userName" schema:"userName"`
+	School    string   `bson:"school" json:"school" schema:"school"`
+	WorldRank string   `bson:"rank" json:"rank" schema:"rank"`
 }
 
 type Profile struct {
-	Website     string          `bson:"website" json:"website" schema: "website"`
-	Profileinfo ProfileInfo     `bson:"profile" json:"profile" schema: "profile"`
+	Website     string          `bson:"website" json:"website" schema:"website"`
+	Profileinfo ProfileInfo     `bson:"profile" json:"profile" schema:"profile"`
 }
 
 //create an allProfilesStruct
