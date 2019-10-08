@@ -213,15 +213,15 @@ func (u *UserController) ReturnAllProfiles() {
 	uid := u.GetString(":uid")
 	if uid != "" && bson.IsObjectIdHex(uid) {
 		   profiles,err := models.GetProfiles(bson.ObjectIdHex(uid)) 
-		   if err != nil{
-			u.Data["json"] = err.Error()
-			u.Ctx.ResponseWriter.WriteHeader(403)
+		   if err != nil {
+			  u.Data["json"] = err.Error()
+			  u.Ctx.ResponseWriter.WriteHeader(403)
 		   } else{
             u.Data["json"] = profiles
 		   }
-	} else{
-		//handle the error(uid of the user isn't valid)
-		u.Data["json"] = map[string]string{"status": "uid is not valid"}
+	} else {
+		    //handle the error(uid of the user isn't valid)
+		    u.Data["json"] = map[string]string{"status": "uid is not valid"}
 	}
 	u.ServeJSON()
 }
