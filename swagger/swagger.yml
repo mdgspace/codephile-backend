@@ -40,6 +40,8 @@ paths:
             $ref: '#/definitions/models.S'
         "403":
           description: incorrect site or unknown error
+  /follow/compare: {}
+  /follow/following: {}
   /object/:
     get:
       tags:
@@ -346,6 +348,9 @@ paths:
         "403":
           description: incorrect site or handle
 definitions:
+  //Enter:
+    title: //Enter
+    type: object
   Success:
     title: Success
     type: object

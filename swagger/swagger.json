@@ -60,6 +60,8 @@
                 }
             }
         },
+        "/follow/compare": {},
+        "/follow/following": {},
         "/object/": {
             "get": {
                 "tags": [
@@ -521,6 +523,10 @@
         }
     },
     "definitions": {
+        "//Enter": {
+            "title": "//Enter",
+            "type": "object"
+        },
         "Success": {
             "title": "Success",
             "type": "object"
