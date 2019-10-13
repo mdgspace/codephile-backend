@@ -56,7 +56,12 @@ func GetSpojSubmissions(handle string) []submission.SpojSubmission {
 			CreationDate := elem.ChildText(".status_sm span")
 			status := elem.ChildText(".statusres")
 			language := elem.ChildText(".slang span")
-			submissions = append(submissions, submission.SpojSubmission{Name, URL, CreationDate, status, language})
+			points := 0
+			if status == "accepted" {
+				points = 100
+			}
+			tags := GetProbTags(URL)
+			submissions = append(submissions, submission.SpojSubmission{Name, URL, CreationDate, status, language, points, tags})
 		})
 	})
 
@@ -119,4 +124,19 @@ func CheckSpojHandle(handle string) bool {
 		log.Println(err.Error())
 	}
 	return valid
+}
+
+func GetProbTags(url string) []string {
+	var tags []string
+	c := colly.NewCollector()
+	c.OnHTML(".problem-tag", func(e *colly.HTMLElement) {
+		fmt.Println(e.Text)
+		tags = append(tags, e.Text)
+	})
+	err := c.Visit(url)
+	fmt.Println(url)
+	if err != nil {
+		log.Println("could not fetch tags")
+	}
+	return tags
 }

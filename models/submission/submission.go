@@ -15,19 +15,22 @@ type Submissions struct {
 }
 
 type CodechefSubmission struct {
-	Name         string `bson:"name"`
-	URL          string `bson:"url"`
-	CreationDate string `bson:"creation_date"`
-	Status       string `bson:"status"`
-	Points       string `bson:"points"`
+	Name         string   `bson:"name"`
+	URL          string   `bson:"url"`
+	CreationDate string   `bson:"creation_date"`
+	Status       string   `bson:"status"`
+	Points       string   `bson:"points"`
+	Tags         []string `bson:"tags"`
 }
 
 type SpojSubmission struct {
-	Name         string `bson:"name"`
-	URL          string `bson:"url"`
-	CreationDate string `bson:"creation_date"`
-	Status       string `bson:"status"`
-	Language     string `bson:"language"`
+	Name         string   `bson:"name"`
+	URL          string   `bson:"url"`
+	CreationDate string   `bson:"creation_date"`
+	Status       string   `bson:"status"`
+	Language     string   `bson:"language"`
+	Points       int      `bson:"points"`
+	Tags         []string `bson:"tags"`
 }
 
 type HackerrankSubmissions struct {
@@ -44,8 +47,12 @@ type HackerrankSubmission struct {
 // CodeforcesSubmission represents the single submission for codeforces
 type CodeforcesSubmission struct {
 	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"created_at"`
+	CreationTime time.Time `bson:"created_at"`
 	Name         string    `bson:"name"`
+	Status       string    `bson:"status"`
+	Points       int       `bson:"points"`
+	Rating       int       `bson:"rating"`
+	Tags         []string  `bson:"tags"`
 }
 
 // CodeforcesSubmissions represents the submission for codeforces
@@ -64,11 +71,20 @@ func (sub *CodeforcesSubmissions) UnmarshalJSON(b []byte) error {
 	results := data["result"].([]interface{})
 	sub.Count = len(results)
 	for _, result := range results {
+		r := result.(map[string]interface{})
 		problem := result.(map[string]interface{})["problem"].(map[string]interface{})
 		submission := CodeforcesSubmission{}
 		submission.URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)
 		submission.Name = problem["name"].(string)
-		submission.CreationDate = time.Unix(int64(result.(map[string]interface{})["creationTimeSeconds"].(float64)), 0)
+		for _, x := range problem["tags"].([]interface{}) {
+			submission.Tags = append(submission.Tags, x.(string))
+		}
+		if (problem["points"] != nil) {
+			submission.Points = int(problem["points"].(float64))
+		}
+		submission.Rating = int(problem["rating"].(float64))
+		submission.Status = r["verdict"].(string)
+		submission.CreationTime = time.Unix(int64(r["creationTimeSeconds"].(float64)), 0)
 		sub.Data = append(sub.Data, submission)
 	}
 	return err

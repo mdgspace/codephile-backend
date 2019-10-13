@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/submission"
@@ -266,6 +267,37 @@ func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
 			return profilesToBeReturned, err4
 		}
 	}
+}
+func FilterSubmission(uid bson.ObjectId, status string, tag string, site string) ([]map[string]interface{}, error) {
+	c := db.NewCollectionSession("coduser")
+	fmt.Println(status)
+	match1 := bson.M{
+		"$match": bson.M{
+			"_id": uid,
+		},
+	}
+	unwind := bson.M{
+		"$unwind": "$submission." + site,
+	}
+	match2 := bson.M{
+		"$match": bson.M{"submission." + site + ".status": status},
+	}
+	project := bson.M{
+		"$project": bson.M{
+			"_id":                0,
+			"submission." + site: 1,
+		},
+	}
+	all := []bson.M{match1, unwind, match2, project}
+	pipe := c.Session.Pipe(all)
+
+	var result map[string]interface{}
+	iter := pipe.Iter()
+	var final []map[string]interface{}
+	for iter.Next(&result) {
+		final = append(final, result["submission"].(map[string]interface{})[site].(map[string]interface{}))
+	}
+	return final, nil
 }
 
 // func Login(username, password string) bool {
