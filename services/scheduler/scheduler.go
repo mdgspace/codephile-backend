@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"github.com/jasonlvhit/gocron"
-	"log"
 )
 
 func task() {
