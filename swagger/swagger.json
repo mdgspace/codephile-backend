@@ -230,6 +230,54 @@
                 }
             }
         },
+        "/submission/{site}/{uid}/filter": {
+            "get": {
+                "tags": [
+                    "submission"
+                ],
+                "description": "Filter submissions of user on the basis of status, site and tags",
+                "operationId": "SubmissionController.Filter",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "UID of user",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "site",
+                        "description": "Website name",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "description": "Submission status",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tag",
+                        "description": "Submission tag",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/submission.CodechefSubmission"
+                        }
+                    },
+                    "403": {
+                        "description": "user not exist"
+                    }
+                }
+            }
+        },
         "/submission/{uid}": {
             "get": {
                 "tags": [
@@ -729,6 +777,12 @@
                 "Status": {
                     "type": "string"
                 },
+                "Tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "URL": {
                     "type": "string"
                 }
@@ -738,12 +792,29 @@
             "title": "CodeforcesSubmission",
             "type": "object",
             "properties": {
-                "CreationDate": {
+                "CreationTime": {
                     "type": "string",
                     "format": "datetime"
                 },
                 "Name": {
                     "type": "string"
+                },
+                "Points": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "Rating": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "Status": {
+                    "type": "string"
+                },
+                "Tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "URL": {
                     "type": "string"
@@ -778,8 +849,18 @@
                 "Name": {
                     "type": "string"
                 },
+                "Points": {
+                    "type": "integer",
+                    "format": "int64"
+                },
                 "Status": {
                     "type": "string"
+                },
+                "Tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "URL": {
                     "type": "string"

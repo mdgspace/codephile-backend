@@ -74,3 +74,32 @@ func isSiteValid(s string) bool {
 	}
 	return false
 }
+
+// @Title Filter
+// @Description Filter submissions of user on the basis of status, site and tags
+// @Param	uid		path 	string	true		"UID of user"
+// @Param	site		path 	string	true		"Website name"
+// @Param	status		query 	string	false		"Submission status"
+// @Param	tag 		query	string	false		"Submission tag"
+// @Success 200 {object} submission.CodechefSubmission
+// @Failure 403 user not exist
+// @router /:site/:uid/filter [get]
+func (s *SubmissionController) FilterSubmission() {
+	uid := s.GetString(":uid")
+	status := s.GetString("status")
+	site := s.GetString(":site")
+	tag := s.GetString("tag")
+	if uid != "" && bson.IsObjectIdHex(uid) {
+		subs, err := models.FilterSubmission(bson.ObjectIdHex(uid), status, tag, site)
+		if err != nil {
+			s.Data["json"] = err.Error()
+			s.Ctx.ResponseWriter.WriteHeader(403)
+		} else {
+			s.Data["json"] = subs
+		}
+	} else {
+		s.Data["json"] = "user not exist"
+		s.Ctx.ResponseWriter.WriteHeader(403)
+	}
+	s.ServeJSON()
+}

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-    "github.com/mdg-iitr/Codephile/models/profile"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"github.com/gocolly/colly"
 )
 
@@ -127,41 +127,41 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 
 	/* path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=40", handle)
-	byteValue := GetRequest(path)
-	var JsonInterFace interface{}
-	// var Profile map[string]interface{}
-	json.Unmarshal(byteValue, &JsonInterFace)
-	pagesToTraverse := int(JsonInterFace.(map[string]interface{})["availablePages"].(float64))
-	Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
-    for i:=1 ; i <= pagesToTraverse ; i++ {
-		newPath := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=%d&itemsPerPage=40", handle , i)
-		newbyteValue := GetRequest(newPath)
-		var newJsonInterFace interface{}
-		json.Unmarshal(newbyteValue , &newJsonInterFace)
-		log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[0])
-		for j:=0 ; j<=39 ; j++ {
-			log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j])//.(map[string]interface{})["username"].(string))
-			if newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})["username"].(string) == handle {
-			  Profile = newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})
-			  break
+		byteValue := GetRequest(path)
+		var JsonInterFace interface{}
+		// var Profile map[string]interface{}
+		json.Unmarshal(byteValue, &JsonInterFace)
+		pagesToTraverse := int(JsonInterFace.(map[string]interface{})["availablePages"].(float64))
+		Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
+	    for i:=1 ; i <= pagesToTraverse ; i++ {
+			newPath := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=%d&itemsPerPage=40", handle , i)
+			newbyteValue := GetRequest(newPath)
+			var newJsonInterFace interface{}
+			json.Unmarshal(newbyteValue , &newJsonInterFace)
+			log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[0])
+			for j:=0 ; j<=39 ; j++ {
+				log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j])//.(map[string]interface{})["username"].(string))
+				if newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})["username"].(string) == handle {
+				  Profile = newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})
+				  break
+				}
 			}
-		} 
-	}
-	// Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
+		}
+		// Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
 
-	// all_rating := Profile["all_rating"]
-	// country := Profile["country"]
-	// country_code := Profile["country_code"]
-	// country_rank := Profile["country_rank"]
-	// diff := Profile["diff"]
-	global_rank := Profile["global_rank"].(float64)
-	global_rank_string := strconv.FormatFloat(global_rank,'f',0,64)
-	Institution := Profile["institution"].(string)
-	// institution_type := Profile["institution_type"]
-	Name := Profile["name"].(string)
-	// rating := Profile["rating"]
-	UserName := Profile["username"].(string)
-	return profile.ProfileInfo{Name, UserName, Institution,global_rank_string} */
+		// all_rating := Profile["all_rating"]
+		// country := Profile["country"]
+		// country_code := Profile["country_code"]
+		// country_rank := Profile["country_rank"]
+		// diff := Profile["diff"]
+		global_rank := Profile["global_rank"].(float64)
+		global_rank_string := strconv.FormatFloat(global_rank,'f',0,64)
+		Institution := Profile["institution"].(string)
+		// institution_type := Profile["institution_type"]
+		Name := Profile["name"].(string)
+		// rating := Profile["rating"]
+		UserName := Profile["username"].(string)
+		return profile.ProfileInfo{Name, UserName, Institution,global_rank_string} */
 
 	//scrapping the profile
 	c := colly.NewCollector()
@@ -170,9 +170,9 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 	c.OnHTML(".user-profile-container", func(e *colly.HTMLElement) {
 		Name := e.ChildText("h2")
 		UserName := handle
-		for i:=2 ; i<=10 ; i++ {
-			if e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) label" ,i )) == "Institution:" {
-				School = e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) span" ,i ))
+		for i := 2; i <= 10; i++ {
+			if e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) label", i)) == "Institution:" {
+				School = e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) span", i))
 			}
 		}
 		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
@@ -242,7 +242,13 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 		// Problem name/url
 		prob := strings.TrimRight(strings.Split(contents[2], ">")[1], "</a")
 		url := "http://www.codechef.com/problems/" + prob
-
+		data := GetRequest(fmt.Sprintf("https://www.codechef.com/api/contests/PRACTICE/problems/%s", prob))
+		var JsonInterface map[string]interface{}
+		json.Unmarshal(data, &JsonInterface)
+		htmlTag := JsonInterface["tags"].(string)
+		htmlTag = regexp.MustCompile("<a class='(.*?)'>").ReplaceAllString(htmlTag, "")
+		tags := strings.Split(htmlTag, "</a>, ")
+		tags[len(tags)-1] = strings.Replace(tags[len(tags)-1], "</a>", "", 1)
 		// SpojSubmission status
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
 		st := "AC"
@@ -276,7 +282,7 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 
 		//  Language
 		// lang := strings.TrimRight(contents[4], "</td>")
-		submissions = append(submissions, submission.CodechefSubmission{prob, url, tos, st, points})
+		submissions = append(submissions, submission.CodechefSubmission{prob, url, tos, st, points, tags})
 
 	}
 

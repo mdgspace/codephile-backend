@@ -99,6 +99,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"],
         beego.ControllerComments{
+            Method: "FilterSubmission",
+            Router: `/:site/:uid/filter`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"],
+        beego.ControllerComments{
             Method: "GetSubmission",
             Router: `/:uid`,
             AllowHTTPMethods: []string{"get"},
