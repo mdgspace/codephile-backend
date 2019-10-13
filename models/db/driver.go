@@ -2,10 +2,18 @@ package db
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/globalsign/mgo"
+	"log"
 	"os"
 )
 
 var maxPool int
+
+var index = mgo.Index{
+	Key:        []string{"username"},
+	Unique:     true,
+	Background: true,
+}
 
 func init() {
 	var err error
@@ -15,6 +23,11 @@ func init() {
 	}
 	// init method to start db
 	checkAndInitServiceConnection()
+	err = NewCollectionSession("coduser").Session.EnsureIndex(index)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
 }
 
 func checkAndInitServiceConnection() {
