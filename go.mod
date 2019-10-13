@@ -22,5 +22,6 @@ require (
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 	github.com/temoto/robotstxt v1.1.1 // indirect
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	google.golang.org/appengine v1.6.2 // indirect
 )

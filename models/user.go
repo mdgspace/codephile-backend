@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/submission"
@@ -13,11 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var index = mgo.Index{
-	Key:        []string{"username"},
-	Unique:     true,
-	Background: true,
-}
 
 type User struct {
 	ID          bson.ObjectId          `bson:"_id" json:"id" schema:"-"`
@@ -53,10 +47,6 @@ func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.EnsureIndex(index)
-	if err != nil {
-		log.Println(err.Error())
-	}
 	//hashing the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	//data type of hash is []byte
@@ -115,7 +105,6 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 			u.Handle.Hackerearth = uu.Handle.Hackerearth
 		}
 		collection := db.NewCollectionSession("coduser")
-		err = collection.Session.EnsureIndex(index)
 		_, err := collection.Session.UpsertId(uid, &u)
 		if err != nil {
 			err = errors.New("username already exists")
