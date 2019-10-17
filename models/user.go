@@ -11,8 +11,8 @@ import (
 	"log"
 	"github.com/mdg-iitr/Codephile/models/profile"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
-
 
 type User struct {
 	ID          bson.ObjectId          `bson:"_id" json:"id" schema:"-"`
@@ -20,13 +20,20 @@ type User struct {
 	Password    string                 `bson:"password" json:"-" schema:"password"`
 	Handle      Handle                 `bson:"handle" json:"handle" schema:"handle"`
 	Submissions submission.Submissions `bson:"submission" json:"-" schema:"-"`
+	Last        LastFetchedSubmission  `bson:"lastfetched" json:"-"`
+}
+type LastFetchedSubmission struct {
+	Codechef   time.Time `bson:"codechef"`
+	Codeforces time.Time `bson:"codeforces"`
+	Hackerrank time.Time `bson:"hackerrank"`
+	Spoj       time.Time `bson:"spoj"`
 }
 type Handle struct {
-	Codeforces  string                 `bson:"codeforces" json:"codeforces" schema:"codeforces"`
-	Codechef    string                 `bson:"codechef" json:"codechef" schema:"codechef"`
-	Spoj        string                 `bson:"spoj" json:"spoj" schema:"spoj"`
-	Hackerrank  string                 `bson:"hackerrank" json:"hackerrank" schema:"hackerrank"`
-	Hackerearth string                 `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
+	Codeforces  string `bson:"codeforces" json:"codeforces" schema:"codeforces"`
+	Codechef    string `bson:"codechef" json:"codechef" schema:"codechef"`
+	Spoj        string `bson:"spoj" json:"spoj" schema:"spoj"`
+	Hackerrank  string `bson:"hackerrank" json:"hackerrank" schema:"hackerrank"`
+	Hackerearth string `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
 }
 
 func (u *User) UnmarshalJSON(b []byte) error {
@@ -52,9 +59,9 @@ func AddUser(u User) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	//data type of hash is []byte
 	u.Password = string(hash)
-    if err != nil {
-        log.Println(err)
-    }
+	if err != nil {
+		log.Println(err)
+	}
 	err = collection.Session.Insert(u)
 	if err != nil {
 		return "", errors.New("Could not create user: Username already exists")
@@ -66,7 +73,7 @@ func GetUser(uid bson.ObjectId) (*User, error) {
 	var user User
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1}).One(&user)
+	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "lastfetched": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, errors.New("user not exists")
@@ -125,18 +132,17 @@ func AutheticateUser(username string, password string) (*User, bool) {
 		return nil, false
 	}
 
-    err2 := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(password))
-    if err2 != nil {
-        log.Println(err2)
-        return nil, false
-    } else{
+	err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err2 != nil {
+		log.Println(err2)
+		return nil, false
+	} else {
 		return &user, true
 	}
 
 }
 
 func AddSubmissions(user *User, site string) error {
-	var sub submission.Submissions
 	var handle string
 	coll := db.NewCollectionSession("coduser")
 	switch site {
@@ -145,10 +151,14 @@ func AddSubmissions(user *User, site string) error {
 		if handle == "" {
 			return errors.New("handle not available")
 		}
-		sub.Codechef = scripts.GetCodechefSubmissions(handle)
-		err := coll.Session.UpdateId(user.ID, bson.M{"$set": bson.M{"submission.codechef": sub.Codechef}})
-		if err != nil {
-			log.Fatal(err.Error())
+		addSubmissions := scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
+		if (len(addSubmissions) != 0) {
+			user.Last.Codechef = addSubmissions[0].CreationDate
+			change := bson.M{"$push": bson.M{"submission.codechef": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
+			err := coll.Session.UpdateId(user.ID, change)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 		return nil
 	case "codeforces":
@@ -156,10 +166,15 @@ func AddSubmissions(user *User, site string) error {
 		if handle == "" {
 			return errors.New("handle not available")
 		}
-		sub.Codeforces = scripts.GetCodeforcesSubmissions(handle).Data
-		err := coll.Session.UpdateId(user.ID, bson.M{"$set": bson.M{"submission.codeforces": sub.Codeforces}})
-		if err != nil {
-			log.Fatal(err.Error())
+		fmt.Println(user.Last.Codeforces)
+		addSubmissions := scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces).Data
+		if (len(addSubmissions) != 0) {
+			user.Last.Codeforces = addSubmissions[0].CreationTime
+			change := bson.M{"$push": bson.M{"submission.codeforces": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
+			err := coll.Session.UpdateId(user.ID, change)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 		return nil
 	case "spoj":
@@ -167,10 +182,14 @@ func AddSubmissions(user *User, site string) error {
 		if handle == "" {
 			return errors.New("handle not available")
 		}
-		sub.Spoj = scripts.GetSpojSubmissions(handle)
-		err := coll.Session.UpdateId(user.ID, bson.M{"$set": bson.M{"submission.spoj": sub.Spoj}})
-		if err != nil {
-			log.Fatal(err.Error())
+		addSubmissions := scripts.GetSpojSubmissions(handle, user.Last.Spoj)
+		if (len(addSubmissions) != 0) {
+			user.Last.Spoj = addSubmissions[0].CreationDate
+			change := bson.M{"$push": bson.M{"submission.spoj": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
+			err := coll.Session.UpdateId(user.ID, change)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 		return nil
 	case "hackerrank":
@@ -178,10 +197,14 @@ func AddSubmissions(user *User, site string) error {
 		if handle == "" {
 			return errors.New("handle not available")
 		}
-		sub.Hackerrank = scripts.GetHackerrankSubmissions(handle).Data
-		err := coll.Session.UpdateId(user.ID, bson.M{"$set": bson.M{"submission.hackerrank": sub.Hackerrank}})
-		if err != nil {
-			log.Fatal(err.Error())
+		addSubmissions := scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank).Data
+		if (len(addSubmissions) != 0) {
+			user.Last.Hackerrank = addSubmissions[0].CreationDate
+			change := bson.M{"$push": bson.M{"submission.hackerrank": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
+			err := coll.Session.UpdateId(user.ID, change)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 		return nil
 	}

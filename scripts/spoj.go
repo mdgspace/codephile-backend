@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"github.com/mdg-iitr/Codephile/models/profile"
+	"time"
 )
 
 type SpojProblems struct {
@@ -44,7 +45,34 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 	return Profile
 }
 
-func GetSpojSubmissions(handle string) []submission.SpojSubmission {
+func GetSpojSubmissions(handle string, after time.Time) []submission.SpojSubmission {
+	var oldestSubIndex, current int;
+	var oldestSubFound = false
+	subs := []submission.SpojSubmission{{CreationDate: time.Now()}}
+	//Fetch submission until oldest submission not found
+	for !oldestSubFound {
+		newSub := GetSpojSubmissionParts(handle, current);
+		//Check for repetition of previous fetched submission
+		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
+			for i, sub := range newSub {
+				subs = append(subs, sub)
+				oldestSubIndex = current + i
+				if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
+					oldestSubFound = true
+					break
+				}
+			}
+			//20 submissions per page
+			current += 20
+		} else {
+			oldestSubIndex++
+			break
+		}
+	}
+	subs = subs[1 : oldestSubIndex+1]
+	return subs
+}
+func GetSpojSubmissionParts(handle string, afterIndex int) []submission.SpojSubmission {
 
 	c := colly.NewCollector()
 	var submissions []submission.SpojSubmission
@@ -53,7 +81,11 @@ func GetSpojSubmissions(handle string) []submission.SpojSubmission {
 		e.ForEach("tr", func(_ int, elem *colly.HTMLElement) {
 			Name := elem.ChildText(".sproblem a")
 			URL := "https://www.spoj.com" + elem.ChildAttr(".sproblem a", "href")
-			CreationDate := elem.ChildText(".status_sm span")
+			str_date := elem.ChildText(".status_sm span")
+			CreationDate, err := time.Parse("2006-01-02 15:04:05", str_date)
+			if err != nil {
+				log.Println(err.Error())
+			}
 			status := elem.ChildText(".statusres")
 			language := elem.ChildText(".slang span")
 			points := 0
@@ -69,10 +101,12 @@ func GetSpojSubmissions(handle string) []submission.SpojSubmission {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.spoj.com/status/%s/", handle))
+	c.OnRequest(func(request *colly.Request) {
+		fmt.Println(request.URL)
+	})
+	c.Visit(fmt.Sprintf("https://www.spoj.com/status/%s/all/start=%d", handle, afterIndex))
 
 	return submissions
-
 }
 
 func GetSpojProblems(handle string) SpojProblems {
@@ -130,11 +164,9 @@ func GetProbTags(url string) []string {
 	var tags []string
 	c := colly.NewCollector()
 	c.OnHTML(".problem-tag", func(e *colly.HTMLElement) {
-		fmt.Println(e.Text)
 		tags = append(tags, e.Text)
 	})
 	err := c.Visit(url)
-	fmt.Println(url)
 	if err != nil {
 		log.Println("could not fetch tags")
 	}

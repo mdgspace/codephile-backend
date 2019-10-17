@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models"
+	"github.com/mdg-iitr/Codephile/scripts"
+	"time"
 )
 
 var valid_sites = []string{"codechef", "codeforces", "spoj", "hackerrank"}
@@ -101,5 +103,17 @@ func (s *SubmissionController) FilterSubmission() {
 		s.Data["json"] = "user not exist"
 		s.Ctx.ResponseWriter.WriteHeader(403)
 	}
+	s.ServeJSON()
+}
+
+// @Title Test
+// @Description Test Endpoint
+// @Param	from		path 	string	true		"time from"
+// @Success 200 {object} submission.Submissions
+// @Failure 403 user not exist
+// @router /test/:from [get]
+func (s *SubmissionController) Test() {
+	from, _ := s.GetInt64(":from")
+	s.Data["json"] = scripts.GetSpojSubmissions("prateek1947", time.Unix(from, 0))
 	s.ServeJSON()
 }

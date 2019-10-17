@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"github.com/mdg-iitr/Codephile/models/profile"
+	"strconv"
 	"time"
 )
 
@@ -97,16 +98,47 @@ func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	url := "http://codeforces.com/api/user.rating?handle=" + handle
 	data := GetRequest(url)
 	json.Unmarshal(data, &points)
-	fmt.Println(points.Count)
 	return points
 }
-func GetCodeforcesSubmissions(handle string) submission.CodeforcesSubmissions {
-	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=1&count=10"
+func getCodeforcesSubmissionParts(handle string, afterIndex int) submission.CodeforcesSubmissions {
+	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
+	fmt.Println(url)
 	data := GetRequest(url)
 	var submissions submission.CodeforcesSubmissions
 	json.Unmarshal(data, &submissions)
 	return submissions
 }
+
+func GetCodeforcesSubmissions(handle string, after time.Time) submission.CodeforcesSubmissions {
+	var oldestSubIndex, current int;
+	var oldestSubFound = false
+	var subs submission.CodeforcesSubmissions
+	//Fetch submission until oldest submission not found
+	for !oldestSubFound {
+		newSub := getCodeforcesSubmissionParts(handle, current+1);
+		//Check for repetition of previous fetched submission
+		if len(newSub.Data) != 0 {
+			for i, sub := range newSub.Data {
+				subs.Data = append(subs.Data, sub)
+				oldestSubIndex = current + i
+				if sub.CreationTime.Equal(after) || sub.CreationTime.Before(after) {
+					oldestSubFound = true
+					break
+				}
+			}
+			//50 submissions per page
+			current += 50
+		} else {
+			oldestSubIndex += 1
+			break
+		}
+	}
+	subs.Data = subs.Data[0:oldestSubIndex]
+	subs.Count = len(subs.Data)
+	return subs
+
+}
+
 func GetCodeforcesContests() CodeforcesContests {
 	data := GetRequest("https://codeforces.com/api/contest.list?gym=false")
 	var contests CodeforcesContests

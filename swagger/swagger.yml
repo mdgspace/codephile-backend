@@ -205,6 +205,25 @@ paths:
             $ref: '#/definitions/submission.Submissions'
         "403":
           description: user not exist
+  /submission/test/{from}:
+    get:
+      tags:
+      - submission
+      description: Test Endpoint
+      operationId: SubmissionController.Test
+      parameters:
+      - in: path
+        name: from
+        description: time from
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/submission.Submissions'
+        "403":
+          description: user not exist
   /user/{uid}:
     get:
       tags:
@@ -403,6 +422,22 @@ definitions:
         type: string
       spoj:
         type: string
+  models.LastFetchedSubmission:
+    title: LastFetchedSubmission
+    type: object
+    properties:
+      Codechef:
+        type: string
+        format: datetime
+      Codeforces:
+        type: string
+        format: datetime
+      Hackerrank:
+        type: string
+        format: datetime
+      Spoj:
+        type: string
+        format: datetime
   models.Object:
     title: Object
     type: object
@@ -514,6 +549,7 @@ definitions:
     properties:
       CreationDate:
         type: string
+        format: datetime
       Name:
         type: string
       Points:
@@ -555,6 +591,7 @@ definitions:
     properties:
       created_at:
         type: string
+        format: datetime
       name:
         type: string
       url:
@@ -565,6 +602,7 @@ definitions:
     properties:
       CreationDate:
         type: string
+        format: datetime
       Language:
         type: string
       Name:

@@ -15,22 +15,22 @@ type Submissions struct {
 }
 
 type CodechefSubmission struct {
-	Name         string   `bson:"name"`
-	URL          string   `bson:"url"`
-	CreationDate string   `bson:"creation_date"`
-	Status       string   `bson:"status"`
-	Points       string   `bson:"points"`
-	Tags         []string `bson:"tags"`
+	Name         string    `bson:"name"`
+	URL          string    `bson:"url"`
+	CreationDate time.Time `bson:"creation_date"`
+	Status       string    `bson:"status"`
+	Points       string    `bson:"points"`
+	Tags         []string  `bson:"tags"`
 }
 
 type SpojSubmission struct {
-	Name         string   `bson:"name"`
-	URL          string   `bson:"url"`
-	CreationDate string   `bson:"creation_date"`
-	Status       string   `bson:"status"`
-	Language     string   `bson:"language"`
-	Points       int      `bson:"points"`
-	Tags         []string `bson:"tags"`
+	Name         string    `bson:"name"`
+	URL          string    `bson:"url"`
+	CreationDate time.Time `bson:"creation_date"`
+	Status       string    `bson:"status"`
+	Language     string    `bson:"language"`
+	Points       int       `bson:"points"`
+	Tags         []string  `bson:"tags"`
 }
 
 type HackerrankSubmissions struct {
@@ -39,9 +39,9 @@ type HackerrankSubmissions struct {
 }
 
 type HackerrankSubmission struct {
-	URL          string `json:"url" bson:"url"`
-	CreationDate string `json:"created_at" bson:"created_at"`
-	Name         string `json:"name" bson:"name"`
+	URL          string    `json:"url" bson:"url"`
+	CreationDate time.Time `json:"created_at" bson:"created_at"`
+	Name         string    `json:"name" bson:"name"`
 }
 
 // CodeforcesSubmission represents the single submission for codeforces
@@ -82,7 +82,9 @@ func (sub *CodeforcesSubmissions) UnmarshalJSON(b []byte) error {
 		if (problem["points"] != nil) {
 			submission.Points = int(problem["points"].(float64))
 		}
-		submission.Rating = int(problem["rating"].(float64))
+		if problem["rating"] != nil {
+			submission.Rating = int(problem["rating"].(float64))
+		}
 		submission.Status = r["verdict"].(string)
 		submission.CreationTime = time.Unix(int64(r["creationTimeSeconds"].(float64)), 0)
 		sub.Data = append(sub.Data, submission)
