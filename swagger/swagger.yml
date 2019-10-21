@@ -248,6 +248,31 @@ paths:
             $ref: '#/definitions/models.User'
         "403":
           description: :uid is not int
+  /user/{uid}/profile:
+    put:
+      tags:
+      - user
+      description: update the profile picture of user
+      operationId: UserController.Update Profile Pic
+      parameters:
+      - in: path
+        name: uid
+        description: The uid you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for user content
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.User'
+        "403":
+          description: :uid is not int
   /user/all:
     get:
       tags:
@@ -474,6 +499,8 @@ definitions:
         $ref: '#/definitions/models.Handle'
       id:
         $ref: '#/definitions/bson.ObjectId'
+      picture:
+        type: string
       username:
         type: string
   profile.AllProfiles:
