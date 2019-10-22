@@ -18,6 +18,7 @@ type User struct {
 	ID          bson.ObjectId          `bson:"_id" json:"id" schema:"-"`
 	Username    string                 `bson:"username" json:"username" schema:"username"`
 	Password    string                 `bson:"password" json:"-" schema:"password"`
+	Picture     string                 `bson:"picture" json:"picture"`
 	Handle      Handle                 `bson:"handle" json:"handle" schema:"handle"`
 	Submissions submission.Submissions `bson:"submission" json:"-" schema:"-"`
 }
@@ -66,7 +67,7 @@ func GetUser(uid bson.ObjectId) (*User, error) {
 	var user User
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1}).One(&user)
+	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "picture": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, errors.New("user not exists")
@@ -78,7 +79,7 @@ func GetAllUsers() []User {
 	var users []User
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1}).All(&users)
+	err := collection.Session.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "picture": 1}).All(&users)
 	if err != nil {
 		panic(err)
 	}
@@ -312,3 +313,11 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 // func DeleteUser(uid string) {
 // 	delete(UserList, uid)
 // }
+func UpdatePicture(uid bson.ObjectId, url string) error {
+	coll := db.NewCollectionSession("coduser")
+	_, err := coll.Session.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
