@@ -12,4 +12,9 @@ DBName = <Name of database>
 HMACKEY = <HMAC Encryption key>
 REDISURL = <URL of redis server>
 REDISPASSWD = <Redis Password(empty if no password)>
+FIREBASE_CONFIG = <Firebase config including bucket name(json)>
+FIREBASE_CREDENTIALS = <Firebase admin SDK credentials(json)>
+ELASTICCLOUDURL = <URL of elasticsearch cloud>
+ELASTICUSERNAME = <Username of elasticsearch cloud>
+ELASTICPASSWORD = <Password of elasticsearch cloud>
 ```

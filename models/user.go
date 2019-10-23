@@ -2,12 +2,14 @@ package models
 
 import (
 	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"github.com/mdg-iitr/Codephile/scripts"
+	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"log"
 	"github.com/mdg-iitr/Codephile/models/profile"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +20,7 @@ type User struct {
 	ID          bson.ObjectId          `bson:"_id" json:"id" schema:"-"`
 	Username    string                 `bson:"username" json:"username" schema:"username"`
 	Password    string                 `bson:"password" json:"-" schema:"password"`
+	Picture     string                 `bson:"picture" json:"picture"`
 	Handle      Handle                 `bson:"handle" json:"handle" schema:"handle"`
 	Submissions submission.Submissions `bson:"submission" json:"-" schema:"-"`
 	Last        LastFetchedSubmission  `bson:"lastfetched" json:"-"`
@@ -53,6 +56,11 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
+	client := search.GetElasticClient()
+	_, err := client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+	}
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
 	//hashing the password
@@ -73,7 +81,7 @@ func GetUser(uid bson.ObjectId) (*User, error) {
 	var user User
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "lastfetched": 1}).One(&user)
+	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "lastfetched": 1, "picture": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, errors.New("user not exists")
@@ -85,7 +93,7 @@ func GetAllUsers() []User {
 	var users []User
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
-	err := collection.Session.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1}).All(&users)
+	err := collection.Session.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "picture": 1}).All(&users)
 	if err != nil {
 		panic(err)
 	}
@@ -111,6 +119,11 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		}
 		if uu.Handle.Hackerearth != "" {
 			u.Handle.Hackerearth = uu.Handle.Hackerearth
+		}
+		client := search.GetElasticClient()
+		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(u).Upsert(u).Do(context.Background())
+		if err != nil {
+			log.Println(err.Error())
 		}
 		collection := db.NewCollectionSession("coduser")
 		_, err := collection.Session.UpsertId(uid, &u)
@@ -335,3 +348,11 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 // func DeleteUser(uid string) {
 // 	delete(UserList, uid)
 // }
+func UpdatePicture(uid bson.ObjectId, url string) error {
+	coll := db.NewCollectionSession("coduser")
+	_, err := coll.Session.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
