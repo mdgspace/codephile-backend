@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"github.com/mdg-iitr/Codephile/models"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"github.com/olivere/elastic/v7"
 	"log"
@@ -41,15 +40,15 @@ func (u *UserController) Search() {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	var users []models.User
+	var results []interface{}
 	for _, hit := range result.Hits.Hits {
-		var user models.User
-		err := json.Unmarshal(hit.Source, &user)
+		var result interface{}
+		err := json.Unmarshal(hit.Source, &result)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		users = append(users, user)
+		results = append(results, result)
 	}
-	u.Data["json"] = users
+	u.Data["json"] = results
 	u.ServeJSON()
 }
