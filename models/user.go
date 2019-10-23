@@ -2,12 +2,14 @@ package models
 
 import (
 	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"github.com/mdg-iitr/Codephile/scripts"
+	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"log"
 	"github.com/mdg-iitr/Codephile/models/profile"
 	"golang.org/x/crypto/bcrypt"
@@ -47,6 +49,11 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
+	client := search.GetElasticClient()
+	_, err := client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+	}
 	collection := db.NewCollectionSession("coduser")
 	defer collection.Close()
 	//hashing the password
@@ -105,6 +112,11 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		}
 		if uu.Handle.Hackerearth != "" {
 			u.Handle.Hackerearth = uu.Handle.Hackerearth
+		}
+		client := search.GetElasticClient()
+		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(u).Upsert(u).Do(context.Background())
+		if err != nil {
+			log.Println(err.Error())
 		}
 		collection := db.NewCollectionSession("coduser")
 		_, err := collection.Session.UpsertId(uid, &u)
