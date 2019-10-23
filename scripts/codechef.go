@@ -187,35 +187,43 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 	return Profile
 }
 
-func GetCodechefSubmissions(handle string) []submission.CodechefSubmission {
-
-	user_url := "http://www.codechef.com/recent/user?user_handle=" + handle
-	byteValue := GetRequest(user_url)
+func GetCodechefSubmissions(handle string, after time.Time) []submission.CodechefSubmission {
+	var oldestSubIndex, current int;
+	var oldestSubFound = false
+	subs := []submission.CodechefSubmission{{CreationDate: time.Now()}}
+	//Fetch submission until oldest submission not found
+	for !oldestSubFound {
+		newSub := GetCodechefSubmissionParts(handle, current);
+		//Check for repetition of previous fetched submission
+		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
+			for i, sub := range newSub {
+				subs = append(subs, sub)
+				//12 submissions per page
+				oldestSubIndex = 12*current + i
+				if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
+					oldestSubFound = true
+					break
+				}
+			}
+			current++
+		} else {
+			oldestSubIndex++
+			break
+		}
+	}
+	subs = subs[1 : oldestSubIndex+1]
+	return subs
+}
+func GetCodechefSubmissionParts(handle string, pageNo int) []submission.CodechefSubmission {
 	var JsonInterFace interface{}
+	user_url := fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, pageNo)
+	fmt.Println(user_url)
+	byteValue := GetRequest(user_url)
 	json.Unmarshal(byteValue, &JsonInterFace)
 	data := JsonInterFace.(map[string]interface{})
-
-	var submissions []submission.CodechefSubmission
-
-	max_page := int(data["max_page"].(float64))
 	content := data["content"].(string)
 
-	submissions = append(submissions, GetSubmissionsFromString(content)...)
-
-	for i := 1; i < max_page; i++ {
-		user_url = fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, i)
-
-		byteValue = GetRequest(user_url)
-		json.Unmarshal(byteValue, &JsonInterFace)
-		data = JsonInterFace.(map[string]interface{})
-
-		content := data["content"].(string)
-
-		submissions = append(submissions, GetSubmissionsFromString(content)...)
-
-	}
-
-	return submissions
+	return GetSubmissionsFromString(content)
 
 }
 
@@ -224,7 +232,7 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 	var submissions []submission.CodechefSubmission
 
 	data := strings.Split(content, "<tr >")
-	for i := 1; i < 4; i++ {
+	for i := 1; i <= len(data)-1; i++ {
 		info := strings.Split(data[i], "</tr>")[0]
 
 		contents := strings.Split(info, "<td >")
@@ -282,7 +290,11 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 
 		//  Language
 		// lang := strings.TrimRight(contents[4], "</td>")
-		submissions = append(submissions, submission.CodechefSubmission{prob, url, tos, st, points, tags})
+		submissionTime, err := time.Parse("03:04 PM 02/01/06", tos)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags})
 
 	}
 

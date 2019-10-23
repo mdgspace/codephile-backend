@@ -2,11 +2,12 @@ package scripts
 
 import (
 	"encoding/json"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"io/ioutil"
 	"log"
-	"github.com/mdg-iitr/Codephile/models/profile"
 	"net/http"
+	"time"
 )
 
 type HackerrankGraphPoint struct {
@@ -54,11 +55,20 @@ func GetHackerrankProfileInfo(handle string) profile.ProfileInfo {
 	return profile.ProfileInfo{Name, UserName, School, ""}
 }
 
-func GetHackerrankSubmissions(handle string) submission.HackerrankSubmissions {
+func GetHackerrankSubmissions(handle string, after time.Time) submission.HackerrankSubmissions {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/recent_challenges?limit=1000&response_version=v1"
 	byteValue := GetRequest(path)
 	var submissions submission.HackerrankSubmissions
 	json.Unmarshal(byteValue, &submissions)
+	var oldestSubIndex int;
+	for i, sub := range submissions.Data {
+		if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
+			oldestSubIndex = i
+			break
+		}
+	}
+	submissions.Data = submissions.Data[0:oldestSubIndex]
+	submissions.Count = oldestSubIndex + 1
 	for i := 0; i < len(submissions.Data); i++ {
 		submissions.Data[i].URL = "https://www.hackerrank.com" + submissions.Data[i].URL
 	}
