@@ -1,18 +1,18 @@
 package models
 
 import (
-	"encoding/json"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models/db"
+	"github.com/mdg-iitr/Codephile/models/profile"
 	"github.com/mdg-iitr/Codephile/models/submission"
 	"github.com/mdg-iitr/Codephile/scripts"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
-	"log"
-	"github.com/mdg-iitr/Codephile/models/profile"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"time"
 )
 
@@ -165,7 +165,7 @@ func AddSubmissions(user *User, site string) error {
 			return errors.New("handle not available")
 		}
 		addSubmissions := scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
-		if (len(addSubmissions) != 0) {
+		if len(addSubmissions) != 0 {
 			user.Last.Codechef = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.codechef": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
 			err := coll.Session.UpdateId(user.ID, change)
@@ -181,7 +181,7 @@ func AddSubmissions(user *User, site string) error {
 		}
 		fmt.Println(user.Last.Codeforces)
 		addSubmissions := scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces).Data
-		if (len(addSubmissions) != 0) {
+		if len(addSubmissions) != 0 {
 			user.Last.Codeforces = addSubmissions[0].CreationTime
 			change := bson.M{"$push": bson.M{"submission.codeforces": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
 			err := coll.Session.UpdateId(user.ID, change)
@@ -196,7 +196,7 @@ func AddSubmissions(user *User, site string) error {
 			return errors.New("handle not available")
 		}
 		addSubmissions := scripts.GetSpojSubmissions(handle, user.Last.Spoj)
-		if (len(addSubmissions) != 0) {
+		if len(addSubmissions) != 0 {
 			user.Last.Spoj = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.spoj": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
 			err := coll.Session.UpdateId(user.ID, change)
@@ -211,7 +211,7 @@ func AddSubmissions(user *User, site string) error {
 			return errors.New("handle not available")
 		}
 		addSubmissions := scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank).Data
-		if (len(addSubmissions) != 0) {
+		if len(addSubmissions) != 0 {
 			user.Last.Hackerrank = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.hackerrank": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
 			err := coll.Session.UpdateId(user.ID, change)
@@ -241,18 +241,18 @@ func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) (*User, e
 	switch site {
 	case "codechef":
 		UserProfile = scripts.GetCodechefProfileInfo(handle)
-		break;
+		break
 	case "codeforces":
 		UserProfile = scripts.GetCodeforcesProfileInfo(handle)
-		break;
+		break
 	case "spoj":
 		UserProfile = scripts.GetSpojProfileInfo(handle)
-		break;
+		break
 	case "hackerrank":
 		UserProfile = scripts.GetHackerrankProfileInfo(handle)
-		break;
+		break
 	} // add a default case for non-existent website
-	//Profile fetched. Store in database 
+	//Profile fetched. Store in database
 	user, err := GetUser(uid)
 	if err == nil {
 		var ProfileTobeInserted profile.Profile
@@ -349,8 +349,13 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 // 	delete(UserList, uid)
 // }
 func UpdatePicture(uid bson.ObjectId, url string) error {
+	client := search.GetElasticClient()
+	_, err := client.Update().Index("codephile").Id(uid.String()).Doc(map[string]interface{}{"picture": url}).Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+	}
 	coll := db.NewCollectionSession("coduser")
-	_, err := coll.Session.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
+	_, err = coll.Session.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
 	if err != nil {
 		return err
 	}
