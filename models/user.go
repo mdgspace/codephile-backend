@@ -234,27 +234,29 @@ func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
 	return &user.Submissions, nil
 }
 
-func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) (*User, error) {
-
+func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
+	user, err := GetUser(uid)
+	if err != nil {
+		//handle the error (Invalid user)
+		return nil, err
+	}
 	var UserProfile profile.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
 	switch site {
 	case "codechef":
-		UserProfile = scripts.GetCodechefProfileInfo(handle)
+		UserProfile = scripts.GetCodechefProfileInfo(user.Handle.Codechef)
 		break
 	case "codeforces":
-		UserProfile = scripts.GetCodeforcesProfileInfo(handle)
+		UserProfile = scripts.GetCodeforcesProfileInfo(user.Handle.Codeforces)
 		break
 	case "spoj":
-		UserProfile = scripts.GetSpojProfileInfo(handle)
+		UserProfile = scripts.GetSpojProfileInfo(user.Handle.Spoj)
 		break
 	case "hackerrank":
-		UserProfile = scripts.GetHackerrankProfileInfo(handle)
+		UserProfile = scripts.GetHackerrankProfileInfo(user.Handle.Hackerrank)
 		break
 	} // add a default case for non-existent website
-	//Profile fetched. Store in database
-	user, err := GetUser(uid)
-	if err == nil {
+	//Profile fetched. Store in database 
 		var ProfileTobeInserted profile.Profile
 		ProfileTobeInserted.Website = site
 		ProfileTobeInserted.Profileinfo = UserProfile
@@ -272,10 +274,6 @@ func AddorUpdateProfile(uid bson.ObjectId, site string, handle string) (*User, e
 		} else {
 			return nil, err2
 		}
-	} else {
-		//handle the error (Invalid user)
-		return nil, err
-	}
 }
 
 func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
@@ -336,18 +334,6 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 	return final, nil
 }
 
-// func Login(username, password string) bool {
-// 	for _, u := range UserList {
-// 		if u.Username == username && u.Password == password {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
-// func DeleteUser(uid string) {
-// 	delete(UserList, uid)
-// }
 func UpdatePicture(uid bson.ObjectId, url string) error {
 	client := search.GetElasticClient()
 	_, err := client.Update().Index("codephile").Id(uid.String()).Doc(map[string]interface{}{"picture": url}).Do(context.Background())

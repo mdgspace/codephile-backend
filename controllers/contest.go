@@ -14,6 +14,7 @@ type ContestController struct {
 
 // @Title GetContests
 // @Description displays all contests
+// @Security token_auth read:contests
 // @Success 200 {object} models.S
 // @Failure 403 error
 // @router / [get]
@@ -25,6 +26,7 @@ func (u *ContestController) GetContests() {
 
 // @Title Get Particular Site's Contests	
 // @Description Returns the contests of a specific website
+// @Security token_auth read:contests
 // @Param	site		path 	string	true		"site name"
 // @Success 200 {object} models.S
 // @Failure 403 incorrect site or unknown error

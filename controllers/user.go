@@ -30,7 +30,7 @@ type UserController struct {
 
 // @Title CreateUser
 // @Description create users
-// @Param	body		body 	models.User	true		"body for user content"
+// @Param	user		body 	models.User	true		"body for user content"
 // @Success 200 {int} models.User.Id
 // @Failure 403 body is empty
 // @router /signup [post]
@@ -48,6 +48,7 @@ func (u *UserController) CreateUser() {
 
 // @Title GetAll
 // @Description get all Users
+// @Security token_auth read:user
 // @Success 200 {object} models.User
 // @router /all [get]
 func (u *UserController) GetAll() {
@@ -58,41 +59,44 @@ func (u *UserController) GetAll() {
 
 // @Title Get
 // @Description get user by uid
-// @Param	uid		path 	string	true		"The key for staticblock"
+// @Security token_auth read:user
+// @Param	uid		path 	string	true		"uid of user"
 // @Success 200 {object} models.User
-// @Failure 403 :uid is empty
+// @Failure 403 :uid is invalid
 // @router /:uid [get]
 func (u *UserController) Get() {
 	uid := u.GetString(":uid")
 	if uid != "" && bson.IsObjectIdHex(uid) {
 		user, err := models.GetUser(bson.ObjectIdHex(uid))
 		if err != nil {
+			u.Ctx.ResponseWriter.WriteHeader(403)
 			u.Data["json"] = map[string]string{"error": err.Error()}
 		} else {
 			u.Data["json"] = user
 		}
+	}else {
+		u.Ctx.ResponseWriter.WriteHeader(403)
 	}
 	u.ServeJSON()
 }
 
 // @Title Update
-// @Description update the user
-// @Param	uid		path 	string	true		"The uid you want to update"
+// @Description update the logged in user
+// @Security token_auth write:user
 // @Param	body		body 	models.User	true		"body for user content"
 // @Success 200 {object} models.User
-// @Failure 403 :uid is not int
-// @router /:uid [put]
+// @Failure 401 : Unauthorized
+// @router / [put]
 func (u *UserController) Put() {
-	uid := u.GetString(":uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		newUser := u.parseRequestBody()
-		uu, err := models.UpdateUser(bson.ObjectIdHex(uid), &newUser)
-		if err != nil {
-			u.Data["json"] = map[string]string{"error": err.Error()}
-		} else {
-			u.Data["json"] = uu
-		}
+	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	newUser := u.parseRequestBody()
+	uu, err := models.UpdateUser(uid, &newUser)
+	if err != nil {
+		u.Data["json"] = map[string]string{"error": err.Error()}
+	} else {
+		u.Data["json"] = uu
 	}
+
 	u.ServeJSON()
 }
 
@@ -116,6 +120,7 @@ func (u *UserController) Login() {
 
 // @Title logout
 // @Description Logs out current logged in user session
+// @Security token_auth write:user
 // @Success 200 {string} logout success
 // @router /logout [post]
 func (u *UserController) Logout() {
@@ -151,6 +156,7 @@ func (u *UserController) parseRequestBody() models.User {
 
 // @Title Verify site handles
 // @Description verify user handles across different websites
+// @Security token_auth read:user
 // @Param	site		path 	string	true		"site name"
 // @Param	handle		query 	string	true		"handle to verify"
 // @Success 200 {string} Handle valid
@@ -184,34 +190,28 @@ func (u *UserController) Verify() {
 
 // @Title Fetch User Info	
 // @Description Fetches user info from different websites and store them into the database
+// @Security token_auth write:user
 // @Param	site		path 	string	true		"site name"
-// @Param	handle		query 	string	true		"handle to fetch data from"
-// @Param	uid		query 	string	true		"uid of user"
-// @Success 200 {object} Success
+// @Success 200 Success
 // @Failure 403 incorrect site or handle
+// @Failure 401 Unauthenticated
 // @router /fetch/:site [post]
 func (u *UserController) Fetch() {
-	handle := u.GetString("handle")
 	site := u.GetString(":site")
-	uid := u.GetString("uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		_, err := models.AddorUpdateProfile(bson.ObjectIdHex(uid), site, handle)
-		if err == nil {
-			u.Data["json"] = map[string]string{"status": "Data fetched"}
-		} else {
-			// handle the error
-			u.Data["json"] = map[string]string{"status": "user invalid or database operation failed"}
-		}
+	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	_, err := models.AddorUpdateProfile(uid, site)
+	if err == nil {
+		u.Data["json"] = map[string]string{"status": "Data fetched"}
 	} else {
-		//handle the error(uid of the user isn't valid)
-		u.Data["json"] = map[string]string{"status": "uid is not valid"}
+		// handle the error
+		u.Data["json"] = map[string]string{"status": "user invalid or database operation failed"}
 	}
-	// u.Data["json"] = profile
 	u.ServeJSON()
 }
 
 // @Title Fetch All User Profiles And returns them
 // @Description Fetches user info from different websites and returns them
+// @Security token_auth read:user
 // @Param	uid		path 	string	true		"UID of user"
 // @Success 200 {object} profile.AllProfiles
 // @Failure 403 invalid user
@@ -234,60 +234,60 @@ func (u *UserController) ReturnAllProfiles() {
 }
 
 // @Title Update Profile Pic
-// @Description update the profile picture of user
-// @Param	uid		path 	string	true		"The uid you want to update"
-// @Param	body		body 	models.User	true		"body for user content"
-// @Success 200 {object} models.User
-// @Failure 403 :uid is not int
-// @router /:uid/profile [put]
+// @Description update the profile picture of logged in user
+// @Security token_auth write:user
+// @Param	image		formData 	file	true		"profile image"
+// @Success 200  successful
+// @Failure 401 Unauthenticated
+// @Failure 403 could not get image
+// @router /picture [put]
 func (u *UserController) ProfilePic() {
-	uid := u.GetString(":uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		f, fh, err := u.GetFile("image")
-		if err != nil {
-			u.Data["json"] = "could not get image"
-			u.Ctx.ResponseWriter.WriteHeader(403)
-			u.ServeJSON()
-			return
-		}
-		bucket := firebase.GetStorageBucket()
-		if bucket == nil {
-			log.Println("Nil Bucket")
-			return
-		}
-		// random filename, retaining existing extension.
-		name := "profile/" + uuid.New().String() + path.Ext(fh.Filename)
-		w := bucket.Object(name).NewWriter(context.Background())
-
-		w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
-		w.ContentType = fh.Header.Get("Content-Type")
-
-		// Entries are immutable, be aggressive about caching (1 day).
-		w.CacheControl = "public, max-age=86400"
-		if _, err := io.Copy(w, f); err != nil {
-			log.Println(err)
-			return
-		}
-		if err := w.Close(); err != nil {
-			log.Println(err)
-			return
-		}
-		const publicURL = "https://storage.googleapis.com/%s/%s"
-		var conf map[string]string
-		err = json.Unmarshal([]byte(os.Getenv("FIREBASE_CONFIG")), &conf)
-		if err != nil {
-			log.Println("Bucket Not available")
-			return
-		}
-		picUrl := fmt.Sprintf(publicURL, conf["storageBucket"], name)
-		err = models.UpdatePicture(bson.ObjectIdHex(uid), picUrl)
-		if err != nil {
-			u.Data["json"] = err.Error()
-			u.Ctx.ResponseWriter.WriteHeader(403)
-			u.ServeJSON()
-			return
-		}
-		u.Data["json"] = "successful"
+	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	f, fh, err := u.GetFile("image")
+	if err != nil {
+		u.Data["json"] = "could not get image"
+		u.Ctx.ResponseWriter.WriteHeader(403)
 		u.ServeJSON()
+		return
 	}
+	bucket := firebase.GetStorageBucket()
+	if bucket == nil {
+		log.Println("Nil Bucket")
+		return
+	}
+	// random filename, retaining existing extension.
+	name := "profile/" + uuid.New().String() + path.Ext(fh.Filename)
+	w := bucket.Object(name).NewWriter(context.Background())
+
+	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
+	w.ContentType = fh.Header.Get("Content-Type")
+
+	// Entries are immutable, be aggressive about caching (1 day).
+	w.CacheControl = "public, max-age=86400"
+	if _, err := io.Copy(w, f); err != nil {
+		log.Println(err)
+		return
+	}
+	if err := w.Close(); err != nil {
+		log.Println(err)
+		return
+	}
+	const publicURL = "https://storage.googleapis.com/%s/%s"
+	var conf map[string]string
+	err = json.Unmarshal([]byte(os.Getenv("FIREBASE_CONFIG")), &conf)
+	if err != nil {
+		log.Println("Bucket Not available")
+		return
+	}
+	picUrl := fmt.Sprintf(publicURL, conf["storageBucket"], name)
+	err = models.UpdatePicture(uid, picUrl)
+	if err != nil {
+		u.Data["json"] = err.Error()
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.ServeJSON()
+		return
+	}
+	u.Data["json"] = "successful"
+	u.ServeJSON()
+
 }

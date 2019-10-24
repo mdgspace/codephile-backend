@@ -91,7 +91,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"],
         beego.ControllerComments{
             Method: "SaveSubmission",
-            Router: `/:site/:uid`,
+            Router: `/:site`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -115,11 +115,11 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"],
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
         beego.ControllerComments{
-            Method: "Test",
-            Router: `/test/:from`,
-            AllowHTTPMethods: []string{"get"},
+            Method: "Put",
+            Router: `/`,
+            AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -129,24 +129,6 @@ func init() {
             Method: "Get",
             Router: `/:uid`,
             AllowHTTPMethods: []string{"get"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
-        beego.ControllerComments{
-            Method: "Put",
-            Router: `/:uid`,
-            AllowHTTPMethods: []string{"put"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
-        beego.ControllerComments{
-            Method: "ProfilePic",
-            Router: `/:uid/profile`,
-            AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -192,6 +174,15 @@ func init() {
             Method: "Logout",
             Router: `/logout`,
             AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:UserController"],
+        beego.ControllerComments{
+            Method: "ProfilePic",
+            Router: `/picture`,
+            AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

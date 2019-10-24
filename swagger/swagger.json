@@ -28,7 +28,14 @@
                     "403": {
                         "description": "error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:contests"
+                        ]
+                    }
+                ]
             }
         },
         "/contests/{site}": {
@@ -57,11 +64,99 @@
                     "403": {
                         "description": "incorrect site or unknown error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:contests"
+                        ]
+                    }
+                ]
             }
         },
-        "/follow/compare": {},
-        "/follow/following": {},
+        "/follow/compare": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "description": "Compares the data of two users",
+                "operationId": "FollowController.CompareUser",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "uid1",
+                        "description": "uid of follower",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "uid2",
+                        "description": "uid of following",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Follow.AllWorldRanks"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid uid"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:follow"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/follow/following": {
+            "post": {
+                "tags": [
+                    "follow"
+                ],
+                "description": "Adds the Following user's uid to the database",
+                "operationId": "FollowController.FollowUser",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "uid1",
+                        "description": "uid of follower",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "uid2",
+                        "description": "uid of following",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} user followed"
+                    },
+                    "403": {
+                        "description": "Invalid uid"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:follow"
+                        ]
+                    }
+                ]
+            }
+        },
         "/object/": {
             "get": {
                 "tags": [
@@ -197,36 +292,7 @@
                 }
             }
         },
-        "/submission/test/{from}": {
-            "get": {
-                "tags": [
-                    "submission"
-                ],
-                "description": "Test Endpoint",
-                "operationId": "SubmissionController.Test",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "from",
-                        "description": "time from",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/submission.Submissions"
-                        }
-                    },
-                    "403": {
-                        "description": "user not exist"
-                    }
-                }
-            }
-        },
-        "/submission/{site}/{uid}": {
+        "/submission/{site}": {
             "post": {
                 "tags": [
                     "submission"
@@ -234,13 +300,6 @@
                 "description": "Triggers saving of user's submissions across a particular platform into database",
                 "operationId": "SubmissionController.Post",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "description": "UID of user",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "path",
                         "name": "site",
@@ -256,7 +315,14 @@
                     "403": {
                         "description": "user or site invalid"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:submission"
+                        ]
+                    }
+                ]
             }
         },
         "/submission/{site}/{uid}/filter": {
@@ -304,7 +370,14 @@
                     "403": {
                         "description": "user not exist"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:submission"
+                        ]
+                    }
+                ]
             }
         },
         "/submission/{uid}": {
@@ -333,7 +406,52 @@
                     "403": {
                         "description": "user not exist"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:submission"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/user/": {
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "description": "update the logged in user",
+                "operationId": "UserController.Update",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for user content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": ": Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/all": {
@@ -350,7 +468,14 @@
                             "$ref": "#/definitions/models.User"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/fetch/{site}": {
@@ -367,33 +492,26 @@
                         "description": "site name",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "handle",
-                        "description": "handle to fetch data from",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "uid",
-                        "description": "uid of user",
-                        "required": true,
-                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/Success"
-                        }
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     },
                     "403": {
                         "description": "incorrect site or handle"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/fetch/{uid}": {
@@ -422,7 +540,14 @@
                     "403": {
                         "description": "invalid user"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/login": {
@@ -469,7 +594,50 @@
                     "200": {
                         "description": "{string} logout success"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:user"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/user/picture": {
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "description": "update the profile picture of logged in user",
+                "operationId": "UserController.Update Profile Pic",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "image",
+                        "description": "profile image",
+                        "required": true,
+                        "type": "file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "could not get image"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "write:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/search": {
@@ -508,7 +676,14 @@
                     "403": {
                         "description": "\"search query is too small\""
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/signup": {
@@ -521,7 +696,7 @@
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "body",
+                        "name": "user",
                         "description": "body for user content",
                         "required": true,
                         "schema": {
@@ -569,7 +744,14 @@
                     "403": {
                         "description": "incorrect site or handle"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:user"
+                        ]
+                    }
+                ]
             }
         },
         "/user/{uid}": {
@@ -583,7 +765,7 @@
                     {
                         "in": "path",
                         "name": "uid",
-                        "description": "The key for staticblock",
+                        "description": "uid of user",
                         "required": true,
                         "type": "string"
                     }
@@ -596,98 +778,41 @@
                         }
                     },
                     "403": {
-                        "description": ":uid is empty"
+                        "description": ":uid is invalid"
                     }
-                }
-            },
-            "put": {
-                "tags": [
-                    "user"
-                ],
-                "description": "update the user",
-                "operationId": "UserController.Update",
-                "parameters": [
+                },
+                "security": [
                     {
-                        "in": "path",
-                        "name": "uid",
-                        "description": "The uid you want to update",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for user content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
+                        "token_auth": [
+                            "read:user"
+                        ]
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "403": {
-                        "description": ":uid is not int"
-                    }
-                }
-            }
-        },
-        "/user/{uid}/profile": {
-            "put": {
-                "tags": [
-                    "user"
-                ],
-                "description": "update the profile picture of user",
-                "operationId": "UserController.Update Profile Pic",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "description": "The uid you want to update",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for user content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "403": {
-                        "description": ":uid is not int"
-                    }
-                }
+                ]
             }
         }
     },
     "definitions": {
-        "//Enter": {
-            "title": "//Enter",
-            "type": "object"
-        },
-        "Success": {
-            "title": "Success",
-            "type": "object"
-        },
         "bson.ObjectId": {
             "title": "ObjectId",
             "type": "object"
+        },
+        "models.Follow.AllWorldRanks": {
+            "title": "AllWorldRanks",
+            "type": "object",
+            "properties": {
+                "codechef_ranks": {
+                    "$ref": "#/definitions/models.WorldRankComparison"
+                },
+                "codeforces_ranks": {
+                    "$ref": "#/definitions/models.WorldRankComparison"
+                },
+                "hackerrank_ranks": {
+                    "$ref": "#/definitions/models.WorldRankComparison"
+                },
+                "spoj_ranks": {
+                    "$ref": "#/definitions/models.WorldRankComparison"
+                }
+            }
         },
         "models.Handle": {
             "title": "Handle",
@@ -840,6 +965,18 @@
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.WorldRankComparison": {
+            "title": "WorldRankComparison",
+            "type": "object",
+            "properties": {
+                "rank1": {
+                    "type": "string"
+                },
+                "rank2": {
                     "type": "string"
                 }
             }
@@ -1030,6 +1167,14 @@
                     }
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "token_auth": {
+            "type": "apiKey",
+            "description": "Enter the token here with bearer keyword Eg: Bearer {token}",
+            "name": "Authorization",
+            "in": "header"
         }
     },
     "tags": [

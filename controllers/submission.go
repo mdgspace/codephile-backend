@@ -4,8 +4,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models"
-	"github.com/mdg-iitr/Codephile/scripts"
-	"time"
 )
 
 var valid_sites = []string{"codechef", "codeforces", "spoj", "hackerrank"}
@@ -16,6 +14,7 @@ type SubmissionController struct {
 
 // @Title Get
 // @Description Get submissions of user across various platforms
+// @Security token_auth read:submission
 // @Param	uid		path 	string	true		"UID of user"
 // @Success 200 {object} submission.Submissions
 // @Failure 403 user not exist
@@ -39,17 +38,17 @@ func (s *SubmissionController) GetSubmission() {
 
 // @Title Post
 // @Description Triggers saving of user's submissions across a particular platform into database
-// @Param	uid		path 	string	true		"UID of user"
+// @Security token_auth write:submission
 // @Param	site		path 	string	true		"Platform site name"
 // @Success 200 submission successfully saved
 // @Failure 403 user or site invalid
-// @router /:site/:uid [post]
+// @router /:site [post]
 func (s *SubmissionController) SaveSubmission() {
-	uid := s.GetString(":uid")
+	uid := s.Ctx.Input.GetData("uid").(bson.ObjectId)
 	site := s.GetString(":site")
 
-	if uid != "" && bson.IsObjectIdHex(uid) && isSiteValid(site) {
-		user, err := models.GetUser(bson.ObjectIdHex(uid))
+	if isSiteValid(site) {
+		user, err := models.GetUser(uid)
 		if err != nil {
 			s.Data["json"] = map[string]string{"error": err.Error()}
 			s.ServeJSON()
@@ -79,6 +78,7 @@ func isSiteValid(s string) bool {
 
 // @Title Filter
 // @Description Filter submissions of user on the basis of status, site and tags
+// @Security token_auth read:submission
 // @Param	uid		path 	string	true		"UID of user"
 // @Param	site		path 	string	true		"Website name"
 // @Param	status		query 	string	false		"Submission status"
@@ -103,17 +103,5 @@ func (s *SubmissionController) FilterSubmission() {
 		s.Data["json"] = "user not exist"
 		s.Ctx.ResponseWriter.WriteHeader(403)
 	}
-	s.ServeJSON()
-}
-
-// @Title Test
-// @Description Test Endpoint
-// @Param	from		path 	string	true		"time from"
-// @Success 200 {object} submission.Submissions
-// @Failure 403 user not exist
-// @router /test/:from [get]
-func (s *SubmissionController) Test() {
-	from, _ := s.GetInt64(":from")
-	s.Data["json"] = scripts.GetSpojSubmissions("prateek1947", time.Unix(from, 0))
 	s.ServeJSON()
 }
