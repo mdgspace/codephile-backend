@@ -272,12 +272,30 @@ paths:
       description: update the logged in user
       operationId: UserController.Update
       parameters:
-      - in: body
-        name: body
-        description: body for user content
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
+      - in: formData
+        name: username
+        description: New Username
+        type: string
+      - in: formData
+        name: password
+        description: New Password
+        type: string
+      - in: formData
+        name: handle.codechef
+        description: New Codechef Handle
+        type: string
+      - in: formData
+        name: handle.codeforces
+        description: New Codeforces Handle
+        type: string
+      - in: formData
+        name: handle.hackerrank
+        description: New Hackerrank Handle
+        type: string
+      - in: formData
+        name: handle.spoj
+        description: New Spoj Handle
+        type: string
       responses:
         "200":
           description: ""
@@ -461,12 +479,32 @@ paths:
       description: create users
       operationId: UserController.CreateUser
       parameters:
-      - in: body
-        name: user
-        description: body for user content
+      - in: formData
+        name: username
+        description: Username
         required: true
-        schema:
-          $ref: '#/definitions/models.User'
+        type: string
+      - in: formData
+        name: password
+        description: Password
+        required: true
+        type: string
+      - in: formData
+        name: handle.codechef
+        description: Codechef Handle
+        type: string
+      - in: formData
+        name: handle.codeforces
+        description: Codeforces Handle
+        type: string
+      - in: formData
+        name: handle.hackerrank
+        description: Hackerrank Handle
+        type: string
+      - in: formData
+        name: handle.spoj
+        description: Spoj Handle
+        type: string
       responses:
         "200":
           description: '{int} models.User.Id'

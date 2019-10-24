@@ -30,7 +30,12 @@ type UserController struct {
 
 // @Title CreateUser
 // @Description create users
-// @Param	user		body 	models.User	true		"body for user content"
+// @Param	username 		formData	string	true "Username"
+// @Param	password		formData 	string	true "Password"
+// @Param	handle.codechef	formData	string 	false "Codechef Handle"
+// @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
+// @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
+// @Param	handle.spoj		formData	string 	false "Spoj Handle"
 // @Success 200 {int} models.User.Id
 // @Failure 403 body is empty
 // @router /signup [post]
@@ -74,7 +79,7 @@ func (u *UserController) Get() {
 		} else {
 			u.Data["json"] = user
 		}
-	}else {
+	} else {
 		u.Ctx.ResponseWriter.WriteHeader(403)
 	}
 	u.ServeJSON()
@@ -83,7 +88,12 @@ func (u *UserController) Get() {
 // @Title Update
 // @Description update the logged in user
 // @Security token_auth write:user
-// @Param	body		body 	models.User	true		"body for user content"
+// @Param	username 		formData	string	false "New Username"
+// @Param	password		formData 	string	false "New Password"
+// @Param	handle.codechef	formData	string 	false "New Codechef Handle"
+// @Param	handle.codeforces	formData	string 	false "New Codeforces Handle"
+// @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"
+// @Param	handle.spoj		formData	string 	false "New Spoj Handle"
 // @Success 200 {object} models.User
 // @Failure 401 : Unauthorized
 // @router / [put]
