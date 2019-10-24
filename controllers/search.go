@@ -11,6 +11,7 @@ import (
 
 // @Title Search
 // @Description Endpoint to search users
+// @Security token_auth read:user
 // @Param	count		query 	string	true		"No of search objects to be returned"
 // @Param	query		query 	string	true		"Search query"
 // @Success 200 {object} []models.User

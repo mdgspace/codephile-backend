@@ -12,11 +12,12 @@ type FollowController struct {
 
 // @Title FollowUser
 // @Description Adds the Following user's uid to the database
+// @Security token_auth write:follow
 // @Param	uid1		query 	string	true  "uid of follower"
 // @Param	uid2		query 	string	true  "uid of following"
-// @Success 200 {string} user followed
+// @Success 200  {string} user followed
 // @Failure 403 Invalid uid
-// @router /following  [post]
+// @router /following [post]
 func (f *FollowController) FollowUser(){
 	uid1 := f.GetString("uid1")
 	uid2 := f.GetString("uid2")
@@ -32,11 +33,12 @@ func (f *FollowController) FollowUser(){
 
 // @Title CompareUser
 // @Description Compares the data of two users
+// @Security token_auth read:follow
 // @Param	uid1		query 	string	true  "uid of follower"
 // @Param	uid2		query 	string	true  "uid of following"
-// @Success 200 {object} //Enter object type
+// @Success 200 {object} models.Follow.AllWorldRanks
 // @Failure 403 Invalid uid
-// @router /compare  [get]
+// @router /compare [get]
 func (f *FollowController) CompareUser(){
 	uid1 := f.GetString("uid1")
 	uid2 := f.GetString("uid2")
