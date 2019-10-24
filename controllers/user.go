@@ -17,6 +17,7 @@ import (
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path"
 )
@@ -37,13 +38,14 @@ type UserController struct {
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "Spoj Handle"
 // @Success 200 {int} models.User.Id
-// @Failure 403 body is empty
+// @Failure 409 username already exists
 // @router /signup [post]
 func (u *UserController) CreateUser() {
 	user := u.parseRequestBody()
 	id, err := models.AddUser(user)
 	if err != nil {
 		u.Data["json"] = map[string]string{"error": err.Error()}
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
 	} else
 	{
 		u.Data["json"] = map[string]string{"id": id}
@@ -95,6 +97,7 @@ func (u *UserController) Get() {
 // @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "New Spoj Handle"
 // @Success 200 {object} models.User
+// @Failure 409 username already exists
 // @Failure 401 : Unauthorized
 // @router / [put]
 func (u *UserController) Put() {
@@ -103,6 +106,7 @@ func (u *UserController) Put() {
 	uu, err := models.UpdateUser(uid, &newUser)
 	if err != nil {
 		u.Data["json"] = map[string]string{"error": err.Error()}
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
 	} else {
 		u.Data["json"] = uu
 	}
@@ -124,6 +128,7 @@ func (u *UserController) Login() {
 		u.Data["json"] = map[string]string{"token": auth.GenerateToken(user.ID.Hex())}
 	} else {
 		u.Data["json"] = map[string]string{"error": "invalid user credential"}
+		u.Ctx.ResponseWriter.WriteHeader(403)
 	}
 	u.ServeJSON()
 }
@@ -179,16 +184,16 @@ func (u *UserController) Verify() {
 	switch site {
 	case "codechef":
 		valid = scripts.CheckCodechefHandle(handle)
-		break;
+		break
 	case "codeforces":
 		valid = scripts.CheckCodeforcesHandle(handle)
-		break;
+		break
 	case "spoj":
 		valid = scripts.CheckSpojHandle(handle)
-		break;
+		break
 	case "hackerrank":
 		valid = scripts.CheckHackerrankHandle(handle)
-		break;
+		break
 	}
 	if valid {
 		u.Data["json"] = map[string]string{"status": "Handle valid"}
@@ -214,6 +219,7 @@ func (u *UserController) Fetch() {
 		u.Data["json"] = map[string]string{"status": "Data fetched"}
 	} else {
 		// handle the error
+		u.Ctx.ResponseWriter.WriteHeader(403)
 		u.Data["json"] = map[string]string{"status": "user invalid or database operation failed"}
 	}
 	u.ServeJSON()

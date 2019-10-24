@@ -26,6 +26,7 @@ func (f *FollowController) FollowUser(){
 		//user2 has been followed
 		f.Data["json"] = map[string]string{"status":"User Followed"}
 	} else {
+		f.Ctx.ResponseWriter.WriteHeader(403)
 		f.Data["json"] = map[string]string{"status": err.Error()}
 	}
 	f.ServeJSON()
@@ -48,6 +49,7 @@ func (f *FollowController) CompareUser(){
 		f.Data["json"] = worldRanks
 	} else {
 		//error
+		f.Ctx.ResponseWriter.WriteHeader(403)
 		f.Data["json"] = map[string]string{"status": err.Error()}
 	}
 	f.ServeJSON()
