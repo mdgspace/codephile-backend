@@ -470,6 +470,9 @@
                     },
                     "401": {
                         "description": ": Unauthorized"
+                    },
+                    "409": {
+                        "description": "username already exists"
                     }
                 },
                 "security": [
@@ -764,8 +767,8 @@
                     "200": {
                         "description": "{int} models.User.Id"
                     },
-                    "403": {
-                        "description": "body is empty"
+                    "409": {
+                        "description": "username already exists"
                     }
                 }
             }

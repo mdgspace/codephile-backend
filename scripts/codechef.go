@@ -253,10 +253,13 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 		data := GetRequest(fmt.Sprintf("https://www.codechef.com/api/contests/PRACTICE/problems/%s", prob))
 		var JsonInterface map[string]interface{}
 		json.Unmarshal(data, &JsonInterface)
-		htmlTag := JsonInterface["tags"].(string)
-		htmlTag = regexp.MustCompile("<a class='(.*?)'>").ReplaceAllString(htmlTag, "")
-		tags := strings.Split(htmlTag, "</a>, ")
-		tags[len(tags)-1] = strings.Replace(tags[len(tags)-1], "</a>", "", 1)
+		var tags []string
+		if JsonInterface["tags"] != nil {
+			htmlTag := JsonInterface["tags"].(string)
+			htmlTag = regexp.MustCompile("<a class='(.*?)'>").ReplaceAllString(htmlTag, "")
+			tags = strings.Split(htmlTag, "</a>, ")
+			tags[len(tags)-1] = strings.Replace(tags[len(tags)-1], "</a>", "", 1)
+		}
 		// SpojSubmission status
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
 		st := "AC"

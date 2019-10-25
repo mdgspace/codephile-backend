@@ -61,14 +61,18 @@ func GetHackerrankSubmissions(handle string, after time.Time) submission.Hackerr
 	var submissions submission.HackerrankSubmissions
 	json.Unmarshal(byteValue, &submissions)
 	var oldestSubIndex int;
-	for i, sub := range submissions.Data {
-		if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
-			oldestSubIndex = i
-			break
+	if after.IsZero() {
+		oldestSubIndex = submissions.Count
+	} else {
+		for i, sub := range submissions.Data {
+			if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
+				oldestSubIndex = i
+				break
+			}
 		}
 	}
 	submissions.Data = submissions.Data[0:oldestSubIndex]
-	submissions.Count = oldestSubIndex + 1
+	submissions.Count = oldestSubIndex
 	for i := 0; i < len(submissions.Data); i++ {
 		submissions.Data[i].URL = "https://www.hackerrank.com" + submissions.Data[i].URL
 	}
