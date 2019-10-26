@@ -47,7 +47,7 @@ type HackerrankSubmission struct {
 // CodeforcesSubmission represents the single submission for codeforces
 type CodeforcesSubmission struct {
 	URL          string    `bson:"url"`
-	CreationTime time.Time `bson:"created_at"`
+	CreationDate time.Time `bson:"created_at"`
 	Name         string    `bson:"name"`
 	Status       string    `bson:"status"`
 	Points       int       `bson:"points"`
@@ -86,7 +86,7 @@ func (sub *CodeforcesSubmissions) UnmarshalJSON(b []byte) error {
 			submission.Rating = int(problem["rating"].(float64))
 		}
 		submission.Status = r["verdict"].(string)
-		submission.CreationTime = time.Unix(int64(r["creationTimeSeconds"].(float64)), 0)
+		submission.CreationDate = time.Unix(int64(r["creationTimeSeconds"].(float64)), 0)
 		sub.Data = append(sub.Data, submission)
 	}
 	return err

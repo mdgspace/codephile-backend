@@ -46,8 +46,8 @@ func ReturnContests() S{
 		log.Fatal(err)
 	}
 
-    log.Println(FinalResult.Result.Ongoing[0].Platform)
-	log.Println(len(FinalResult.Result.Ongoing))
+    // log.Println(FinalResult.Result.Ongoing[0].Platform)
+	// log.Println(len(FinalResult.Result.Ongoing))
 	return FinalResult
 }
 

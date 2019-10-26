@@ -25,6 +25,24 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"],
+        beego.ControllerComments{
+            Method: "ContestsFeed",
+            Router: `/contests`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"],
+        beego.ControllerComments{
+            Method: "FriendsFeed",
+            Router: `/friend-activity`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
         beego.ControllerComments{
             Method: "CompareUser",
