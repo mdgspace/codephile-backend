@@ -38,8 +38,8 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
 		log.Println("Invalid user")
 		return nil, err
 	 }
-	 flag := false
-	 flag2 := false
+	 UserMissing := false
+	 UsernameError := false
 	 var Feed []FeedObject
 	 followingUsers , err2 := models.GetFollowingUsers(user.ID)
 	 if err2 != nil {
@@ -52,15 +52,15 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
 		if err3 != nil{
 			//some alteration in feed
 			//this error will rarely occur
-			flag2 = true
+			UsernameError = true
 		}
 		if err1 != nil {
 			 //unable to fetch this user (feed will not be consisting this user's activity)
 			 log.Println("Unable to fetch a user for feed obtain")
 			 //handle error
-			 flag = true 
+			 UserMissing = true 
 			 continue
-		 } else {
+	  } else {
 			//user fetched 
 			for _ , submission := range UserSubmissions.Codechef {
 				var feedObject FeedObject
@@ -105,14 +105,14 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
 				feedObject.CreationDate = submission.CreationDate
 				Feed = append(Feed, feedObject)
 			}
-		 }
+		}
 	 }
 	 sort.Slice(Feed, func(i, j int) bool {
 		return Feed[i].CreationDate.After(Feed[j].CreationDate)
 	})
-	 if flag == true {
+	 if UserMissing == true {
 		 return Feed, ErrGeneric
-	 } else if flag2 == true {
+	 } else if UsernameError == true {
 		 return Feed, ErrGeneric
 	 }
 	 return Feed , nil	 			
@@ -141,8 +141,8 @@ func SortContests(contests models.S) (models.S) {
 	}
 	//sorting the upcoming contests
 	
-        n = len(contests.Result.Upcoming)
-        sorted = false
+    n = len(contests.Result.Upcoming)
+    sorted = false
     
     for !sorted {
         swapped := false

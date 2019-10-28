@@ -12,6 +12,7 @@ type FeedController struct {
 
 // @Title ContestsFeed
 // @Description Provides Data for contests in the Feed
+// @Security token_auth read:feed
 // @Success 200 {object} models.S
 // @Failure 403 Error fetching contests
 // @router /contests [get]
@@ -29,18 +30,17 @@ func (f *FeedController) ContestsFeed(){
 // @router /friend-activity [get]
 func (f *FeedController) FriendsFeed() {
 	  uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
-	//   if uid != "" && bson.IsObjectIdHex(uid) {
 		  feed,err := models.ReturnFeedFriends(uid)
           if err == models.ErrGeneric  {
 			  //feed is altered (inform front-end)
 			  f.Data["json"] = feed
 			  f.ServeJSON()
 		  } else if err != nil {
-			f.Data["json"] = err.Error()
-			f.ServeJSON()
+			  f.Data["json"] = err.Error()
+			  f.ServeJSON()
 		  } else {
-			f.Data["json"] = feed
-			f.ServeJSON()
+			  f.Data["json"] = feed
+			  f.ServeJSON()
 		  }
 }
 
