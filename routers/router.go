@@ -42,6 +42,11 @@ func init() {
 	        beego.NSInclude(
 				&controllers.FollowController{},
 			),
+		),
+		beego.NSNamespace("/feed",
+	        beego.NSInclude(
+				&controllers.FeedController{},
+			),
 	    ),
 	)
 	beego.AddNamespace(ns)

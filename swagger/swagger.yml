@@ -46,6 +46,38 @@ paths:
       security:
       - token_auth:
         - read:contests
+  /feed/contests:
+    get:
+      tags:
+      - feed
+      description: Provides Data for contests in the Feed
+      operationId: FeedController.ContestsFeed
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.S'
+        "403":
+          description: Error fetching contests
+      security:
+      - token_auth:
+        - read:feed
+  /feed/friend-activity:
+    get:
+      tags:
+      - feed
+      description: Provides Data for Friend Activity in the Feed
+      operationId: FeedController.FriendFeed
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Feed.FeedObject'
+        "403":
+          description: Invalid uid
+      security:
+      - token_auth:
+        - read:feed
   /follow/compare:
     get:
       tags:
@@ -53,11 +85,6 @@ paths:
       description: Compares the data of two users
       operationId: FollowController.CompareUser
       parameters:
-      - in: query
-        name: uid1
-        description: uid of follower
-        required: true
-        type: string
       - in: query
         name: uid2
         description: uid of following
@@ -80,11 +107,6 @@ paths:
       description: Adds the Following user's uid to the database
       operationId: FollowController.FollowUser
       parameters:
-      - in: query
-        name: uid1
-        description: uid of follower
-        required: true
-        type: string
       - in: query
         name: uid2
         description: uid of following
@@ -538,9 +560,38 @@ paths:
       - token_auth:
         - read:user
 definitions:
+  Follow.Following:
+    title: Following
+    type: object
   bson.ObjectId:
     title: ObjectId
     type: object
+  models.Feed.FeedObject:
+    title: FeedObject
+    type: object
+    properties:
+      CreationDate:
+        type: string
+        format: datetime
+      Language:
+        type: string
+      Name:
+        type: string
+      Points:
+        type: string
+      Rating:
+        type: integer
+        format: int64
+      Status:
+        type: string
+      Tags:
+        type: array
+        items:
+          type: string
+      URL:
+        type: string
+      UserName:
+        type: string
   models.Follow.AllWorldRanks:
     title: AllWorldRanks
     type: object
@@ -650,6 +701,10 @@ definitions:
     title: User
     type: object
     properties:
+      followingUsers:
+        type: array
+        items:
+          $ref: '#/definitions/Follow.Following'
       handle:
         $ref: '#/definitions/models.Handle'
       id:
@@ -721,7 +776,7 @@ definitions:
     title: CodeforcesSubmission
     type: object
     properties:
-      CreationTime:
+      CreationDate:
         type: string
         format: datetime
       Name:

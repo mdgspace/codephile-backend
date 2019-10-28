@@ -121,7 +121,7 @@ func GetCodeforcesSubmissions(handle string, after time.Time) submission.Codefor
 			for i, sub := range newSub.Data {
 				subs.Data = append(subs.Data, sub)
 				oldestSubIndex = current + i
-				if sub.CreationTime.Equal(after) || sub.CreationTime.Before(after) {
+				if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
 					oldestSubFound = true
 					break
 				}
