@@ -91,7 +91,14 @@
                     "403": {
                         "description": "Error fetching contests"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:feed"
+                        ]
+                    }
+                ]
             }
         },
         "/feed/friend-activity": {

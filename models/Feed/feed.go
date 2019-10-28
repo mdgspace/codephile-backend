@@ -60,7 +60,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
 			 //handle error
 			 UserMissing = true 
 			 continue
-	  } else {
+	    } else {
 			//user fetched 
 			for _ , submission := range UserSubmissions.Codechef {
 				var feedObject FeedObject
@@ -109,7 +109,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
 	 }
 	 sort.Slice(Feed, func(i, j int) bool {
 		return Feed[i].CreationDate.After(Feed[j].CreationDate)
-	})
+	 })
 	 if UserMissing == true {
 		 return Feed, ErrGeneric
 	 } else if UsernameError == true {
