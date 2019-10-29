@@ -33,6 +33,8 @@ type UserController struct {
 // @Description create users
 // @Param	username 		formData	string	true "Username"
 // @Param	password		formData 	string	true "Password"
+// @Param	fullname		formData 	string	true "Full name of User"
+// @Param	institute		formData 	string	true "Name of Institute"
 // @Param	handle.codechef	formData	string 	false "Codechef Handle"
 // @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
@@ -92,6 +94,8 @@ func (u *UserController) Get() {
 // @Security token_auth write:user
 // @Param	username 		formData	string	false "New Username"
 // @Param	password		formData 	string	false "New Password"
+// @Param	fullname		formData 	string	true "New Full name of User"
+// @Param	institute		formData 	string	true "New Name of Institute"
 // @Param	handle.codechef	formData	string 	false "New Codechef Handle"
 // @Param	handle.codeforces	formData	string 	false "New Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"

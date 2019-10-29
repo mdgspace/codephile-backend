@@ -31,8 +31,8 @@ func (u *UserController) Search() {
 	if err != nil {
 		c = 15
 	}
-	pq := elastic.NewQueryStringQuery("*" + query + "*").Field("username").Field("handle.codechef").Field("handle.spoj").Field("handle.codeforces").Field("handle.hackerrank").Fuzziness("4")
-	q := elastic.NewMultiMatchQuery(query, "username", "handle.codechef", "handle.spoj", "handle.codeforces", "handle.hackerrank").Fuzziness("4")
+	pq := elastic.NewQueryStringQuery("*" + query + "*").Field("username").Field("fullname").Field("handle.codechef").Field("handle.spoj").Field("handle.codeforces").Field("handle.hackerrank").Fuzziness("4")
+	q := elastic.NewMultiMatchQuery(query, "username", "fullname", "handle.codechef", "handle.spoj", "handle.codeforces", "handle.hackerrank").Fuzziness("4")
 	bq := elastic.NewBoolQuery().Should(q, pq)
 	client := search.GetElasticClient()
 	result, err := client.Search().Index("codephile").

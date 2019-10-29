@@ -303,6 +303,16 @@ paths:
         description: New Password
         type: string
       - in: formData
+        name: fullname
+        description: New Full name of User
+        required: true
+        type: string
+      - in: formData
+        name: institute
+        description: New Name of Institute
+        required: true
+        type: string
+      - in: formData
         name: handle.codechef
         description: New Codechef Handle
         type: string
@@ -514,6 +524,16 @@ paths:
         required: true
         type: string
       - in: formData
+        name: fullname
+        description: Full name of User
+        required: true
+        type: string
+      - in: formData
+        name: institute
+        description: Name of Institute
+        required: true
+        type: string
+      - in: formData
         name: handle.codechef
         description: Codechef Handle
         type: string
@@ -705,10 +725,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Follow.Following'
+      fullname:
+        type: string
       handle:
         $ref: '#/definitions/models.Handle'
       id:
         $ref: '#/definitions/bson.ObjectId'
+      institute:
+        type: string
       picture:
         type: string
       username:
