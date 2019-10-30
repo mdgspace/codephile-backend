@@ -8,29 +8,30 @@ import (
 )
 
 type Submissions struct {
-	Codechef   []CodechefSubmission   `bson:"codechef"`
-	Codeforces []CodeforcesSubmission `bson:"codeforces"`
-	Hackerrank []HackerrankSubmission `bson:"hackerrank"`
-	Spoj       []SpojSubmission       `bson:"spoj"`
+	Codechef   []CodechefSubmission   `bson:"codechef" json:"codechef"`
+	Codeforces []CodeforcesSubmission `bson:"codeforces" json:"codeforces"`
+	Hackerrank []HackerrankSubmission `bson:"hackerrank" json:"hackerrank"`
+	Spoj       []SpojSubmission       `bson:"spoj" json:"spoj"`
 }
 
 type CodechefSubmission struct {
-	Name         string    `bson:"name"`
-	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"creation_date"`
-	Status       string    `bson:"status"`
-	Points       string    `bson:"points"`
-	Tags         []string  `bson:"tags"`
+	Name         string    `bson:"name" json:"name"`
+	URL          string    `bson:"url" json:"url"`
+	CreationDate time.Time `bson:"creation_date" json:"creation_date"`
+	Status       string    `bson:"status" json:"status"`
+	Points       string    `bson:"points" json:"points"`
+	Tags         []string  `bson:"tags" json:"tags"`
+	LanguageUsed string    `bson:"language" json:"language"`
 }
 
 type SpojSubmission struct {
-	Name         string    `bson:"name"`
-	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"creation_date"`
-	Status       string    `bson:"status"`
-	Language     string    `bson:"language"`
-	Points       int       `bson:"points"`
-	Tags         []string  `bson:"tags"`
+	Name         string    `bson:"name" json:"name"`
+	URL          string    `bson:"url" json:"url"`
+	CreationDate time.Time `bson:"creation_date" json:"creation_date"`
+	Status       string    `bson:"status" json:"status"`
+	Language     string    `bson:"language" json:"language"`
+	Points       int       `bson:"points" json:"points"`
+	Tags         []string  `bson:"tags" json:"tags"`
 }
 
 type HackerrankSubmissions struct {
@@ -46,13 +47,13 @@ type HackerrankSubmission struct {
 
 // CodeforcesSubmission represents the single submission for codeforces
 type CodeforcesSubmission struct {
-	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"created_at"`
-	Name         string    `bson:"name"`
-	Status       string    `bson:"status"`
-	Points       int       `bson:"points"`
-	Rating       int       `bson:"rating"`
-	Tags         []string  `bson:"tags"`
+	URL          string    `bson:"url" json:"url"`
+	CreationDate time.Time `bson:"created_at" json:"creation_date"`
+	Name         string    `bson:"name" json:"name"`
+	Status       string    `bson:"status" json:"status"`
+	Points       int       `bson:"points" json:"points"`
+	Rating       int       `bson:"rating" json:"rating"`
+	Tags         []string  `bson:"tags" json:"tags"`
 }
 
 // CodeforcesSubmissions represents the submission for codeforces

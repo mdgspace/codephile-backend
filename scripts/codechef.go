@@ -277,6 +277,9 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 			st = "OTH"
 		}
 
+		//Language used
+		lang:=strings.Split(contents[4],"</td>")[0]
+
 		//  Question points
 		pts := strings.Split(contents[3], "<br/>")
 		var points string
@@ -297,7 +300,7 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags})
+		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags,lang})
 
 	}
 
