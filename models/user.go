@@ -74,6 +74,7 @@ func AddUser(u User) (string, error) {
 	}
 	err = collection.Collection.Insert(u)
 	if err != nil {
+		fmt.Println(err)
 		return "", errors.New("Could not create user: Username already exists")
 	}
 	return u.ID.Hex(), nil
@@ -128,6 +129,7 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 			log.Println(err.Error())
 		}
 		collection := db.NewUserCollectionSession()
+		defer collection.Close()
 		_, err := collection.Collection.UpsertId(uid, &u)
 		if err != nil {
 			err = errors.New("username already exists")
@@ -160,6 +162,7 @@ func AutheticateUser(username string, password string) (*User, bool) {
 func AddSubmissions(user *User, site string) error {
 	var handle string
 	coll := db.NewUserCollectionSession()
+	defer coll.Close()
 	switch site {
 	case "codechef":
 		handle = user.Handle.Codechef
@@ -228,6 +231,7 @@ func AddSubmissions(user *User, site string) error {
 
 func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
 	coll := db.NewUserCollectionSession()
+	defer coll.Close()
 	var user User
 	err := coll.Collection.FindId(ID).Select(bson.M{"submission": 1}).One(&user)
 	if err != nil {
@@ -280,6 +284,7 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
 
 func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
 	coll := db.NewUserCollectionSession()
+	defer coll.Close()
 	var profiles profile.AllProfiles
 	var profilesToBeReturned profile.AllProfiles //appends the profile to this variable which will be returned
 	err1 := coll.Collection.FindId(ID).Select(bson.M{"codechefProfile": 1}).One(&profiles)
@@ -306,6 +311,7 @@ func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
 }
 func FilterSubmission(uid bson.ObjectId, status string, tag string, site string) ([]map[string]interface{}, error) {
 	c := db.NewUserCollectionSession()
+	defer c.Close()
 	fmt.Println(status)
 	match1 := bson.M{
 		"$match": bson.M{
@@ -343,6 +349,7 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 		log.Println(err.Error())
 	}
 	coll := db.NewUserCollectionSession()
+	defer coll.Close()
 	_, err = coll.Collection.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
 	if err != nil {
 		return err
