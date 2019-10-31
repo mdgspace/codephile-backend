@@ -478,6 +478,20 @@
                     },
                     {
                         "in": "formData",
+                        "name": "fullname",
+                        "description": "New Full name of User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "institute",
+                        "description": "New Name of Institute",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
                         "name": "handle.codechef",
                         "description": "New Codechef Handle",
                         "type": "string"
@@ -775,6 +789,20 @@
                         "in": "formData",
                         "name": "password",
                         "description": "Password",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fullname",
+                        "description": "Full name of User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "institute",
+                        "description": "Name of Institute",
                         "required": true,
                         "type": "string"
                     },
@@ -1102,11 +1130,17 @@
                         "$ref": "#/definitions/Follow.Following"
                     }
                 },
+                "fullname": {
+                    "type": "string"
+                },
                 "handle": {
                     "$ref": "#/definitions/models.Handle"
                 },
                 "id": {
                     "$ref": "#/definitions/bson.ObjectId"
+                },
+                "institute": {
+                    "type": "string"
                 },
                 "picture": {
                     "type": "string"
@@ -1180,26 +1214,29 @@
             "title": "CodechefSubmission",
             "type": "object",
             "properties": {
-                "CreationDate": {
+                "creation_date": {
                     "type": "string",
                     "format": "datetime"
                 },
-                "Name": {
+                "language": {
                     "type": "string"
                 },
-                "Points": {
+                "name": {
                     "type": "string"
                 },
-                "Status": {
+                "points": {
                     "type": "string"
                 },
-                "Tags": {
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "URL": {
+                "url": {
                     "type": "string"
                 }
             }
@@ -1208,31 +1245,31 @@
             "title": "CodeforcesSubmission",
             "type": "object",
             "properties": {
-                "CreationDate": {
+                "creation_date": {
                     "type": "string",
                     "format": "datetime"
                 },
-                "Name": {
+                "name": {
                     "type": "string"
                 },
-                "Points": {
+                "points": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "Rating": {
+                "rating": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "Status": {
+                "status": {
                     "type": "string"
                 },
-                "Tags": {
+                "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "URL": {
+                "url": {
                     "type": "string"
                 }
             }
@@ -1257,30 +1294,30 @@
             "title": "SpojSubmission",
             "type": "object",
             "properties": {
-                "CreationDate": {
+                "creation_date": {
                     "type": "string",
                     "format": "datetime"
                 },
-                "Language": {
+                "language": {
                     "type": "string"
                 },
-                "Name": {
+                "name": {
                     "type": "string"
                 },
-                "Points": {
+                "points": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "Status": {
+                "status": {
                     "type": "string"
                 },
-                "Tags": {
+                "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "URL": {
+                "url": {
                     "type": "string"
                 }
             }
@@ -1289,25 +1326,25 @@
             "title": "Submissions",
             "type": "object",
             "properties": {
-                "Codechef": {
+                "codechef": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/submission.CodechefSubmission"
                     }
                 },
-                "Codeforces": {
+                "codeforces": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/submission.CodeforcesSubmission"
                     }
                 },
-                "Hackerrank": {
+                "hackerrank": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/submission.HackerrankSubmission"
                     }
                 },
-                "Spoj": {
+                "spoj": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/submission.SpojSubmission"
