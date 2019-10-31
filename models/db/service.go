@@ -37,7 +37,7 @@ func (s *Service) Session() *mgo.Session {
 }
 
 func (s *Service) Close(c *Collection) {
-	c.db.s.Close()
+	c.s.Close()
 	s.queue <- 1
 	s.Open--
 }

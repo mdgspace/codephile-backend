@@ -2,27 +2,33 @@ package db
 
 import (
 	"github.com/globalsign/mgo"
-	"os"
 )
 
 type Collection struct {
-	db      *Database
-	name    string
-	Session *mgo.Collection
+	s          *mgo.Session
+	db         *mgo.Database
+	name       string
+	Collection *mgo.Collection
 }
 
 func (c *Collection) Connect() {
-	session := *c.db.session.C(c.name)
-	c.Session = &session
+	c.s = service.Session()
+	database := *c.s.DB("")
+	c.db = &database
+	collection := *c.db.C(c.name)
+	c.Collection = &collection
 }
 
 func NewCollectionSession(name string) *Collection {
 	var c = Collection{
-		db: newDBSession(os.Getenv("DBName")),
 		name: name,
 	}
 	c.Connect()
 	return &c
+}
+
+func NewUserCollectionSession() *Collection {
+	return NewCollectionSession("coduser")
 }
 
 func (c *Collection) Close() {

@@ -8,7 +8,6 @@ To setup environment variables, create a `.env` file at conf directory of projec
 ```
 PORT = <The port to be used>
 DBPath = <Connection string of local database>
-DBName = <Name of database>
 HMACKEY = <HMAC Encryption key>
 REDISURL = <URL of redis server>
 REDISPASSWD = <Redis Password(empty if no password)>
