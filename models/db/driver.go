@@ -23,7 +23,7 @@ func init() {
 	}
 	// init method to start db
 	checkAndInitServiceConnection()
-	err = NewCollectionSession("coduser").Session.EnsureIndex(index)
+	err = NewUserCollectionSession().Collection.EnsureIndex(index)
 	if err != nil {
 		log.Println(err.Error())
 	}

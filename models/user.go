@@ -63,7 +63,7 @@ func AddUser(u User) (string, error) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	collection := db.NewCollectionSession("coduser")
+	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	//hashing the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
@@ -72,7 +72,7 @@ func AddUser(u User) (string, error) {
 	if err != nil {
 		log.Println(err)
 	}
-	err = collection.Session.Insert(u)
+	err = collection.Collection.Insert(u)
 	if err != nil {
 		return "", errors.New("Could not create user: Username already exists")
 	}
@@ -81,9 +81,9 @@ func AddUser(u User) (string, error) {
 
 func GetUser(uid bson.ObjectId) (*User, error) {
 	var user User
-	collection := db.NewCollectionSession("coduser")
+	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Session.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "lastfetched": 1, "picture": 1,}).One(&user)
+	err := collection.Collection.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "lastfetched": 1, "picture": 1,}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, errors.New("user not exists")
@@ -93,9 +93,9 @@ func GetUser(uid bson.ObjectId) (*User, error) {
 
 func GetAllUsers() []User {
 	var users []User
-	collection := db.NewCollectionSession("coduser")
+	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Session.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "picture": 1}).All(&users)
+	err := collection.Collection.Find(nil).Select(bson.M{"_id": 1, "username": 1, "handle": 1, "picture": 1}).All(&users)
 	if err != nil {
 		panic(err)
 	}
@@ -127,8 +127,8 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		collection := db.NewCollectionSession("coduser")
-		_, err := collection.Session.UpsertId(uid, &u)
+		collection := db.NewUserCollectionSession()
+		_, err := collection.Collection.UpsertId(uid, &u)
 		if err != nil {
 			err = errors.New("username already exists")
 		}
@@ -138,9 +138,9 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 }
 func AutheticateUser(username string, password string) (*User, bool) {
 	var user User
-	collection := db.NewCollectionSession("coduser")
+	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Session.Find(bson.M{"username": username}).One(&user)
+	err := collection.Collection.Find(bson.M{"username": username}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		log.Println(err)
@@ -159,7 +159,7 @@ func AutheticateUser(username string, password string) (*User, bool) {
 
 func AddSubmissions(user *User, site string) error {
 	var handle string
-	coll := db.NewCollectionSession("coduser")
+	coll := db.NewUserCollectionSession()
 	switch site {
 	case "codechef":
 		handle = user.Handle.Codechef
@@ -170,7 +170,7 @@ func AddSubmissions(user *User, site string) error {
 		if len(addSubmissions) != 0 {
 			user.Last.Codechef = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.codechef": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Session.UpdateId(user.ID, change)
+			err := coll.Collection.UpdateId(user.ID, change)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -186,7 +186,7 @@ func AddSubmissions(user *User, site string) error {
 		if len(addSubmissions) != 0 {
 			user.Last.Codeforces = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.codeforces": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Session.UpdateId(user.ID, change)
+			err := coll.Collection.UpdateId(user.ID, change)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -201,7 +201,7 @@ func AddSubmissions(user *User, site string) error {
 		if len(addSubmissions) != 0 {
 			user.Last.Spoj = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.spoj": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Session.UpdateId(user.ID, change)
+			err := coll.Collection.UpdateId(user.ID, change)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -216,7 +216,7 @@ func AddSubmissions(user *User, site string) error {
 		if len(addSubmissions) != 0 {
 			user.Last.Hackerrank = addSubmissions[0].CreationDate
 			change := bson.M{"$push": bson.M{"submission.hackerrank": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Session.UpdateId(user.ID, change)
+			err := coll.Collection.UpdateId(user.ID, change)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -227,9 +227,9 @@ func AddSubmissions(user *User, site string) error {
 }
 
 func GetSubmissions(ID bson.ObjectId) (*submission.Submissions, error) {
-	coll := db.NewCollectionSession("coduser")
+	coll := db.NewUserCollectionSession()
 	var user User
-	err := coll.Session.FindId(ID).Select(bson.M{"submission": 1}).One(&user)
+	err := coll.Collection.FindId(ID).Select(bson.M{"submission": 1}).One(&user)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -263,13 +263,13 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
 		ProfileTobeInserted.Website = site
 		ProfileTobeInserted.Profileinfo = UserProfile
 		// ProfileTobeInserted is all set to be put in the database
-		collection := db.NewCollectionSession("coduser")
+		collection := db.NewUserCollectionSession()
 		defer collection.Close()
-		// err2 := collection.Session.Update(bson.D{{"_id" , user.ID}},bson.D{{"$set" , ProfileTobeInserted}})
+		// err2 := collection.Collection.Update(bson.D{{"_id" , user.ID}},bson.D{{"$set" , ProfileTobeInserted}})
 		NewNode := site + "Profile"
 		SelectedUser := bson.D{{"_id", user.ID}}
 		Update := bson.D{{"$set", bson.D{{NewNode, ProfileTobeInserted}}}}
-		_, err2 := collection.Session.Upsert(SelectedUser, Update)
+		_, err2 := collection.Collection.Upsert(SelectedUser, Update)
 		//inserted into the document
 		if err2 == nil {
 			return user, nil
@@ -279,16 +279,16 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
 }
 
 func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
-	coll := db.NewCollectionSession("coduser")
+	coll := db.NewUserCollectionSession()
 	var profiles profile.AllProfiles
 	var profilesToBeReturned profile.AllProfiles //appends the profile to this variable which will be returned
-	err1 := coll.Session.FindId(ID).Select(bson.M{"codechefProfile": 1}).One(&profiles)
+	err1 := coll.Collection.FindId(ID).Select(bson.M{"codechefProfile": 1}).One(&profiles)
 	profilesToBeReturned.CodechefProfile = profiles.CodechefProfile
-	err2 := coll.Session.FindId(ID).Select(bson.M{"codeforcesProfile": 1}).One(&profiles)
+	err2 := coll.Collection.FindId(ID).Select(bson.M{"codeforcesProfile": 1}).One(&profiles)
 	profilesToBeReturned.CodeforcesProfile = profiles.CodeforcesProfile
-	err3 := coll.Session.FindId(ID).Select(bson.M{"hackerrankProfile": 1}).One(&profiles)
+	err3 := coll.Collection.FindId(ID).Select(bson.M{"hackerrankProfile": 1}).One(&profiles)
 	profilesToBeReturned.HackerrankProfile = profiles.HackerrankProfile
-	err4 := coll.Session.FindId(ID).Select(bson.M{"spojProfile": 1}).One(&profiles)
+	err4 := coll.Collection.FindId(ID).Select(bson.M{"spojProfile": 1}).One(&profiles)
 	profilesToBeReturned.SpojProfile = profiles.SpojProfile
 	if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
 		return profilesToBeReturned, nil
@@ -305,7 +305,7 @@ func GetProfiles(ID bson.ObjectId) (profile.AllProfiles, error) {
 	}
 }
 func FilterSubmission(uid bson.ObjectId, status string, tag string, site string) ([]map[string]interface{}, error) {
-	c := db.NewCollectionSession("coduser")
+	c := db.NewUserCollectionSession()
 	fmt.Println(status)
 	match1 := bson.M{
 		"$match": bson.M{
@@ -325,7 +325,7 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 		},
 	}
 	all := []bson.M{match1, unwind, match2, project}
-	pipe := c.Session.Pipe(all)
+	pipe := c.Collection.Pipe(all)
 
 	var result map[string]interface{}
 	iter := pipe.Iter()
@@ -342,8 +342,8 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	coll := db.NewCollectionSession("coduser")
-	_, err = coll.Session.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
+	coll := db.NewUserCollectionSession()
+	_, err = coll.Collection.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
 	if err != nil {
 		return err
 	}
@@ -351,10 +351,10 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 }
 
 func GetFollowingUsers(ID bson.ObjectId) ([]Follow.Following, error) {
-	coll := db.NewCollectionSession("coduser")
+	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	var user User
-	err := coll.Session.FindId(ID).Select(bson.M{"followingUsers": 1}).One(&user)
+	err := coll.Collection.FindId(ID).Select(bson.M{"followingUsers": 1}).One(&user)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -373,9 +373,9 @@ func FollowUser(uid1 bson.ObjectId, uid2 string) error{
 				following.ID = user2.ID
 				following.CodephileHandle = user2.Username
 				update := bson.M{"$addToSet": bson.M{"followingUsers" : following}}
-				collection := db.NewCollectionSession("coduser")
+				collection := db.NewUserCollectionSession()
 				defer collection.Close()
-				err := collection.Session.UpdateId(user1.ID,update)
+				err := collection.Collection.UpdateId(user1.ID,update)
 				return err
 			} else {
 				//unable to get the user from database
@@ -391,7 +391,7 @@ func CompareUser(uid1 bson.ObjectId, uid2 string) (Follow.AllWorldRanks , error)
 	var worldRanksComparison Follow.AllWorldRanks
 	if uid2 != "" && bson.IsObjectIdHex(uid2) {
 			//add the uid2 in the database of uid1
-			collection := db.NewCollectionSession("coduser")
+			collection := db.NewUserCollectionSession()
 			defer collection.Close()
 			//gets the different profiles to fetch world ranks
 			profiles1 , err1 := GetProfiles(uid1)
