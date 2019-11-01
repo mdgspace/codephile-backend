@@ -82,7 +82,7 @@ func AddUser(u User) (string, error) {
 	}
 	err = collection.Collection.Insert(u)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", errors.New("Could not create user: Username already exists")
 	}
 	return u.ID.Hex(), nil
@@ -116,48 +116,70 @@ func GetAllUsers() []User {
 }
 
 func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
-	if u, err := GetUser(uid); err == nil {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Institute != "" {
-			u.Institute = uu.Institute
-		}
-		if uu.FullName != "" {
-			u.FullName = uu.FullName
-		}
-		if uu.Handle.Codechef != "" {
-			u.Handle.Codechef = uu.Handle.Codechef
-		}
-		if uu.Handle.Codeforces != "" {
-			u.Handle.Codeforces = uu.Handle.Codeforces
-		}
-		if uu.Handle.Hackerearth != "" {
-			u.Handle.Hackerearth = uu.Handle.Hackerearth
-		}
-		if uu.Handle.Hackerrank != "" {
-			u.Handle.Hackerrank = uu.Handle.Hackerrank
-		}
-		if uu.Handle.Hackerearth != "" {
-			u.Handle.Hackerearth = uu.Handle.Hackerearth
-		}
-		client := search.GetElasticClient()
-		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(u).Upsert(u).Do(context.Background())
-		if err != nil {
-			log.Println(err.Error())
-		}
-		collection := db.NewUserCollectionSession()
-		defer collection.Close()
-		_, err := collection.Collection.UpsertId(uid, &u)
-		if err != nil {
-			err = errors.New("username already exists")
-		}
-		return u, err
+	var updateDoc = bson.M{}
+	var elasticDoc = map[string]interface{}{}
+	var newHandle Handle
+	if uu.Username != "" {
+		updateDoc["username"] = uu.Username
+		elasticDoc["username"] = uu.Username
 	}
-	return nil, errors.New("User Not Exist")
+	if uu.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(uu.Password), bcrypt.DefaultCost)
+		if err != nil {
+			log.Println(err)
+			return nil,err
+		}
+		uu.Password = string(hash)
+		updateDoc["password"] = uu.Password
+		elasticDoc["password"] = uu.Password
+	}
+	if uu.Institute != "" {
+		updateDoc["institute"] = uu.Institute
+		elasticDoc["institute"] = uu.Institute
+	}
+	if uu.FullName != "" {
+		updateDoc["fullname"] = uu.FullName
+		elasticDoc["fullname"] = uu.FullName
+	}
+	if uu.Handle.Codechef != "" {
+		updateDoc["handle.codechef"] = uu.Handle.Codechef
+		newHandle.Codechef = uu.Handle.Codechef
+	}
+	if uu.Handle.Codeforces != "" {
+		updateDoc["handle.codeforces"] = uu.Handle.Codeforces
+		newHandle.Codeforces = uu.Handle.Codeforces
+	}
+	if uu.Handle.Hackerearth != "" {
+		updateDoc["handle.hackerearth"] = uu.Handle.Hackerearth
+		newHandle.Hackerearth = uu.Handle.Hackerearth
+	}
+	if uu.Handle.Hackerrank != "" {
+		updateDoc["handle.hackerrank"] = uu.Handle.Hackerrank
+		newHandle.Hackerrank = uu.Handle.Hackerrank
+	}
+	if uu.Handle.Spoj != "" {
+		updateDoc["handle.spoj"] = uu.Handle.Spoj
+		newHandle.Spoj = uu.Handle.Spoj
+	}
+	elasticDoc["handle"] = newHandle
+	client := search.GetElasticClient()
+	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+	}
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
+	if err != nil {
+		log.Println(err.Error())
+		err = errors.New("username already exists")
+		return nil, err
+	}
+	u, err := GetUser(uid)
+	if err != nil {
+		return nil, err
+	}
+	return u, err
 }
 func AutheticateUser(username string, password string) (*User, bool) {
 	var user User
