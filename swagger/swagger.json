@@ -480,14 +480,12 @@
                         "in": "formData",
                         "name": "fullname",
                         "description": "New Full name of User",
-                        "required": true,
                         "type": "string"
                     },
                     {
                         "in": "formData",
                         "name": "institute",
                         "description": "New Name of Institute",
-                        "required": true,
                         "type": "string"
                     },
                     {
