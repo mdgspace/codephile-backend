@@ -61,6 +61,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
+        beego.ControllerComments{
+            Method: "GetFollowing",
+            Router: `/following`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:ObjectController"],
         beego.ControllerComments{
             Method: "Post",

@@ -52,3 +52,24 @@ func (f *FollowController) CompareUser(){
 	}
 	f.ServeJSON()
 }
+
+
+// @Title GetFollowing
+// @Description Fetches the users the user is following
+// @Security token_auth read:follow
+// @Success 200 {object} []models.Follow.Following
+// @Failure 403 Invalid uid
+// @router /following [get]
+func (f *FollowController) GetFollowing(){
+	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	following , err := models.GetFollowingUsers(uid)
+    if err == nil{
+		//data has been fetched
+		f.Data["json"] = following
+	} else {
+		//error
+		f.Ctx.ResponseWriter.WriteHeader(403)
+		f.Data["json"] = map[string]string{"status": err.Error()}
+	}
+	f.ServeJSON()
+}

@@ -101,6 +101,23 @@ paths:
       - token_auth:
         - read:follow
   /follow/following:
+    get:
+      tags:
+      - follow
+      description: Fetches the users the user is following
+      operationId: FollowController.GetFollowing
+      responses:
+        "200":
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/models.Follow.Following'
+        "403":
+          description: Invalid uid
+      security:
+      - token_auth:
+        - read:follow
     post:
       tags:
       - follow
@@ -622,6 +639,14 @@ definitions:
         $ref: '#/definitions/models.WorldRankComparison'
       spoj_ranks:
         $ref: '#/definitions/models.WorldRankComparison'
+  models.Follow.Following:
+    title: Following
+    type: object
+    properties:
+      codephile_handle:
+        type: string
+      f_id:
+        $ref: '#/definitions/bson.ObjectId'
   models.Handle:
     title: Handle
     type: object
