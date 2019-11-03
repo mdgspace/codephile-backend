@@ -85,6 +85,9 @@ func AddUser(u User) (string, error) {
 		log.Println(err)
 		return "", errors.New("Could not create user: Username already exists")
 	}
+	err = RefreshSubmissions()
+	//handle error
+
 	return u.ID.Hex(), nil
 }
 
@@ -470,4 +473,27 @@ func CompareUser(uid1 bson.ObjectId, uid2 string) (Follow.AllWorldRanks, error) 
 		//uid is not valid
 		return worldRanksComparison, errors.New("UID Invalid")
 	}
+}
+
+func RefreshSubmissions() error {
+	users := GetAllUsers()
+	websites := [4]string{"codechef","codeforces","spoj","hackerrank"}
+	var ErrorSubmissions error
+
+	//establishing a goroutine for this "for" loop
+	for _ , user := range users {
+		// executing every iteration in a separate goroutine (to be implemented later)
+		// go func(user User) {
+			for _ , website := range websites {
+				err := AddSubmissions(&user, website)
+				if err != nil {
+					//Submissions for this particular user is not updated
+					ErrorSubmissions = errors.New("Submission fetching altered")
+				} else {
+					continue
+				}
+			}
+		// }(user)
+	}
+	return ErrorSubmissions
 }
