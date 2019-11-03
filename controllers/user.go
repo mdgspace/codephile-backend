@@ -34,16 +34,21 @@ type UserController struct {
 // @Param	username 		formData	string	true "Username"
 // @Param	password		formData 	string	true "Password"
 // @Param	fullname		formData 	string	true "Full name of User"
-// @Param	institute		formData 	string	true "Name of Institute"
+// @Param	institute		formData 	string	false "Name of Institute"
 // @Param	handle.codechef	formData	string 	false "Codechef Handle"
 // @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "Spoj Handle"
 // @Success 200 {int} models.User.Id
 // @Failure 409 username already exists
+// @Failure 403 blank username or password
 // @router /signup [post]
 func (u *UserController) CreateUser() {
 	user := u.parseRequestBody()
+	if user.Username == "" ||user.Password == "" {
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		return
+	}
 	id, err := models.AddUser(user)
 	if err != nil {
 		u.Data["json"] = map[string]string{"error": err.Error()}
@@ -120,8 +125,8 @@ func (u *UserController) Put() {
 
 // @Title Login
 // @Description Logs user into the system
-// @Param	username		query 	string	true		"The username for login"
-// @Param	password		query 	string	true		"The password for login"
+// @Param	username		formData 	string	true		"The username for login"
+// @Param	password		formData 	string	true		"The password for login"
 // @Success 200 {string} login success
 // @Failure 403 user not exist
 // @router /login [post]
