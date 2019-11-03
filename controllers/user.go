@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/schema"
 	"github.com/mdg-iitr/Codephile/models"
+	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
@@ -45,7 +46,7 @@ type UserController struct {
 // @router /signup [post]
 func (u *UserController) CreateUser() {
 	user := u.parseRequestBody()
-	if user.Username == "" ||user.Password == "" {
+	if user.Username == "" || user.Password == "" {
 		u.Ctx.ResponseWriter.WriteHeader(403)
 		return
 	}
@@ -315,4 +316,33 @@ func (u *UserController) ProfilePic() {
 	u.Data["json"] = "successful"
 	u.ServeJSON()
 
+}
+
+// @Title username available
+// @Description checks if username is available
+// @Param	username		query 	string	true		"Username"
+// @Success 200  available
+// @Failure 403 unavailable
+// @router /available [get]
+func (u *UserController) IsAvailable() {
+	username := u.GetString("username")
+	if username == "" {
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		return
+	}
+	collection := db.NewUserCollectionSession()
+	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	if err != nil {
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+	}
+	//username available
+	if c == 0 {
+		u.Data["json"] = "available"
+		u.ServeJSON()
+		return
+	}
+	u.Ctx.ResponseWriter.WriteHeader(403)
+	u.Data["json"] = "unavailable"
+	u.ServeJSON()
 }
