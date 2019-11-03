@@ -669,14 +669,14 @@
                 "operationId": "UserController.Login",
                 "parameters": [
                     {
-                        "in": "query",
+                        "in": "formData",
                         "name": "username",
                         "description": "The username for login",
                         "required": true,
                         "type": "string"
                     },
                     {
-                        "in": "query",
+                        "in": "formData",
                         "name": "password",
                         "description": "The password for login",
                         "required": true,
@@ -829,7 +829,6 @@
                         "in": "formData",
                         "name": "institute",
                         "description": "Name of Institute",
-                        "required": true,
                         "type": "string"
                     },
                     {
@@ -860,6 +859,9 @@
                 "responses": {
                     "200": {
                         "description": "{int} models.User.Id"
+                    },
+                    "403": {
+                        "description": "blank username or password"
                     },
                     "409": {
                         "description": "username already exists"
