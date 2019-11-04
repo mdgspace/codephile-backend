@@ -738,6 +738,9 @@ definitions:
     title: S
     type: object
     properties:
+      last_fetched:
+        type: string
+        format: datetime
       result:
         $ref: '#/definitions/models.Result'
   models.Upcoming:
@@ -762,10 +765,6 @@ definitions:
     title: User
     type: object
     properties:
-      followingUsers:
-        type: array
-        items:
-          $ref: '#/definitions/Follow.Following'
       fullname:
         type: string
       handle:
