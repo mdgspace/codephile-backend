@@ -588,6 +588,32 @@
                 ]
             }
         },
+        "/user/available": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "checks if username is available",
+                "operationId": "UserController.username available",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "username",
+                        "description": "Username",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "available"
+                    },
+                    "403": {
+                        "description": "unavailable"
+                    }
+                }
+            }
+        },
         "/user/fetch/{site}": {
             "post": {
                 "tags": [
