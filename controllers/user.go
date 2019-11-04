@@ -331,6 +331,7 @@ func (u *UserController) IsAvailable() {
 		return
 	}
 	collection := db.NewUserCollectionSession()
+	defer collection.Close()
 	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
 	if err != nil {
 		log.Println(err.Error())
