@@ -17,7 +17,12 @@ type FeedController struct {
 // @Failure 403 Error fetching contests
 // @router /contests [get]
 func (f *FeedController) ContestsFeed(){
-	 contests := models.ReturnFeedContests()
+	 contests, err := models.ReturnFeedContests()
+	 if err != nil {
+		f.Ctx.ResponseWriter.WriteHeader(403)
+		f.Data["json"] = map[string]string{"status": err.Error()}
+		f.ServeJSON()
+	 }
 	 f.Data["json"] = contests
 	 f.ServeJSON()
 }
@@ -36,6 +41,7 @@ func (f *FeedController) FriendsFeed() {
 			  f.Data["json"] = feed
 			  f.ServeJSON()
 		  } else if err != nil {
+			  f.Ctx.ResponseWriter.WriteHeader(403)
 			  f.Data["json"] = err.Error()
 			  f.ServeJSON()
 		  } else {

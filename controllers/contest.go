@@ -19,7 +19,13 @@ type ContestController struct {
 // @Failure 403 error
 // @router / [get]
 func (u *ContestController) GetContests() {
-	contests := models.ReturnContests()
+	contests, err := models.ReturnContests()
+	if err != nil {
+		//handle error
+        u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Data["json"] = map[string]string{"status": err.Error()}
+		u.ServeJSON()
+	}
 	u.Data["json"] = contests
 	u.ServeJSON()
 }
@@ -33,7 +39,13 @@ func (u *ContestController) GetContests() {
 // @router /:site [get]
 func (u *ContestController) GetSpecificContests() {
 	site := u.GetString(":site")
-	contests := models.ReturnSpecificContests(site)
+	contests, err := models.ReturnSpecificContests(site)
+	if err != nil {
+		//handle error
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Data["json"] = map[string]string{"status": err.Error()}
+		u.ServeJSON()
+	} 
 	u.Data["json"] = contests
 	u.ServeJSON()
 }

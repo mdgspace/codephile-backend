@@ -25,10 +25,13 @@ type FeedObject struct {
 
 var ErrGeneric = errors.New("Feed is not absolutely correct")
 
-func ReturnFeedContests() models.S {
-	 UnsortedContests := models.ReturnContests()
+func ReturnFeedContests() (models.S, error) {
+	 UnsortedContests, err := models.ReturnContests()
+	 if err != nil {
+		 return models.S{}, err
+	 } 
 	 SortedContests := SortContests(UnsortedContests)
-	 return SortedContests
+	 return SortedContests, nil
 } 
 
 func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject , error) {
