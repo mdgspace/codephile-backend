@@ -387,7 +387,9 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.User'
+            type: array
+            items:
+              $ref: '#/definitions/models.User'
       security:
       - token_auth:
         - read:user
@@ -519,7 +521,6 @@ paths:
       - in: query
         name: count
         description: No of search objects to be returned
-        required: true
         type: string
       - in: query
         name: query

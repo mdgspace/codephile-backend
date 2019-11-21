@@ -30,7 +30,7 @@ func Authenticate(ctx *context.Context) {
 		ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
 		return
 	}
-	if requestToken.Valid && !auth.IsTokenExpired(requestToken) {
+	if requestToken.Valid && !auth.IsTokenExpired(requestToken) && !auth.IsTokenBlacklisted(requestToken) {
 		claim := requestToken.Claims.(jwt.MapClaims)
 		uid := bson.ObjectIdHex(claim["sub"].(string))
 		ctx.Input.SetData("uid", uid)
