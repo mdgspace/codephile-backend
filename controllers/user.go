@@ -64,7 +64,7 @@ func (u *UserController) CreateUser() {
 // @Title GetAll
 // @Description get all Users
 // @Security token_auth read:user
-// @Success 200 {object} models.User
+// @Success 200 {object} []models.User
 // @router /all [get]
 func (u *UserController) GetAll() {
 	users := models.GetAllUsers()

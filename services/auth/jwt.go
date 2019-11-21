@@ -1,11 +1,10 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/mdg-iitr/Codephile/services/redis"
 	r "github.com/go-redis/redis"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"log"
 	"os"
 	"time"
@@ -28,20 +27,24 @@ func GenerateToken(uid string) string {
 }
 func BlacklistToken(token *jwt.Token) error {
 	client := redis.GetRedisClient()
-	_, err := client.Set(token.Claims.(jwt.MapClaims)["sub"].(string), true, getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"])).Result()
+	claims := token.Claims.(jwt.MapClaims)
+	_, err := client.Set(claims["sub"].(string), int64(claims["iat"].(float64)), getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"])).Result()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println(token.Claims.(jwt.MapClaims)["sub"].(string))
 	return err
 }
 func IsTokenBlacklisted(token *jwt.Token) bool {
 	client := redis.GetRedisClient()
-	_, err := client.Get(token.Claims.(jwt.MapClaims)["sub"].(string)).Result()
+	claims := token.Claims.(jwt.MapClaims)
+	iat, err := client.Get(claims["sub"].(string)).Int64()
 	if err == r.Nil {
 		return false
 	}
-	return true
+	if int64(claims["iat"].(float64)) == iat {
+		return true
+	}
+	return false
 }
 
 func getTokenRemainingValidity(timestamp interface{}) time.Duration {

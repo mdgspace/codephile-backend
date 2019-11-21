@@ -575,7 +575,10 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
                         }
                     }
                 },
@@ -788,7 +791,6 @@
                         "in": "query",
                         "name": "count",
                         "description": "No of search objects to be returned",
-                        "required": true,
                         "type": "string"
                     },
                     {
