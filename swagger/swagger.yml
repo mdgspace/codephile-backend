@@ -257,7 +257,6 @@ paths:
       - in: path
         name: uid
         description: UID of user
-        required: true
         type: string
       - in: path
         name: site
@@ -286,13 +285,13 @@ paths:
     get:
       tags:
       - submission
-      description: Get submissions of user across various platforms
+      description: Get submissions of user(logged-in if uid is empty) across various
+        platforms
       operationId: SubmissionController.Get
       parameters:
       - in: path
         name: uid
         description: UID of user
-        required: true
         type: string
       responses:
         "200":
@@ -359,19 +358,20 @@ paths:
     get:
       tags:
       - user
-      description: get user by uid
+      description: Get user by uid. Returns logged in user if uid is empty
       operationId: UserController.Get
       parameters:
       - in: path
         name: uid
         description: uid of user
-        required: true
         type: string
       responses:
         "200":
           description: ""
           schema:
             $ref: '#/definitions/models.User'
+        "401":
+          description: ': Unauthorized'
         "403":
           description: :uid is invalid
       security:
@@ -437,19 +437,21 @@ paths:
     get:
       tags:
       - user
-      description: Fetches user info from different websites and returns them
+      description: Returns info of user(logged in user if uid is empty) from different
+        websites
       operationId: UserController.Fetch All User Profiles And returns them
       parameters:
       - in: path
         name: uid
         description: UID of user
-        required: true
         type: string
       responses:
         "200":
           description: ""
           schema:
             $ref: '#/definitions/profile.AllProfiles'
+        "401":
+          description: Unauthenticated
         "403":
           description: invalid user
       security:

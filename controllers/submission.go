@@ -13,25 +13,31 @@ type SubmissionController struct {
 }
 
 // @Title Get
-// @Description Get submissions of user across various platforms
+// @Description Get submissions of user(logged-in if uid is empty) across various platforms
 // @Security token_auth read:submission
-// @Param	uid		path 	string	true		"UID of user"
+// @Param	uid		path 	string	false		"UID of user"
 // @Success 200 {object} submission.Submissions
 // @Failure 403 user not exist
+// @router / [get]
 // @router /:uid [get]
 func (s *SubmissionController) GetSubmission() {
-	uid := s.GetString(":uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		subs, err := models.GetSubmissions(bson.ObjectIdHex(uid))
-		if err != nil {
-			s.Data["json"] = err.Error()
-			s.Ctx.ResponseWriter.WriteHeader(403)
-		} else {
-			s.Data["json"] = subs
-		}
+	uidString := s.GetString(":uid")
+	var uid bson.ObjectId
+	if bson.IsObjectIdHex(uidString) {
+		uid = bson.ObjectIdHex(uidString)
+	} else if uidString == "" {
+		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
 	} else {
-		s.Data["json"] = "user not exist"
 		s.Ctx.ResponseWriter.WriteHeader(403)
+		s.ServeJSON()
+		return
+	}
+	subs, err := models.GetSubmissions(uid)
+	if err != nil {
+		s.Data["json"] = err.Error()
+		s.Ctx.ResponseWriter.WriteHeader(403)
+	} else {
+		s.Data["json"] = subs
 	}
 	s.ServeJSON()
 }
@@ -79,29 +85,35 @@ func isSiteValid(s string) bool {
 // @Title Filter
 // @Description Filter submissions of user on the basis of status, site and tags
 // @Security token_auth read:submission
-// @Param	uid		path 	string	true		"UID of user"
+// @Param	uid		path 	string	false		"UID of user"
 // @Param	site		path 	string	true		"Website name"
 // @Param	status		query 	string	false		"Submission status"
 // @Param	tag 		query	string	false		"Submission tag"
 // @Success 200 {object} submission.CodechefSubmission
 // @Failure 403 user not exist
+// @router /:site/filter [get]
 // @router /:site/:uid/filter [get]
 func (s *SubmissionController) FilterSubmission() {
-	uid := s.GetString(":uid")
+	uidString := s.GetString(":uid")
+	var uid bson.ObjectId
+	if bson.IsObjectIdHex(uidString) {
+		uid = bson.ObjectIdHex(uidString)
+	} else if uidString == "" {
+		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
+	} else {
+		s.Ctx.ResponseWriter.WriteHeader(403)
+		s.ServeJSON()
+		return
+	}
 	status := s.GetString("status")
 	site := s.GetString(":site")
 	tag := s.GetString("tag")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		subs, err := models.FilterSubmission(bson.ObjectIdHex(uid), status, tag, site)
-		if err != nil {
-			s.Data["json"] = err.Error()
-			s.Ctx.ResponseWriter.WriteHeader(403)
-		} else {
-			s.Data["json"] = subs
-		}
-	} else {
-		s.Data["json"] = "user not exist"
+	subs, err := models.FilterSubmission(uid, status, tag, site)
+	if err != nil {
+		s.Data["json"] = err.Error()
 		s.Ctx.ResponseWriter.WriteHeader(403)
+	} else {
+		s.Data["json"] = subs
 	}
 	s.ServeJSON()
 }
