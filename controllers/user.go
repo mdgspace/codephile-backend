@@ -73,24 +73,33 @@ func (u *UserController) GetAll() {
 }
 
 // @Title Get
-// @Description get user by uid
+// @Description Get user by uid. Returns logged in user if uid is empty
 // @Security token_auth read:user
-// @Param	uid		path 	string	true		"uid of user"
+// @Param	uid		path 	string	false		"uid of user"
 // @Success 200 {object} models.User
+// @Failure 401 : Unauthorized
 // @Failure 403 :uid is invalid
+// @router / [get]
 // @router /:uid [get]
 func (u *UserController) Get() {
-	uid := u.GetString(":uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		user, err := models.GetUser(bson.ObjectIdHex(uid))
-		if err != nil {
-			u.Ctx.ResponseWriter.WriteHeader(403)
-			u.Data["json"] = map[string]string{"error": err.Error()}
-		} else {
-			u.Data["json"] = user
-		}
+	uidString := u.GetString(":uid")
+	var uid bson.ObjectId
+	if bson.IsObjectIdHex(uidString) {
+		uid = bson.ObjectIdHex(uidString)
+	} else if uidString == "" {
+		uid = u.Ctx.Input.GetData("uid").(bson.ObjectId)
 	} else {
 		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.ServeJSON()
+		return
+	}
+	user, err := models.GetUser(uid)
+	if err != nil {
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Data["json"] = err.Error()
+		log.Println(err.Error())
+	} else {
+		u.Data["json"] = user
 	}
 	u.ServeJSON()
 }
@@ -236,25 +245,33 @@ func (u *UserController) Fetch() {
 }
 
 // @Title Fetch All User Profiles And returns them
-// @Description Fetches user info from different websites and returns them
+// @Description Returns info of user(logged in user if uid is empty) from different websites
 // @Security token_auth read:user
-// @Param	uid		path 	string	true		"UID of user"
+// @Param	uid		path 	string	false		"UID of user"
 // @Success 200 {object} profile.AllProfiles
+// @Failure 401 Unauthenticated
 // @Failure 403 invalid user
+// @router /fetch/ [get]
 // @router /fetch/:uid [get]
 func (u *UserController) ReturnAllProfiles() {
-	uid := u.GetString(":uid")
-	if uid != "" && bson.IsObjectIdHex(uid) {
-		profiles, err := models.GetProfiles(bson.ObjectIdHex(uid))
-		if err != nil {
-			u.Data["json"] = err.Error()
-			u.Ctx.ResponseWriter.WriteHeader(403)
-		} else {
-			u.Data["json"] = profiles
-		}
+	uidString := u.GetString(":uid")
+	var uid bson.ObjectId
+	if bson.IsObjectIdHex(uidString) {
+		uid = bson.ObjectIdHex(uidString)
+	} else if uidString == "" {
+		uid = u.Ctx.Input.GetData("uid").(bson.ObjectId)
 	} else {
-		//handle the error(uid of the user isn't valid)
-		u.Data["json"] = map[string]string{"status": "uid is not valid"}
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.ServeJSON()
+		return
+	}
+	user, err := models.GetProfiles(uid)
+	if err != nil {
+		u.Data["json"] = err.Error()
+		u.Ctx.ResponseWriter.WriteHeader(403)
+		log.Println(err.Error())
+	} else {
+		u.Data["json"] = user
 	}
 	u.ServeJSON()
 }
