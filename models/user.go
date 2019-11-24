@@ -66,11 +66,6 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 func AddUser(u User) (string, error) {
 	u.ID = bson.NewObjectId()
-	client := search.GetElasticClient()
-	_, err := client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
-	if err != nil {
-		log.Println(err.Error())
-	}
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	//hashing the password
@@ -85,6 +80,12 @@ func AddUser(u User) (string, error) {
 		log.Println(err)
 		return "", errors.New("Could not create user: Username already exists")
 	}
+	client := search.GetElasticClient()
+	_, err = client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+	}
+
 	return u.ID.Hex(), nil
 }
 
@@ -162,11 +163,7 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		newHandle.Spoj = uu.Handle.Spoj
 	}
 	elasticDoc["handle"] = newHandle
-	client := search.GetElasticClient()
-	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
-	if err != nil {
-		log.Println(err.Error())
-	}
+
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
@@ -174,6 +171,11 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		log.Println(err.Error())
 		err = errors.New("username already exists")
 		return nil, err
+	}
+	client := search.GetElasticClient()
+	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
 	}
 	u, err := GetUser(uid)
 	if err != nil {
