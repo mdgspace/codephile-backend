@@ -10,6 +10,7 @@ type ProfileInfo struct{
 	UserName  string   `bson:"userName" json:"userName" schema:"userName"`
 	School    string   `bson:"school" json:"school" schema:"school"`
 	WorldRank string   `bson:"rank" json:"rank" schema:"rank"`
+	Accuracy  string   `bson:"accuracy" json:"accuracy" schema:"accuracy"`
 }
 
 type Profile struct {

@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/globalsign/mgo/bson"
 	Follow "github.com/mdg-iitr/Codephile/models/Follow"
 	"github.com/mdg-iitr/Codephile/models/db"
@@ -13,8 +16,6 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"time"
 )
 
 type User struct {
@@ -128,7 +129,7 @@ func UpdateUser(uid bson.ObjectId, uu *User) (a *User, err error) {
 		hash, err := bcrypt.GenerateFromPassword([]byte(uu.Password), bcrypt.DefaultCost)
 		if err != nil {
 			log.Println(err)
-			return nil,err
+			return nil, err
 		}
 		uu.Password = string(hash)
 		updateDoc["password"] = uu.Password
@@ -296,18 +297,38 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
 	switch site {
 	case "codechef":
 		UserProfile = scripts.GetCodechefProfileInfo(user.Handle.Codechef)
-		break
+		accuracy, err := GetAccuracy(user, "codechef")
+		if err != nil {
+			UserProfile.Accuracy = ""
+		} else {
+			UserProfile.Accuracy = accuracy
+		}
 	case "codeforces":
 		UserProfile = scripts.GetCodeforcesProfileInfo(user.Handle.Codeforces)
-		break
+		accuracy, err := GetAccuracy(user, "codeforces")
+		if err != nil {
+			UserProfile.Accuracy = ""
+		} else {
+			UserProfile.Accuracy = accuracy
+		}
 	case "spoj":
 		UserProfile = scripts.GetSpojProfileInfo(user.Handle.Spoj)
-		break
+		accuracy, err := GetAccuracy(user, "spoj")
+		if err != nil {
+			UserProfile.Accuracy = ""
+		} else {
+			UserProfile.Accuracy = accuracy
+		}
 	case "hackerrank":
 		UserProfile = scripts.GetHackerrankProfileInfo(user.Handle.Hackerrank)
-		break
+		accuracy, err := GetAccuracy(user, "hackerrank")
+		if err != nil {
+			UserProfile.Accuracy = ""
+		} else {
+			UserProfile.Accuracy = accuracy
+		}
 	} // add a default case for non-existent website
-	//Profile fetched. Store in database 
+	//Profile fetched. Store in database
 	var ProfileTobeInserted profile.Profile
 	ProfileTobeInserted.Website = site
 	ProfileTobeInserted.Profileinfo = UserProfile
@@ -471,5 +492,64 @@ func CompareUser(uid1 bson.ObjectId, uid2 string) (Follow.AllWorldRanks, error) 
 	} else {
 		//uid is not valid
 		return worldRanksComparison, errors.New("UID Invalid")
+	}
+}
+
+// GetAccuracy function calculates the accuracy of a particular site and returns it
+func GetAccuracy(user *User, website string) (string, error) {
+	submissions, err := GetSubmissions(user.ID)
+
+	var accuracy string
+
+	if err != nil {
+		return accuracy, err
+	}
+
+	var correctSubmissions float32
+	var totalSubmissions float32
+
+	switch website {
+	case "codechef":
+		{
+			for _, value := range submissions.Codechef {
+				totalSubmissions += 1.0
+				if value.Status == "AC" {
+					if value.Points == "100" {
+						correctSubmissions += 1.0
+					}
+				}
+			}
+			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
+			return accuracy, nil
+		}
+	case "codeforces":
+		{
+			for _, value := range submissions.Codeforces {
+				totalSubmissions += 1.0
+				if value.Status == "OK" {
+					correctSubmissions += 1.0
+				}
+			}
+			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
+			return accuracy, nil
+		}
+	case "spoj":
+		{
+			for _, value := range submissions.Spoj {
+				totalSubmissions += 1.0
+				if value.Status == "accepted" {
+					correctSubmissions += 1.0
+				}
+			}
+			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
+			return accuracy, nil
+		}
+	case "hackerrank":
+		{
+			//accuracy would be 100%
+			return "100", nil
+		}
+	default:
+		return "", errors.New("Invalid Website")
 	}
 }

@@ -176,7 +176,7 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 			}
 		}
 		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
-		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank}
+		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank,""}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
