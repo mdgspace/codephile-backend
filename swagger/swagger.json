@@ -1264,6 +1264,9 @@
             "title": "ProfileInfo",
             "type": "object",
             "properties": {
+                "accuracy": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
