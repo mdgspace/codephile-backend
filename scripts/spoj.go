@@ -33,7 +33,7 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 		School := List[1]
 		List = strings.Split(e.ChildText(":nth-child(6)"), ":")
 		WorldRank := List[1]
-		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank}
+		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {

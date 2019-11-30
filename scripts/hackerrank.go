@@ -52,7 +52,7 @@ func GetHackerrankProfileInfo(handle string) profile.ProfileInfo {
 	// Date := Profile["created_at"].(string)
 	UserName := Profile["username"].(string)
 	School := Profile["school"].(string)
-	return profile.ProfileInfo{Name, UserName, School, ""}
+	return profile.ProfileInfo{Name, UserName, School, "", ""}
 }
 
 func GetHackerrankSubmissions(handle string, after time.Time) submission.HackerrankSubmissions {
