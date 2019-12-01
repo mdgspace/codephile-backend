@@ -87,6 +87,14 @@ func AddUser(u User) (string, error) {
 		log.Println(err.Error())
 	}
 
+	var valid_sites = []string{"codechef", "codeforces", "hackerrank", "spoj"}
+
+	go func() {
+		for _, value := range valid_sites {
+			_ = AddSubmissions(&u, value)
+		}
+	}()
+
 	return u.ID.Hex(), nil
 }
 
