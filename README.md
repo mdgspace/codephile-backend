@@ -9,11 +9,8 @@ To setup environment variables, create a `.env` file at conf directory of projec
 PORT = <The port to be used>
 DBPath = <Connection string of local database>
 HMACKEY = <HMAC Encryption key>
-REDISURL = <URL of redis server>
-REDISPASSWD = <Redis Password(empty if no password)>
+REDISURL = <connection string of redis server>
 FIREBASE_CONFIG = <Firebase config including bucket name(json)>
 FIREBASE_CREDENTIALS = <Firebase admin SDK credentials(json)>
-ELASTICCLOUDURL = <URL of elasticsearch cloud>
-ELASTICUSERNAME = <Username of elasticsearch cloud>
-ELASTICPASSWORD = <Password of elasticsearch cloud>
+ELASTICURL = <connection string of elasticsearch cloud>
 ```
