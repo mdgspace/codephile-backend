@@ -10,12 +10,12 @@ var client *redis.Client
 
 func GetRedisClient() *redis.Client {
 	if client == nil {
-		client = redis.NewClient(&redis.Options{
-			Addr:     os.Getenv("REDISURL"),
-			Password: os.Getenv("REDISPASSWD"),
-			DB:       0, // use default DB
-		})
-		_, err := client.Ping().Result()
+		opt, err := redis.ParseURL(os.Getenv("REDISURL"))
+		if err != nil {
+			panic(err.Error())
+		}
+		client = redis.NewClient(opt)
+		_, err = client.Ping().Result()
 		if err != nil {
 			log.Fatalf("Could not connect to redis %v", err)
 		}
