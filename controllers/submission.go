@@ -3,10 +3,11 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo/bson"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
 )
 
-var valid_sites = []string{"codechef", "codeforces", "spoj", "hackerrank"}
+var valid_sites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
 
 type SubmissionController struct {
 	beego.Controller

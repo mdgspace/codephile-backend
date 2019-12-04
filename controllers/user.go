@@ -11,6 +11,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/google/uuid"
 	"github.com/gorilla/schema"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/scripts"
@@ -201,16 +202,16 @@ func (u *UserController) Verify() {
 	site := u.GetString(":site")
 	var valid = false
 	switch site {
-	case "codechef":
+	case CODECHEF:
 		valid = scripts.CheckCodechefHandle(handle)
 		break
-	case "codeforces":
+	case CODEFORCES:
 		valid = scripts.CheckCodeforcesHandle(handle)
 		break
-	case "spoj":
+	case SPOJ:
 		valid = scripts.CheckSpojHandle(handle)
 		break
-	case "hackerrank":
+	case HACKERRANK:
 		valid = scripts.CheckHackerrankHandle(handle)
 		break
 	}

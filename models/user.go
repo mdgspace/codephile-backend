@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"log"
 	"time"
 
@@ -87,7 +88,7 @@ func AddUser(u User) (string, error) {
 		log.Println(err.Error())
 	}
 
-	var valid_sites = []string{"codechef", "codeforces", "hackerrank", "spoj"}
+	var valid_sites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
 
 	go func() {
 		for _, value := range valid_sites {
@@ -218,7 +219,7 @@ func AddSubmissions(user *User, site string) error {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	switch site {
-	case "codechef":
+	case CODECHEF:
 		handle = user.Handle.Codechef
 		if handle == "" {
 			return errors.New("handle not available")
@@ -233,7 +234,7 @@ func AddSubmissions(user *User, site string) error {
 			}
 		}
 		return nil
-	case "codeforces":
+	case CODEFORCES:
 		handle = user.Handle.Codeforces
 		if handle == "" {
 			return errors.New("handle not available")
@@ -249,7 +250,7 @@ func AddSubmissions(user *User, site string) error {
 			}
 		}
 		return nil
-	case "spoj":
+	case SPOJ:
 		handle = user.Handle.Spoj
 		if handle == "" {
 			return errors.New("handle not available")
@@ -264,7 +265,7 @@ func AddSubmissions(user *User, site string) error {
 			}
 		}
 		return nil
-	case "hackerrank":
+	case HACKERRANK:
 		handle = user.Handle.Hackerrank
 		if handle == "" {
 			return errors.New("handle not available")
@@ -303,33 +304,33 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*User, error) {
 	var UserProfile profile.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
 	switch site {
-	case "codechef":
+	case CODECHEF:
 		UserProfile = scripts.GetCodechefProfileInfo(user.Handle.Codechef)
-		accuracy, err := GetAccuracy(user, "codechef")
+		accuracy, err := GetAccuracy(user, CODECHEF)
 		if err != nil {
 			UserProfile.Accuracy = ""
 		} else {
 			UserProfile.Accuracy = accuracy
 		}
-	case "codeforces":
+	case CODEFORCES:
 		UserProfile = scripts.GetCodeforcesProfileInfo(user.Handle.Codeforces)
-		accuracy, err := GetAccuracy(user, "codeforces")
+		accuracy, err := GetAccuracy(user, CODEFORCES)
 		if err != nil {
 			UserProfile.Accuracy = ""
 		} else {
 			UserProfile.Accuracy = accuracy
 		}
-	case "spoj":
+	case SPOJ:
 		UserProfile = scripts.GetSpojProfileInfo(user.Handle.Spoj)
-		accuracy, err := GetAccuracy(user, "spoj")
+		accuracy, err := GetAccuracy(user, SPOJ)
 		if err != nil {
 			UserProfile.Accuracy = ""
 		} else {
 			UserProfile.Accuracy = accuracy
 		}
-	case "hackerrank":
+	case HACKERRANK:
 		UserProfile = scripts.GetHackerrankProfileInfo(user.Handle.Hackerrank)
-		accuracy, err := GetAccuracy(user, "hackerrank")
+		accuracy, err := GetAccuracy(user, HACKERRANK)
 		if err != nil {
 			UserProfile.Accuracy = ""
 		} else {
@@ -517,7 +518,7 @@ func GetAccuracy(user *User, website string) (string, error) {
 	var totalSubmissions float32
 
 	switch website {
-	case "codechef":
+	case CODECHEF:
 		{
 			for _, value := range submissions.Codechef {
 				totalSubmissions += 1.0
@@ -530,7 +531,7 @@ func GetAccuracy(user *User, website string) (string, error) {
 			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
 			return accuracy, nil
 		}
-	case "codeforces":
+	case CODEFORCES:
 		{
 			for _, value := range submissions.Codeforces {
 				totalSubmissions += 1.0
@@ -541,7 +542,7 @@ func GetAccuracy(user *User, website string) (string, error) {
 			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
 			return accuracy, nil
 		}
-	case "spoj":
+	case SPOJ:
 		{
 			for _, value := range submissions.Spoj {
 				totalSubmissions += 1.0
@@ -552,7 +553,7 @@ func GetAccuracy(user *User, website string) (string, error) {
 			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
 			return accuracy, nil
 		}
-	case "hackerrank":
+	case HACKERRANK:
 		{
 			//accuracy would be 100%
 			return "100", nil
