@@ -16,8 +16,7 @@ func Authenticate(ctx *context.Context) {
 	// signup and login endpoints
 	if (strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/login") && ctx.Request.Method == "POST") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/signup") && ctx.Request.Method == "POST") ||
-		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/available") && ctx.Request.Method == "GET") ||
-		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/verify/" && ctx.Request.Method == "GET"){
+		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/available") && ctx.Request.Method == "GET") {
 		return
 	}
 	requestToken, err := request.ParseFromRequest(ctx.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
