@@ -3,15 +3,16 @@ package scripts
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mdg-iitr/Codephile/models/submission"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/mdg-iitr/Codephile/models/profile"
+
 	"github.com/gocolly/colly"
+	"github.com/mdg-iitr/Codephile/models/profile"
+	"github.com/mdg-iitr/Codephile/models/submission"
 )
 
 type CodechefGraphPoint struct {
@@ -176,7 +177,7 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 			}
 		}
 		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
-		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank,""}
+		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
@@ -188,12 +189,12 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 }
 
 func GetCodechefSubmissions(handle string, after time.Time) []submission.CodechefSubmission {
-	var oldestSubIndex, current int;
+	var oldestSubIndex, current int
 	var oldestSubFound = false
 	subs := []submission.CodechefSubmission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := GetCodechefSubmissionParts(handle, current);
+		newSub := GetCodechefSubmissionParts(handle, current)
 		//Check for repetition of previous fetched submission
 		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
@@ -278,7 +279,7 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 		}
 
 		//Language used
-		lang:=strings.Split(contents[4],"</td>")[0]
+		lang := strings.Split(contents[4], "</td>")[0]
 
 		//  Question points
 		pts := strings.Split(contents[3], "<br/>")
@@ -296,11 +297,31 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 
 		//  Language
 		// lang := strings.TrimRight(contents[4], "</td>")
-		submissionTime, err := time.Parse("03:04 PM 02/01/06", tos)
-		if err != nil {
-			log.Println(err.Error())
+
+		var submissionTime time.Time
+		var err error
+		//List[0] = number of hours or minutes to reduce
+		//List[1] = hours or minutes
+		//List[2] = "ago"
+		List := strings.Split(tos, " ")
+		if List[2] == "ago" {
+			count, err := strconv.Atoi(List[0])
+			if err != nil {
+				log.Println(err.Error())
+			}
+			now := time.Now()
+			if List[1] == "min" {
+				submissionTime = now.Add(time.Duration(-count) * time.Minute)
+			} else {
+				submissionTime = now.Add(time.Duration(-count) * time.Hour)
+			}
+		} else {
+			submissionTime, err = time.Parse("03:04 PM 02/01/06", tos)
+			if err != nil {
+				log.Println(err.Error())
+			}
 		}
-		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags,lang})
+		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags, lang})
 
 	}
 
