@@ -562,3 +562,15 @@ func GetAccuracy(user *User, website string) (string, error) {
 		return "", errors.New("Invalid Website")
 	}
 }
+
+func GetPicture(uid bson.ObjectId) string {
+	var user User
+	coll := db.NewUserCollectionSession()
+	defer coll.Close()
+	err := coll.Collection.FindId(uid).Select(bson.M{"picture": 1}).One(&user)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+	return user.Picture
+}
