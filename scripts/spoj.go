@@ -73,7 +73,7 @@ func GetSpojSubmissions(handle string, after time.Time) []submission.SpojSubmiss
 	for !oldestSubFound {
 		newSub := GetSpojSubmissionParts(handle, current)
 		//Check for repetition of previous fetched submission
-		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
+		if len(newSub) != 0 && newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
 				subs = append(subs, sub)
 				oldestSubIndex = current + i
