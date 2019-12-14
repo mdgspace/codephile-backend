@@ -2,13 +2,14 @@ package scripts
 
 import (
 	"fmt"
-	"github.com/gocolly/colly"
-	"github.com/mdg-iitr/Codephile/models/submission"
 	"log"
 	"regexp"
 	"strings"
-	"github.com/mdg-iitr/Codephile/models/profile"
 	"time"
+
+	"github.com/gocolly/colly"
+	"github.com/mdg-iitr/Codephile/models/profile"
+	"github.com/mdg-iitr/Codephile/models/submission"
 )
 
 type SpojProblems struct {
@@ -28,11 +29,30 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 
 	c.OnHTML("#user-profile-left", func(e *colly.HTMLElement) {
 		Name := e.ChildText("h3")
-		UserName := e.ChildText("h4")
-		List := strings.Split(e.ChildText(":nth-child(7)"), ":")
-		School := List[1]
-		List = strings.Split(e.ChildText(":nth-child(6)"), ":")
-		WorldRank := List[1]
+		flag := 0
+		var WorldRank string
+		var School string
+		UserName := handle
+		for i := 4; i <= 6; i++ {
+			cssSelector1 := fmt.Sprintf(":nth-child(%d)", i)
+			if strings.Split(e.ChildText(cssSelector1), ":")[0] == "World Rank" {
+				WorldRank = strings.Split(e.ChildText(cssSelector1), ":")[1]
+				flag = i
+				break
+			}
+		}
+		cssSelector2 := fmt.Sprintf(":nth-child(%d)", flag+1)
+
+		defer func() {
+			if r := recover(); r != nil {
+				//catching index out of range exception in fetching School
+				School = ""
+				Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
+			}
+		}()
+
+		School = strings.Split(e.ChildText(cssSelector2), ":")[1]
+
 		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
 	})
 
@@ -46,12 +66,12 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 }
 
 func GetSpojSubmissions(handle string, after time.Time) []submission.SpojSubmission {
-	var oldestSubIndex, current int;
+	var oldestSubIndex, current int
 	var oldestSubFound = false
 	subs := []submission.SpojSubmission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := GetSpojSubmissionParts(handle, current);
+		newSub := GetSpojSubmissionParts(handle, current)
 		//Check for repetition of previous fetched submission
 		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
