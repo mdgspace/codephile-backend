@@ -1,15 +1,11 @@
 package controllers
 
 import (
-	"cloud.google.com/go/storage"
-	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/globalsign/mgo/bson"
-	"github.com/google/uuid"
 	"github.com/gorilla/schema"
 	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
@@ -17,11 +13,9 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"path"
 )
 
 var decoder = schema.NewDecoder()
@@ -294,37 +288,12 @@ func (u *UserController) ProfilePic() {
 		u.ServeJSON()
 		return
 	}
-	bucket := firebase.GetStorageBucket()
-	if bucket == nil {
-		log.Println("Nil Bucket")
-		return
-	}
-	// random filename, retaining existing extension.
-	name := "profile/" + uuid.New().String() + path.Ext(fh.Filename)
-	w := bucket.Object(name).NewWriter(context.Background())
-
-	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
-	w.ContentType = fh.Header.Get("Content-Type")
-
-	// Entries are immutable, be aggressive about caching (1 day).
-	w.CacheControl = "public, max-age=86400"
-	if _, err := io.Copy(w, f); err != nil {
-		log.Println(err)
-		return
-	}
-	if err := w.Close(); err != nil {
-		log.Println(err)
-		return
-	}
-	const publicURL = "https://storage.googleapis.com/%s/%s"
-	var conf map[string]string
-	err = json.Unmarshal([]byte(os.Getenv("FIREBASE_CONFIG")), &conf)
+	newPic, err := firebase.AddFile(f, fh, models.GetPicture(uid))
 	if err != nil {
-		log.Println("Bucket Not available")
+		log.Println(err)
 		return
 	}
-	picUrl := fmt.Sprintf(publicURL, conf["storageBucket"], name)
-	err = models.UpdatePicture(uid, picUrl)
+	err = models.UpdatePicture(uid, newPic)
 	if err != nil {
 		u.Data["json"] = err.Error()
 		u.Ctx.ResponseWriter.WriteHeader(403)
@@ -333,7 +302,6 @@ func (u *UserController) ProfilePic() {
 	}
 	u.Data["json"] = "successful"
 	u.ServeJSON()
-
 }
 
 // @Title username available
