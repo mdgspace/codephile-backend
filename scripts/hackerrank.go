@@ -30,14 +30,17 @@ type HackerrankContest struct {
 }
 
 func GetRequest(path string) []byte {
-	resp, err := http.Get(path)
+	client := http.Client{Timeout: time.Second * 10}
+	resp, err := client.Get(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return nil
 	}
 	defer resp.Body.Close()
 	byteValue, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
+		return nil
 	}
 	return byteValue
 }

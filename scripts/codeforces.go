@@ -110,7 +110,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) submission.Code
 }
 
 func GetCodeforcesSubmissions(handle string, after time.Time) submission.CodeforcesSubmissions {
-	var oldestSubIndex, current int;
+	var oldestSubIndex, current int
 	var oldestSubFound = false
 	var subs submission.CodeforcesSubmissions
 	//Fetch submission until oldest submission not found
@@ -120,7 +120,7 @@ func GetCodeforcesSubmissions(handle string, after time.Time) submission.Codefor
 		if len(newSub.Data) != 0 {
 			for i, sub := range newSub.Data {
 				subs.Data = append(subs.Data, sub)
-				oldestSubIndex = current + i
+				oldestSubIndex = current + i + 1
 				if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
 					oldestSubFound = true
 					break
@@ -129,7 +129,6 @@ func GetCodeforcesSubmissions(handle string, after time.Time) submission.Codefor
 			//50 submissions per page
 			current += 50
 		} else {
-			oldestSubIndex += 1
 			break
 		}
 	}
