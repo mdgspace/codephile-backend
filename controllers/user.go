@@ -10,6 +10,7 @@ import (
 	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/db"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
@@ -35,7 +36,7 @@ type UserController struct {
 // @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "Spoj Handle"
-// @Success 200 {int} models.User.Id
+// @Success 200 {int} models.types.User.Id
 // @Failure 409 username already exists
 // @Failure 403 blank username or password
 // @router /signup [post]
@@ -59,7 +60,7 @@ func (u *UserController) CreateUser() {
 // @Title GetAll
 // @Description get all Users
 // @Security token_auth read:user
-// @Success 200 {object} []models.User
+// @Success 200 {object} []models.types.User
 // @router /all [get]
 func (u *UserController) GetAll() {
 	users := models.GetAllUsers()
@@ -71,7 +72,7 @@ func (u *UserController) GetAll() {
 // @Description Get user by uid. Returns logged in user if uid is empty
 // @Security token_auth read:user
 // @Param	uid		path 	string	false		"uid of user"
-// @Success 200 {object} models.User
+// @Success 200 {object} models.types.User
 // @Failure 401 : Unauthorized
 // @Failure 403 :uid is invalid
 // @router / [get]
@@ -110,7 +111,7 @@ func (u *UserController) Get() {
 // @Param	handle.codeforces	formData	string 	false "New Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "New Spoj Handle"
-// @Success 200 {object} models.User
+// @Success 200 {object} models.types.User
 // @Failure 409 username already exists
 // @Failure 401 : Unauthorized
 // @router / [put]
@@ -166,9 +167,9 @@ func (u *UserController) Logout() {
 	}
 	u.ServeJSON()
 }
-func (u *UserController) parseRequestBody() models.User {
+func (u *UserController) parseRequestBody() types.User {
 	var (
-		user models.User
+		user types.User
 		err  error
 	)
 	if u.Ctx.Request.Header.Get("content-type") == "application/json" {

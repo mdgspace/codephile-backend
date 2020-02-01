@@ -3,6 +3,7 @@ package scripts
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
 	"net/http"
 	"regexp"
@@ -11,8 +12,6 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/mdg-iitr/Codephile/models/profile"
-	"github.com/mdg-iitr/Codephile/models/submission"
 )
 
 type CodechefGraphPoint struct {
@@ -125,7 +124,7 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 
 }
 
-func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
+func GetCodechefProfileInfo(handle string) types.ProfileInfo {
 
 	/* path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=40", handle)
 		byteValue := GetRequest(path)
@@ -166,7 +165,7 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 
 	//scrapping the profile
 	c := colly.NewCollector()
-	var Profile profile.ProfileInfo
+	var Profile types.ProfileInfo
 	var School string
 	c.OnHTML(".user-profile-container", func(e *colly.HTMLElement) {
 		Name := e.ChildText("h2")
@@ -177,7 +176,7 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 			}
 		}
 		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
-		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
+		Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
@@ -188,10 +187,10 @@ func GetCodechefProfileInfo(handle string) profile.ProfileInfo {
 	return Profile
 }
 
-func GetCodechefSubmissions(handle string, after time.Time) []submission.CodechefSubmission {
+func GetCodechefSubmissions(handle string, after time.Time) []types.CodechefSubmission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
-	subs := []submission.CodechefSubmission{{CreationDate: time.Now()}}
+	subs := []types.CodechefSubmission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
 		newSub := GetCodechefSubmissionParts(handle, current)
@@ -215,7 +214,7 @@ func GetCodechefSubmissions(handle string, after time.Time) []submission.Codeche
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetCodechefSubmissionParts(handle string, pageNo int) []submission.CodechefSubmission {
+func GetCodechefSubmissionParts(handle string, pageNo int) []types.CodechefSubmission {
 	var JsonInterFace interface{}
 	user_url := fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, pageNo)
 	fmt.Println(user_url)
@@ -228,9 +227,9 @@ func GetCodechefSubmissionParts(handle string, pageNo int) []submission.Codechef
 
 }
 
-func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
+func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 
-	var submissions []submission.CodechefSubmission
+	var submissions []types.CodechefSubmission
 
 	data := strings.Split(content, "<tr >")
 	for i := 1; i <= len(data)-1; i++ {
@@ -321,7 +320,7 @@ func GetSubmissionsFromString(content string) []submission.CodechefSubmission {
 				log.Println(err.Error())
 			}
 		}
-		submissions = append(submissions, submission.CodechefSubmission{prob, url, submissionTime, st, points, tags, lang})
+		submissions = append(submissions, types.CodechefSubmission{prob, url, submissionTime, st, points, tags, lang})
 
 	}
 

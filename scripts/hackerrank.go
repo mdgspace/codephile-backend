@@ -2,8 +2,7 @@ package scripts
 
 import (
 	"encoding/json"
-	"github.com/mdg-iitr/Codephile/models/profile"
-	"github.com/mdg-iitr/Codephile/models/submission"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,7 +44,7 @@ func GetRequest(path string) []byte {
 	return byteValue
 }
 
-func GetHackerrankProfileInfo(handle string) profile.ProfileInfo {
+func GetHackerrankProfileInfo(handle string) types.ProfileInfo {
 	path := "https://www.hackerrank.com/rest/contests/master/hackers/" + handle + "/profile";
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
@@ -55,13 +54,13 @@ func GetHackerrankProfileInfo(handle string) profile.ProfileInfo {
 	// Date := Profile["created_at"].(string)
 	UserName := Profile["username"].(string)
 	School := Profile["school"].(string)
-	return profile.ProfileInfo{Name, UserName, School, "", ""}
+	return types.ProfileInfo{Name, UserName, School, "", ""}
 }
 
-func GetHackerrankSubmissions(handle string, after time.Time) submission.HackerrankSubmissions {
+func GetHackerrankSubmissions(handle string, after time.Time) types.HackerrankSubmissions {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/recent_challenges?limit=1000&response_version=v1"
 	byteValue := GetRequest(path)
-	var submissions submission.HackerrankSubmissions
+	var submissions types.HackerrankSubmissions
 	json.Unmarshal(byteValue, &submissions)
 	var oldestSubIndex int;
 	if after.IsZero() {
