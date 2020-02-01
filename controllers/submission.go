@@ -7,8 +7,6 @@ import (
 	"github.com/mdg-iitr/Codephile/models"
 )
 
-var valid_sites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
-
 type SubmissionController struct {
 	beego.Controller
 }
@@ -54,7 +52,7 @@ func (s *SubmissionController) SaveSubmission() {
 	uid := s.Ctx.Input.GetData("uid").(bson.ObjectId)
 	site := s.GetString(":site")
 
-	if isSiteValid(site) {
+	if IsSiteValid(site) {
 		user, err := models.GetUser(uid)
 		if err != nil {
 			s.Data["json"] = map[string]string{"error": err.Error()}
@@ -72,15 +70,6 @@ func (s *SubmissionController) SaveSubmission() {
 		s.Ctx.ResponseWriter.WriteHeader(403)
 	}
 	s.ServeJSON()
-}
-
-func isSiteValid(s string) bool {
-	for _, vs := range valid_sites {
-		if s == vs {
-			return true
-		}
-	}
-	return false
 }
 
 // @Title Filter

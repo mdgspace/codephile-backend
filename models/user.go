@@ -2,9 +2,9 @@ package models
 
 import (
 	"context"
-	"errors"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
+	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
@@ -19,25 +19,22 @@ func AddUser(u types.User) (string, error) {
 	//hashing the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	//data type of hash is []byte
-	u.Password = string(hash)
 	if err != nil {
-		log.Println(err)
+		return "", err
 	}
+	u.Password = string(hash)
 	err = collection.Collection.Insert(u)
 	if err != nil {
-		log.Println(err)
-		return "", errors.New("Could not create user: Username already exists")
+		return "", UserAlreadyExistError
 	}
 	client := search.GetElasticClient()
 	_, err = client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
 	if err != nil {
-		log.Println(err.Error())
+		return "", err
 	}
 
-	var valid_sites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
-
 	go func() {
-		for _, value := range valid_sites {
+		for _, value := range ValidSites {
 			_ = AddSubmissions(&u, value)
 		}
 	}()
@@ -54,12 +51,12 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 		"picture": 1, "fullname": 1, "institute": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
-		return nil, errors.New("user not exists")
+		return nil, err
 	}
 	return &user, nil
 }
 
-func GetAllUsers() []types.User {
+func GetAllUsers() ([]types.User, error) {
 	var users []types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
@@ -67,9 +64,9 @@ func GetAllUsers() []types.User {
 		"handle": 1, "lastfetched": 1,
 		"picture": 1, "fullname": 1, "institute": 1}).All(&users)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return users
+	return users, nil
 }
 
 func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
@@ -125,8 +122,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
 	if err != nil {
 		log.Println(err.Error())
-		err = errors.New("username already exists")
-		return nil, err
+		return nil, UserAlreadyExistError
 	}
 	client := search.GetElasticClient()
 	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
