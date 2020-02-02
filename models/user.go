@@ -2,12 +2,14 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
+	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
@@ -35,7 +37,7 @@ func AddUser(u types.User) (string, error) {
 
 	go func() {
 		for _, value := range ValidSites {
-			_ = AddSubmissions(&u, value)
+			_ = AddSubmissions(u.ID, value)
 		}
 	}()
 
@@ -136,7 +138,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	return u, err
 }
 
-func AutheticateUser(username string, password string) (*types.User, bool) {
+func AuthenticateUser(username string, password string) (*types.User, bool) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
@@ -182,4 +184,51 @@ func GetPicture(uid bson.ObjectId) string {
 		return ""
 	}
 	return user.Picture
+}
+
+func UserExists(username string) (bool, error) {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	if err != nil {
+		log.Println(err.Error())
+		return false, err
+	}
+	if c > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func SearchUser(query string, c int) ([]interface{}, error) {
+	pq := elastic.NewQueryStringQuery("*" + query + "*").
+		Field("username").Field("fullname").
+		Field("handle.codechef").Field("handle.spoj").
+		Field("handle.codeforces").Field("handle.hackerrank").
+		Fuzziness("4")
+	q := elastic.NewMultiMatchQuery(query,
+		"username", "fullname",
+		"handle.codechef", "handle.spoj",
+		"handle.codeforces", "handle.hackerrank",
+	).Fuzziness("4")
+	bq := elastic.NewBoolQuery().Should(q, pq)
+	client := search.GetElasticClient()
+	result, err := client.Search().Index("codephile").
+		Pretty(false).Query(bq).Size(c).
+		Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	var results []interface{}
+	for _, hit := range result.Hits.Hits {
+		var result interface{}
+		err := json.Unmarshal(hit.Source, &result)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, nil
 }

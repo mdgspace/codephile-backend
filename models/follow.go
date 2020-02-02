@@ -2,9 +2,8 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/globalsign/mgo/bson"
+	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 )

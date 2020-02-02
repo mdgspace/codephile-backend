@@ -10,7 +10,6 @@ import (
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
-	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
@@ -182,7 +181,7 @@ func (u *UserController) Put() {
 func (u *UserController) Login() {
 	username := u.Ctx.Request.FormValue("username")
 	password := u.Ctx.Request.FormValue("password")
-	if user, isValid := models.AutheticateUser(username, password); isValid {
+	if user, isValid := models.AuthenticateUser(username, password); isValid {
 		u.Data["json"] = map[string]string{"token": auth.GenerateToken(user.ID.Hex())}
 	} else {
 		u.Data["json"] = map[string]string{"error": "invalid user credential"}
@@ -332,7 +331,8 @@ func (u *UserController) Fetch() {
 // @Param	uid		path 	string	false		"UID of user"
 // @Success 200 {object} profile.AllProfiles
 // @Failure 401 Unauthenticated
-// @Failure 403 invalid user
+// @Failure 400 invalid user
+// @Failure 500 server_error
 // @router /fetch/ [get]
 // @router /fetch/:uid [get]
 func (u *UserController) ReturnAllProfiles() {
@@ -343,18 +343,20 @@ func (u *UserController) ReturnAllProfiles() {
 	} else if uidString == "" {
 		uid = u.Ctx.Input.GetData("uid").(bson.ObjectId)
 	} else {
-		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		u.Data["json"] = BadInputError("Invalid UID")
 		u.ServeJSON()
 		return
 	}
 	user, err := models.GetProfiles(uid)
 	if err != nil {
-		u.Data["json"] = err.Error()
-		u.Ctx.ResponseWriter.WriteHeader(403)
-		log.Println(err.Error())
-	} else {
-		u.Data["json"] = user
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
+		u.Data["json"] = NotFoundError("Profile not found")
+		u.ServeJSON()
+		return
 	}
+	u.Data["json"] = user
+
 	u.ServeJSON()
 }
 
@@ -362,31 +364,36 @@ func (u *UserController) ReturnAllProfiles() {
 // @Description update the profile picture of logged in user
 // @Security token_auth write:user
 // @Param	image		formData 	file	true		"profile image"
-// @Success 200  successful
+// @Success 201  successful
 // @Failure 401 Unauthenticated
-// @Failure 403 could not get image
+// @Failure 400 could not get image
 // @router /picture [put]
 func (u *UserController) ProfilePic() {
 	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
 	f, fh, err := u.GetFile("image")
 	if err != nil {
 		u.Data["json"] = "could not get image"
-		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.ServeJSON()
 		return
 	}
 	newPic, err := firebase.AddFile(f, fh, models.GetPicture(uid))
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("Internal server error")
+		u.ServeJSON()
 		return
 	}
 	err = models.UpdatePicture(uid, newPic)
 	if err != nil {
-		u.Data["json"] = err.Error()
-		u.Ctx.ResponseWriter.WriteHeader(403)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("Internal server error")
 		u.ServeJSON()
 		return
 	}
+	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
 	u.Data["json"] = "successful"
 	u.ServeJSON()
 }
@@ -395,24 +402,25 @@ func (u *UserController) ProfilePic() {
 // @Description checks if username is available
 // @Param	username		query 	string	true		"Username"
 // @Success 200  available
+// @Failure 400 empty username
 // @Failure 403 unavailable
 // @router /available [get]
 func (u *UserController) IsAvailable() {
 	username := u.GetString("username")
 	if username == "" {
-		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	collection := db.NewUserCollectionSession()
-	defer collection.Close()
-	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	exists, err := models.UserExists(username)
 	if err != nil {
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("Internal server error")
+		u.ServeJSON()
+		return
 	}
-	//username available
-	if c == 0 {
-		u.Data["json"] = "available"
+	if !exists {
+		u.Data["json"] = map[string]string{"status": "available"}
 		u.ServeJSON()
 		return
 	}

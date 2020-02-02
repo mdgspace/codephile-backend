@@ -19,7 +19,7 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.S'
-        "403":
+        "500":
           description: error
       security:
       - token_auth:
@@ -41,8 +41,10 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.S'
-        "403":
-          description: incorrect site or unknown error
+        "400":
+          description: incorrect site
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:contests
@@ -57,8 +59,8 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.S'
-        "403":
-          description: Error fetching contests
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:feed
@@ -73,8 +75,8 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.FeedObject'
-        "403":
-          description: Invalid uid
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:feed
@@ -95,8 +97,10 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.AllWorldRanks'
-        "403":
-          description: Invalid uid
+        "400":
+          description: bad uid
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:follow
@@ -113,8 +117,8 @@ paths:
             type: array
             items:
               $ref: '#/definitions/models.types.Following'
-        "403":
-          description: Invalid uid
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:follow
@@ -126,14 +130,16 @@ paths:
       parameters:
       - in: query
         name: uid2
-        description: uid of following
+        description: uid of user to follow
         required: true
         type: string
       responses:
         "200":
           description: '{string} user followed'
-        "403":
-          description: Invalid uid
+        "400":
+          description: bad uid
+        "500":
+          description: server_error
       security:
       - token_auth:
         - write:follow
@@ -242,8 +248,12 @@ paths:
       responses:
         "200":
           description: submission successfully saved
-        "403":
-          description: user or site invalid
+        "400":
+          description: site invalid
+        "404":
+          description: user/handle found
+        "500":
+          description: server_error
       security:
       - token_auth:
         - write:submission
@@ -276,8 +286,10 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/submission.CodechefSubmission'
-        "403":
+        "400":
           description: user not exist
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:submission
@@ -298,8 +310,10 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/types.Submissions'
-        "403":
-          description: user not exist
+        "400":
+          description: invalid uid
+        "404":
+          description: User/Submission not found
       security:
       - token_auth:
         - read:submission
@@ -343,14 +357,18 @@ paths:
         description: New Spoj Handle
         type: string
       responses:
-        "200":
+        "202":
           description: ""
           schema:
             $ref: '#/definitions/models.types.User'
+        "400":
+          description: bad request body or blank username/password/full name
         "401":
           description: ': Unauthorized'
         "409":
           description: username already exists
+        "500":
+          description: server_error
       security:
       - token_auth:
         - write:user
@@ -370,10 +388,14 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.types.User'
+        "400":
+          description: :uid is invalid
         "401":
           description: ': Unauthorized'
-        "403":
-          description: :uid is invalid
+        "404":
+          description: user not found
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:user
@@ -390,6 +412,8 @@ paths:
             type: array
             items:
               $ref: '#/definitions/models.types.User'
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:user
@@ -408,6 +432,8 @@ paths:
       responses:
         "200":
           description: available
+        "400":
+          description: empty username
         "403":
           description: unavailable
   /user/fetch/{site}:
@@ -424,12 +450,14 @@ paths:
         required: true
         type: string
       responses:
-        "200":
+        "201":
           description: Success
+        "400":
+          description: incorrect site or handle
         "401":
           description: Unauthenticated
-        "403":
-          description: incorrect site or handle
+        "500":
+          description: server_error
       security:
       - token_auth:
         - write:user
@@ -450,10 +478,12 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/profile.AllProfiles'
+        "400":
+          description: invalid user
         "401":
           description: Unauthenticated
-        "403":
-          description: invalid user
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:user
@@ -488,6 +518,10 @@ paths:
       responses:
         "200":
           description: '{string} logout success'
+        "401":
+          description: invalid authentication token
+        "500":
+          description: server_error
       security:
       - token_auth:
         - write:user
@@ -504,12 +538,12 @@ paths:
         required: true
         type: file
       responses:
-        "200":
+        "201":
           description: successful
+        "400":
+          description: could not get image
         "401":
           description: Unauthenticated
-        "403":
-          description: could not get image
       security:
       - token_auth:
         - write:user
@@ -536,8 +570,10 @@ paths:
             type: array
             items:
               $ref: '#/definitions/models.types.User'
-        "403":
-          description: '"search query is too small"'
+        "400":
+          description: '"search query too small"'
+        "500":
+          description: server_error
       security:
       - token_auth:
         - read:user
@@ -584,12 +620,14 @@ paths:
         description: Spoj Handle
         type: string
       responses:
-        "200":
+        "201":
           description: '{int} models.types.User.Id'
-        "403":
-          description: blank username or password
+        "400":
+          description: bad request body or blank username/password/full name
         "409":
           description: username already exists
+        "500":
+          description: server_error
   /user/verify/{site}:
     get:
       tags:
@@ -610,8 +648,10 @@ paths:
       responses:
         "200":
           description: '{string} Handle valid'
+        "400":
+          description: invalid contest site
         "403":
-          description: incorrect site or handle
+          description: incorrect handle
       security:
       - token_auth:
         - read:user
