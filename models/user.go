@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -71,10 +72,25 @@ func GetAllUsers() ([]types.User, error) {
 	return users, nil
 }
 
+func GetHandle(uid bson.ObjectId) (types.Handle, error) {
+	var user types.User
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	err := collection.Collection.FindId(uid).Select(bson.M{"handle": 1}).One(&user)
+	if err != nil {
+		return types.Handle{}, err
+	}
+	return user.Handle, nil
+}
+
 func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	var updateDoc = bson.M{}
 	var elasticDoc = map[string]interface{}{}
-	var newHandle types.Handle
+	newHandle, err := GetHandle(uid)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
 	if uu.Username != "" {
 		updateDoc["username"] = uu.Username
 		elasticDoc["username"] = uu.Username
@@ -118,18 +134,21 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 		newHandle.Spoj = uu.Handle.Spoj
 	}
 	elasticDoc["handle"] = newHandle
-
-	collection := db.NewUserCollectionSession()
-	defer collection.Close()
-	err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
-	if err != nil {
-		log.Println(err.Error())
-		return nil, UserAlreadyExistError
-	}
-	client := search.GetElasticClient()
-	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
-	if err != nil {
-		log.Println(err.Error())
+	if len(updateDoc) != 0 {
+		collection := db.NewUserCollectionSession()
+		defer collection.Close()
+		err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
+		if err == mgo.ErrNotFound {
+			return nil, UserNotFoundError
+		} else if err != nil {
+			log.Println(err.Error())
+			return nil, UserAlreadyExistError
+		}
+		client := search.GetElasticClient()
+		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 	u, err := GetUser(uid)
 	if err != nil {

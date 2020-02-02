@@ -140,8 +140,9 @@ func (u *UserController) Get() {
 // @Param	handle.spoj		formData	string 	false "New Spoj Handle"
 // @Success 202 {object} types.User
 // @Failure 409 username already exists
-// @Failure 400 bad request body or blank username/password/full name
+// @Failure 400 bad request body
 // @Failure 401 : Unauthorized
+// @Failure 404 : User not found
 // @Failure 500 server_error
 // @router / [put]
 func (u *UserController) Put() {
