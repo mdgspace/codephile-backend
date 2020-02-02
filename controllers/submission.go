@@ -92,7 +92,7 @@ func (s *SubmissionController) SaveSubmission() {
 // @Param	site		path 	string	true		"Website name"
 // @Param	status		query 	string	false		"Submission status"
 // @Param	tag 		query	string	false		"Submission tag"
-// @Success 200 {object} submission.CodechefSubmission
+// @Success 200 {object} types.CodechefSubmission
 // @Failure 400 user not exist
 // @Failure 500 server_error
 // @router /:site/filter [get]

@@ -19,7 +19,7 @@ func BadInputError(error string) ErrorResponse {
 	}
 }
 
-func AlreayExistsError(error string) ErrorResponse {
+func AlreadyExistsError(error string) ErrorResponse {
 	return ErrorResponse{
 		ErrorType: "conflict",
 		Err:       error,

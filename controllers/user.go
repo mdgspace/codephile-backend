@@ -36,7 +36,7 @@ type UserController struct {
 // @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "Spoj Handle"
-// @Success 201 {int} models.types.User.Id
+// @Success 201 {int} types.User.Id
 // @Failure 409 username already exists
 // @Failure 400 bad request body or blank username/password/full name
 // @Failure 500 server_error
@@ -58,7 +58,7 @@ func (u *UserController) CreateUser() {
 	id, err := models.AddUser(user)
 	if err == UserAlreadyExistError {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
-		u.Data["json"] = AlreayExistsError("User already exists")
+		u.Data["json"] = AlreadyExistsError("User already exists")
 		u.ServeJSON()
 		return
 	} else if err != nil {
@@ -76,7 +76,7 @@ func (u *UserController) CreateUser() {
 // @Title GetAll
 // @Description get all Users
 // @Security token_auth read:user
-// @Success 200 {object} []models.types.User
+// @Success 200 {object} []types.User
 // @Failure 500 server_error
 // @router /all [get]
 func (u *UserController) GetAll() {
@@ -96,7 +96,7 @@ func (u *UserController) GetAll() {
 // @Description Get user by uid. Returns logged in user if uid is empty
 // @Security token_auth read:user
 // @Param	uid		path 	string	false		"uid of user"
-// @Success 200 {object} models.types.User
+// @Success 200 {object} types.User
 // @Failure 401 : Unauthorized
 // @Failure 400 :uid is invalid
 // @Failure 404 user not found
@@ -138,7 +138,7 @@ func (u *UserController) Get() {
 // @Param	handle.codeforces	formData	string 	false "New Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"
 // @Param	handle.spoj		formData	string 	false "New Spoj Handle"
-// @Success 202 {object} models.types.User
+// @Success 202 {object} types.User
 // @Failure 409 username already exists
 // @Failure 400 bad request body or blank username/password/full name
 // @Failure 401 : Unauthorized
@@ -156,7 +156,7 @@ func (u *UserController) Put() {
 	uu, err := models.UpdateUser(uid, &newUser)
 	if err == UserAlreadyExistError {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
-		u.Data["json"] = AlreayExistsError("User already exists")
+		u.Data["json"] = AlreadyExistsError("User already exists")
 		u.ServeJSON()
 		return
 	} else if err != nil {
@@ -329,7 +329,7 @@ func (u *UserController) Fetch() {
 // @Description Returns info of user(logged in user if uid is empty) from different websites
 // @Security token_auth read:user
 // @Param	uid		path 	string	false		"UID of user"
-// @Success 200 {object} profile.AllProfiles
+// @Success 200 {object} types.AllProfiles
 // @Failure 401 Unauthenticated
 // @Failure 400 invalid user
 // @Failure 500 server_error

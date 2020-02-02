@@ -145,13 +145,13 @@ func AuthenticateUser(username string, password string) (*types.User, bool) {
 	err := collection.Collection.Find(bson.M{"username": username}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return nil, false
 	}
 
 	err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err2 != nil {
-		log.Println(err2)
+		//log.Println(err2)
 		return nil, false
 	} else {
 		return &user, true

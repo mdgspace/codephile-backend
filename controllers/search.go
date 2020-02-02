@@ -13,7 +13,7 @@ import (
 // @Security token_auth read:user
 // @Param	count		query 	string	false		"No of search objects to be returned"
 // @Param	query		query 	string	true		"Search query"
-// @Success 200 {object} []models.types.User
+// @Success 200 {object} []types.User
 // @Failure 400 "search query too small"
 // @Failure 500 server_error
 // @router /search [get]
