@@ -22,7 +22,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.S"
+                            "$ref": "#/definitions/models.types.S"
                         }
                     },
                     "403": {
@@ -58,7 +58,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.S"
+                            "$ref": "#/definitions/models.types.S"
                         }
                     },
                     "403": {
@@ -85,7 +85,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.S"
+                            "$ref": "#/definitions/models.types.S"
                         }
                     },
                     "403": {
@@ -112,7 +112,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.Feed.FeedObject"
+                            "$ref": "#/definitions/models.types.FeedObject"
                         }
                     },
                     "403": {
@@ -148,7 +148,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.Follow.AllWorldRanks"
+                            "$ref": "#/definitions/models.types.AllWorldRanks"
                         }
                     },
                     "403": {
@@ -177,7 +177,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Follow.Following"
+                                "$ref": "#/definitions/models.types.Following"
                             }
                         }
                     },
@@ -466,7 +466,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/submission.Submissions"
+                            "$ref": "#/definitions/types.Submissions"
                         }
                     },
                     "403": {
@@ -543,7 +543,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.types.User"
                         }
                     },
                     "401": {
@@ -575,7 +575,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.types.User"
                             }
                         }
                     }
@@ -807,7 +807,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.types.User"
                             }
                         }
                     },
@@ -886,7 +886,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "{int} models.User.Id"
+                        "description": "{int} models.types.User.Id"
                     },
                     "403": {
                         "description": "blank username or password"
@@ -956,7 +956,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.types.User"
                         }
                     },
                     "401": {
@@ -977,125 +977,6 @@
         }
     },
     "definitions": {
-        "Follow.Following": {
-            "title": "Following",
-            "type": "object"
-        },
-        "bson.ObjectId": {
-            "title": "ObjectId",
-            "type": "object"
-        },
-        "models.Feed.FeedObject": {
-            "title": "FeedObject",
-            "type": "object",
-            "properties": {
-                "CreationDate": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "Language": {
-                    "type": "string"
-                },
-                "Name": {
-                    "type": "string"
-                },
-                "Points": {
-                    "type": "string"
-                },
-                "Rating": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "Status": {
-                    "type": "string"
-                },
-                "Tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "URL": {
-                    "type": "string"
-                },
-                "UserName": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Follow.AllWorldRanks": {
-            "title": "AllWorldRanks",
-            "type": "object",
-            "properties": {
-                "codechef_ranks": {
-                    "$ref": "#/definitions/models.WorldRankComparison"
-                },
-                "codeforces_ranks": {
-                    "$ref": "#/definitions/models.WorldRankComparison"
-                },
-                "hackerrank_ranks": {
-                    "$ref": "#/definitions/models.WorldRankComparison"
-                },
-                "spoj_ranks": {
-                    "$ref": "#/definitions/models.WorldRankComparison"
-                }
-            }
-        },
-        "models.Follow.Following": {
-            "title": "Following",
-            "type": "object",
-            "properties": {
-                "codephile_handle": {
-                    "type": "string"
-                },
-                "f_id": {
-                    "$ref": "#/definitions/bson.ObjectId"
-                }
-            }
-        },
-        "models.Handle": {
-            "title": "Handle",
-            "type": "object",
-            "properties": {
-                "codechef": {
-                    "type": "string"
-                },
-                "codeforces": {
-                    "type": "string"
-                },
-                "hackerearth": {
-                    "type": "string"
-                },
-                "hackerrank": {
-                    "type": "string"
-                },
-                "spoj": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.LastFetchedSubmission": {
-            "title": "LastFetchedSubmission",
-            "type": "object",
-            "properties": {
-                "Codechef": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "Codeforces": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "Hackerrank": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "Spoj": {
-                    "type": "string",
-                    "format": "datetime"
-                }
-            }
-        },
         "models.Object": {
             "title": "Object",
             "type": "object",
@@ -1112,176 +993,35 @@
                 }
             }
         },
-        "models.Ongoing": {
-            "title": "Ongoing",
-            "type": "object",
-            "properties": {
-                "EndTime": {
-                    "type": "string"
-                },
-                "Name": {
-                    "type": "string"
-                },
-                "Platform": {
-                    "type": "string"
-                },
-                "challenge_type": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
+        "models.types.AllWorldRanks": {
+            "title": "AllWorldRanks",
+            "type": "object"
         },
-        "models.Result": {
-            "title": "Result",
-            "type": "object",
-            "properties": {
-                "ongoing": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Ongoing"
-                    }
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "upcoming": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Upcoming"
-                    }
-                }
-            }
+        "models.types.FeedObject": {
+            "title": "FeedObject",
+            "type": "object"
         },
-        "models.S": {
+        "models.types.Following": {
+            "title": "Following",
+            "type": "object"
+        },
+        "models.types.S": {
             "title": "S",
-            "type": "object",
-            "properties": {
-                "last_fetched": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.Result"
-                }
-            }
+            "type": "object"
         },
-        "models.Upcoming": {
-            "title": "Upcoming",
-            "type": "object",
-            "properties": {
-                "Duration": {
-                    "type": "string"
-                },
-                "EndTime": {
-                    "type": "string"
-                },
-                "Name": {
-                    "type": "string"
-                },
-                "Platform": {
-                    "type": "string"
-                },
-                "StartTime": {
-                    "type": "string"
-                },
-                "challenge_type": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.User": {
+        "models.types.User": {
             "title": "User",
-            "type": "object",
-            "properties": {
-                "fullname": {
-                    "type": "string"
-                },
-                "handle": {
-                    "$ref": "#/definitions/models.Handle"
-                },
-                "id": {
-                    "$ref": "#/definitions/bson.ObjectId"
-                },
-                "institute": {
-                    "type": "string"
-                },
-                "picture": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.WorldRankComparison": {
-            "title": "WorldRankComparison",
-            "type": "object",
-            "properties": {
-                "rank1": {
-                    "type": "string"
-                },
-                "rank2": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "profile.AllProfiles": {
             "title": "AllProfiles",
-            "type": "object",
-            "properties": {
-                "codechefProfile": {
-                    "$ref": "#/definitions/profile.Profile"
-                },
-                "codeforcesProfile": {
-                    "$ref": "#/definitions/profile.Profile"
-                },
-                "hackerrankProfile": {
-                    "$ref": "#/definitions/profile.Profile"
-                },
-                "spojProfile": {
-                    "$ref": "#/definitions/profile.Profile"
-                }
-            }
-        },
-        "profile.Profile": {
-            "title": "Profile",
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "$ref": "#/definitions/profile.ProfileInfo"
-                },
-                "website": {
-                    "type": "string"
-                }
-            }
-        },
-        "profile.ProfileInfo": {
-            "title": "ProfileInfo",
-            "type": "object",
-            "properties": {
-                "accuracy": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "rank": {
-                    "type": "string"
-                },
-                "school": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "submission.CodechefSubmission": {
+            "title": "CodechefSubmission",
+            "type": "object"
+        },
+        "types.CodechefSubmission": {
             "title": "CodechefSubmission",
             "type": "object",
             "properties": {
@@ -1312,7 +1052,7 @@
                 }
             }
         },
-        "submission.CodeforcesSubmission": {
+        "types.CodeforcesSubmission": {
             "title": "CodeforcesSubmission",
             "type": "object",
             "properties": {
@@ -1345,7 +1085,7 @@
                 }
             }
         },
-        "submission.HackerrankSubmission": {
+        "types.HackerrankSubmission": {
             "title": "HackerrankSubmission",
             "type": "object",
             "properties": {
@@ -1361,7 +1101,7 @@
                 }
             }
         },
-        "submission.SpojSubmission": {
+        "types.SpojSubmission": {
             "title": "SpojSubmission",
             "type": "object",
             "properties": {
@@ -1393,32 +1133,32 @@
                 }
             }
         },
-        "submission.Submissions": {
+        "types.Submissions": {
             "title": "Submissions",
             "type": "object",
             "properties": {
                 "codechef": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/submission.CodechefSubmission"
+                        "$ref": "#/definitions/types.CodechefSubmission"
                     }
                 },
                 "codeforces": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/submission.CodeforcesSubmission"
+                        "$ref": "#/definitions/types.CodeforcesSubmission"
                     }
                 },
                 "hackerrank": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/submission.HackerrankSubmission"
+                        "$ref": "#/definitions/types.HackerrankSubmission"
                     }
                 },
                 "spoj": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/submission.SpojSubmission"
+                        "$ref": "#/definitions/types.SpojSubmission"
                     }
                 }
             }

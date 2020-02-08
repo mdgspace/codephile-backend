@@ -2,14 +2,13 @@ package scripts
 
 import (
 	"fmt"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/mdg-iitr/Codephile/models/profile"
-	"github.com/mdg-iitr/Codephile/models/submission"
 )
 
 type SpojProblems struct {
@@ -22,10 +21,10 @@ type SolvedProblems struct {
 	link    string
 }
 
-func GetSpojProfileInfo(handle string) profile.ProfileInfo {
+func GetSpojProfileInfo(handle string) types.ProfileInfo {
 
 	c := colly.NewCollector()
-	var Profile profile.ProfileInfo
+	var Profile types.ProfileInfo
 
 	c.OnHTML("#user-profile-left", func(e *colly.HTMLElement) {
 		Name := e.ChildText("h3")
@@ -47,13 +46,13 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 			if r := recover(); r != nil {
 				//catching index out of range exception in fetching School
 				School = ""
-				Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
+				Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
 			}
 		}()
 
 		School = strings.Split(e.ChildText(cssSelector2), ":")[1]
 
-		Profile = profile.ProfileInfo{Name, UserName, School, WorldRank, ""}
+		Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
@@ -65,10 +64,10 @@ func GetSpojProfileInfo(handle string) profile.ProfileInfo {
 	return Profile
 }
 
-func GetSpojSubmissions(handle string, after time.Time) []submission.SpojSubmission {
+func GetSpojSubmissions(handle string, after time.Time) []types.SpojSubmission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
-	subs := []submission.SpojSubmission{{CreationDate: time.Now()}}
+	subs := []types.SpojSubmission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
 		newSub := GetSpojSubmissionParts(handle, current)
@@ -92,10 +91,10 @@ func GetSpojSubmissions(handle string, after time.Time) []submission.SpojSubmiss
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetSpojSubmissionParts(handle string, afterIndex int) []submission.SpojSubmission {
+func GetSpojSubmissionParts(handle string, afterIndex int) []types.SpojSubmission {
 
 	c := colly.NewCollector()
-	var submissions []submission.SpojSubmission
+	var submissions []types.SpojSubmission
 
 	c.OnHTML("tbody", func(e *colly.HTMLElement) {
 		e.ForEach("tr", func(_ int, elem *colly.HTMLElement) {
@@ -113,7 +112,7 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []submission.SpojSubm
 				points = 100
 			}
 			tags := GetProbTags(URL)
-			submissions = append(submissions, submission.SpojSubmission{Name, URL, CreationDate, status, language, points, tags})
+			submissions = append(submissions, types.SpojSubmission{Name, URL, CreationDate, status, language, points, tags})
 		})
 	})
 

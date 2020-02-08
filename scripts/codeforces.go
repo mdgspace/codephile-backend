@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mdg-iitr/Codephile/models/profile"
-	"github.com/mdg-iitr/Codephile/models/submission"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -85,8 +84,8 @@ func (contests *CodeforcesContests) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-func GetCodeforcesProfileInfo(handle string) profile.ProfileInfo {
-	var profile profile.ProfileInfo
+func GetCodeforcesProfileInfo(handle string) types.ProfileInfo {
+	var profile types.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + handle
 	data := GetRequest(url)
 	json.Unmarshal(data, &profile)
@@ -100,19 +99,19 @@ func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	json.Unmarshal(data, &points)
 	return points
 }
-func getCodeforcesSubmissionParts(handle string, afterIndex int) submission.CodeforcesSubmissions {
+func getCodeforcesSubmissionParts(handle string, afterIndex int) types.CodeforcesSubmissions {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
 	fmt.Println(url)
 	data := GetRequest(url)
-	var submissions submission.CodeforcesSubmissions
+	var submissions types.CodeforcesSubmissions
 	json.Unmarshal(data, &submissions)
 	return submissions
 }
 
-func GetCodeforcesSubmissions(handle string, after time.Time) submission.CodeforcesSubmissions {
+func GetCodeforcesSubmissions(handle string, after time.Time) types.CodeforcesSubmissions {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
-	var subs submission.CodeforcesSubmissions
+	var subs types.CodeforcesSubmissions
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
 		newSub := getCodeforcesSubmissionParts(handle, current+1);

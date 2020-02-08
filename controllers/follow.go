@@ -35,7 +35,7 @@ func (f *FollowController) FollowUser(){
 // @Description Compares the data of two users
 // @Security token_auth read:follow
 // @Param	uid2		query 	string	true  "uid of following"
-// @Success 200 {object} models.Follow.AllWorldRanks
+// @Success 200 {object} models.types.AllWorldRanks
 // @Failure 403 Invalid uid
 // @router /compare [get]
 func (f *FollowController) CompareUser(){
@@ -57,7 +57,7 @@ func (f *FollowController) CompareUser(){
 // @Title GetFollowing
 // @Description Fetches the users the user is following
 // @Security token_auth read:follow
-// @Success 200 {object} []models.Follow.Following
+// @Success 200 {object} []models.types.Following
 // @Failure 403 Invalid uid
 // @router /following [get]
 func (f *FollowController) GetFollowing(){

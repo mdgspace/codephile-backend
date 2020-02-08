@@ -1,4 +1,4 @@
-package submission
+package types
 
 import (
 	"encoding/json"

@@ -2,40 +2,28 @@ package models
 
 import (
 	"errors"
+	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
-	"github.com/mdg-iitr/Codephile/models"
 )
-
-type FeedObject struct {
-	UserName     string    `bson:"username"`
-	Name         string    `bson:"name"`
-	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"creation_date"`
-	Status       string    `bson:"status"`
-	Language     string    `bson:"language"`
-	Points       string    `bson:"points"`
-	Tags         []string  `bson:"tags"`
-	Rating       int       `bson:"rating"`
-}
 
 var ErrGeneric = errors.New("Feed is not absolutely correct")
 
-func ReturnFeedContests() (models.S, error) {
-	UnsortedContests, err := models.ReturnContests()
+func ReturnFeedContests() (types.S, error) {
+	UnsortedContests, err := ReturnContests()
 	if err != nil {
-		return models.S{}, err
+		return types.S{}, err
 	}
 	SortedContests := SortContests(UnsortedContests)
 	return SortedContests, nil
 }
 
-func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
-	user, err := models.GetUser(uid)
+func ReturnFeedFriends(uid bson.ObjectId) ([]types.FeedObject, error) {
+	user, err := GetUser(uid)
 	if err != nil {
 		//user invalid return error
 		log.Println("Invalid user")
@@ -43,14 +31,14 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 	}
 	UserMissing := false
 	UsernameError := false
-	var Feed []FeedObject
-	followingUsers, err2 := models.GetFollowingUsers(user.ID)
+	var Feed []types.FeedObject
+	followingUsers, err2 := GetFollowingUsers(user.ID)
 	if err2 != nil {
 		return Feed, err2
 	}
 	for _, value := range followingUsers {
-		UserSubmissions, err1 := models.GetSubmissions(value.ID)
-		feedUser, err3 := models.GetUser(value.ID)
+		UserSubmissions, err1 := GetSubmissions(value.ID)
+		feedUser, err3 := GetUser(value.ID)
 		user_name := feedUser.Username
 		if err3 != nil {
 			//some alteration in feed
@@ -66,7 +54,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 		} else {
 			//user fetched
 			for _, submission := range UserSubmissions.Codechef {
-				var feedObject FeedObject
+				var feedObject types.FeedObject
 				feedObject.UserName = user_name
 				feedObject.Name = submission.Name
 				feedObject.URL = submission.URL
@@ -77,7 +65,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 				Feed = append(Feed, feedObject)
 			}
 			for _, submission := range UserSubmissions.Codeforces {
-				var feedObject FeedObject
+				var feedObject types.FeedObject
 				feedObject.UserName = user_name
 				feedObject.Name = submission.Name
 				feedObject.URL = submission.URL
@@ -89,7 +77,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 				Feed = append(Feed, feedObject)
 			}
 			for _, submission := range UserSubmissions.Spoj {
-				var feedObject FeedObject
+				var feedObject types.FeedObject
 				feedObject.UserName = user_name
 				feedObject.Name = submission.Name
 				feedObject.URL = submission.URL
@@ -101,7 +89,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 				Feed = append(Feed, feedObject)
 			}
 			for _, submission := range UserSubmissions.Hackerrank {
-				var feedObject FeedObject
+				var feedObject types.FeedObject
 				feedObject.UserName = user_name
 				feedObject.Name = submission.Name
 				feedObject.URL = submission.URL
@@ -122,7 +110,7 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]FeedObject, error) {
 }
 
 //SortContests to sort contests according to StartTime and EndTime
-func SortContests(contests models.S) models.S {
+func SortContests(contests types.S) types.S {
 	// sorting the ongoing contests
 	var (
 		n          = len(contests.Result.Ongoing)

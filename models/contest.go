@@ -1,61 +1,33 @@
 package models
 
-import(
-	  "log"
-	  "encoding/json"
-	  "net/http"
-	  "io/ioutil"
-	  "strings"
-	  "github.com/mdg-iitr/Codephile/models/db"
-	  "time"
-	  "github.com/globalsign/mgo/bson"
+import (
+	"encoding/json"
+	"github.com/globalsign/mgo/bson"
+	"github.com/mdg-iitr/Codephile/models/db"
+	"github.com/mdg-iitr/Codephile/models/types"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
+	"time"
 )
 
-type S struct {
-	Result Result `json:"result" bson:"result"`
-	LastFetched time.Time `json:"last_fetched" bson:"last_fetched"`
-}
-
-type Ongoing struct {
-	EndTime       string `json:"EndTime" bson:"EndTime"`
-	Name          string `json:"Name" bson:"Name"`
-	Platform      string `json:"Platform" bson:"Platform"`
-	ChallengeType string `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
-	URL           string `json:"url" bson:"url"`
-}
-
-type Upcoming struct {
-	Duration      string `json:"Duration" bson:"Duration"`
-	EndTime       string `json:"EndTime" bson:"EndTime"`
-	Name          string `json:"Name" bson:"Name"`
-	Platform      string `json:"Platform" bson:"Platform"`
-	StartTime     string `json:"StartTime" bson:"StartTime"`
-	URL           string `json:"url" bson:"url"`
-	ChallengeType string `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
-}
-
-type Result struct {
-	Ongoing   []Ongoing  `json:"ongoing" bson:"ongoing"`
-	Timestamp string     `json:"timestamp" bson:"timestamp"`
-	Upcoming  []Upcoming `json:"upcoming" bson:"upcoming"`
-}
-
-func ReturnContests() (S, error) {
+func ReturnContests() (types.S, error) {
 	data, err := fetchContests()
 	if err != nil {
-		return S{}, err  
+		return types.S{}, err
 	}
 	return data, nil
 }
 
-func ReturnSpecificContests(site string) (S, error) {
+func ReturnSpecificContests(site string) (types.S, error) {
 	InitialResult , err := fetchContests()
 	if err != nil {
 		// handle error 
-		return S{}, err
+		return types.S{}, err
 	}
 	//InitialResult stores all the contests
-	var FinalResult S    //FinalResult will store the website's contests only
+	var FinalResult types.S //FinalResult will store the website's contests only
 
 	//looping over all the ongoing contests and selecting only those specific to the website
 		for _,v := range InitialResult.Result.Ongoing{
@@ -74,9 +46,9 @@ func ReturnSpecificContests(site string) (S, error) {
 		return FinalResult, nil
 }
 
-func fetchContests() (S, error) {
-	var Contests S
-	var ContestsToBeReturned S
+func fetchContests() (types.S, error) {
+	var Contests types.S
+	var ContestsToBeReturned types.S
 
 	collection := db.NewCollectionSession("contests")
 	defer collection.Close()
@@ -88,7 +60,7 @@ func fetchContests() (S, error) {
 		err := json.Unmarshal(ContestsWeb, &ContestsToBeReturned)
 		if err != nil {
 			//error in unmarshalling 
-			return S{},err
+			return types.S{},err
 		}
 		ContestsToBeReturned.LastFetched = time.Now()
 		//save contests in database and return them
@@ -104,7 +76,7 @@ func fetchContests() (S, error) {
 			err := json.Unmarshal(ContestsWeb, &ContestsToBeReturned)
 			if err != nil {
 				//error in unmarshalling 
-				return S{},err
+				return types.S{},err
 			} 
 			//save contests in database and return
 			ContestsToBeReturned.LastFetched = time.Now()
@@ -134,7 +106,7 @@ func FetchFromWeb() (data []byte) {
 	return body
 }
 
-func UpdateDatabase(contests S) (error) {
+func UpdateDatabase(contests types.S) (error) {
     collection := db.NewCollectionSession("contests")
 	defer collection.Close()
 	 
