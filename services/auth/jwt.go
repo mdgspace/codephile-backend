@@ -30,7 +30,7 @@ func BlacklistToken(token *jwt.Token) error {
 	claims := token.Claims.(jwt.MapClaims)
 	_, err := client.Set(claims["sub"].(string), int64(claims["iat"].(float64)), getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"])).Result()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 	}
 	return err
 }

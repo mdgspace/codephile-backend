@@ -2,12 +2,15 @@ package models
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
+	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
+	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
@@ -19,26 +22,23 @@ func AddUser(u types.User) (string, error) {
 	//hashing the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	//data type of hash is []byte
-	u.Password = string(hash)
 	if err != nil {
-		log.Println(err)
+		return "", err
 	}
+	u.Password = string(hash)
 	err = collection.Collection.Insert(u)
 	if err != nil {
-		log.Println(err)
-		return "", errors.New("Could not create user: Username already exists")
+		return "", UserAlreadyExistError
 	}
 	client := search.GetElasticClient()
 	_, err = client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
 	if err != nil {
-		log.Println(err.Error())
+		return "", err
 	}
 
-	var valid_sites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
-
 	go func() {
-		for _, value := range valid_sites {
-			_ = AddSubmissions(&u, value)
+		for _, value := range ValidSites {
+			_ = AddSubmissions(u.ID, value)
 		}
 	}()
 
@@ -54,12 +54,12 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 		"picture": 1, "fullname": 1, "institute": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
-		return nil, errors.New("user not exists")
+		return nil, err
 	}
 	return &user, nil
 }
 
-func GetAllUsers() []types.User {
+func GetAllUsers() ([]types.User, error) {
 	var users []types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
@@ -67,15 +67,30 @@ func GetAllUsers() []types.User {
 		"handle": 1, "lastfetched": 1,
 		"picture": 1, "fullname": 1, "institute": 1}).All(&users)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return users
+	return users, nil
+}
+
+func GetHandle(uid bson.ObjectId) (types.Handle, error) {
+	var user types.User
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	err := collection.Collection.FindId(uid).Select(bson.M{"handle": 1}).One(&user)
+	if err != nil {
+		return types.Handle{}, err
+	}
+	return user.Handle, nil
 }
 
 func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	var updateDoc = bson.M{}
 	var elasticDoc = map[string]interface{}{}
-	var newHandle types.Handle
+	newHandle, err := GetHandle(uid)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
 	if uu.Username != "" {
 		updateDoc["username"] = uu.Username
 		elasticDoc["username"] = uu.Username
@@ -119,19 +134,21 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 		newHandle.Spoj = uu.Handle.Spoj
 	}
 	elasticDoc["handle"] = newHandle
-
-	collection := db.NewUserCollectionSession()
-	defer collection.Close()
-	err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
-	if err != nil {
-		log.Println(err.Error())
-		err = errors.New("username already exists")
-		return nil, err
-	}
-	client := search.GetElasticClient()
-	_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
-	if err != nil {
-		log.Println(err.Error())
+	if len(updateDoc) != 0 {
+		collection := db.NewUserCollectionSession()
+		defer collection.Close()
+		err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
+		if err == mgo.ErrNotFound {
+			return nil, UserNotFoundError
+		} else if err != nil {
+			log.Println(err.Error())
+			return nil, UserAlreadyExistError
+		}
+		client := search.GetElasticClient()
+		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 	u, err := GetUser(uid)
 	if err != nil {
@@ -140,20 +157,20 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	return u, err
 }
 
-func AutheticateUser(username string, password string) (*types.User, bool) {
+func AuthenticateUser(username string, password string) (*types.User, bool) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	err := collection.Collection.Find(bson.M{"username": username}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return nil, false
 	}
 
 	err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err2 != nil {
-		log.Println(err2)
+		//log.Println(err2)
 		return nil, false
 	} else {
 		return &user, true
@@ -186,4 +203,51 @@ func GetPicture(uid bson.ObjectId) string {
 		return ""
 	}
 	return user.Picture
+}
+
+func UserExists(username string) (bool, error) {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	if err != nil {
+		log.Println(err.Error())
+		return false, err
+	}
+	if c > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func SearchUser(query string, c int) ([]interface{}, error) {
+	pq := elastic.NewQueryStringQuery("*" + query + "*").
+		Field("username").Field("fullname").
+		Field("handle.codechef").Field("handle.spoj").
+		Field("handle.codeforces").Field("handle.hackerrank").
+		Fuzziness("4")
+	q := elastic.NewMultiMatchQuery(query,
+		"username", "fullname",
+		"handle.codechef", "handle.spoj",
+		"handle.codeforces", "handle.hackerrank",
+	).Fuzziness("4")
+	bq := elastic.NewBoolQuery().Should(q, pq)
+	client := search.GetElasticClient()
+	result, err := client.Search().Index("codephile").
+		Pretty(false).Query(bq).Size(c).
+		Do(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	var results []interface{}
+	for _, hit := range result.Hits.Hits {
+		var result interface{}
+		err := json.Unmarshal(hit.Source, &result)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, nil
 }

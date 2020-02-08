@@ -6,3 +6,15 @@ const (
 	HACKERRANK = "hackerrank"
 	SPOJ       = "spoj"
 )
+
+var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
+
+func IsSiteValid(s string) bool {
+	for _, vs := range ValidSites {
+		if s == vs {
+			return true
+		}
+	}
+	return false
+}
+
