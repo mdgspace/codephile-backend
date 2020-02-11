@@ -5,6 +5,8 @@ import (
 	"github.com/globalsign/mgo"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 )
 
 var maxPool int
@@ -19,7 +21,11 @@ func init() {
 	var err error
 	maxPool, err = beego.AppConfig.Int("DBMaxPool")
 	if err != nil {
-		panic(err)
+		_, file, _, _ := runtime.Caller(0)
+		if err := beego.LoadAppConfig("ini", filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(file))), "conf/app.conf")); err != nil {
+			panic(err)
+		}
+		maxPool, err = beego.AppConfig.Int("DBMaxPool")
 	}
 	// init method to start db
 	checkAndInitServiceConnection()

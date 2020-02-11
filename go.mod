@@ -13,7 +13,6 @@ require (
 	github.com/astaxie/beego v1.12.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20190910075000-5963931cb201
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -28,9 +27,10 @@ require (
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	google.golang.org/api v0.11.0
-	google.golang.org/appengine v1.6.5
+	google.golang.org/appengine v1.6.5 // indirect
 )
