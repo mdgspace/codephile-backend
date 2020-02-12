@@ -50,7 +50,7 @@ func IsTokenBlacklisted(token *jwt.Token) bool {
 func getTokenRemainingValidity(timestamp interface{}) time.Duration {
 	if validity, ok := timestamp.(float64); ok {
 		tm := time.Unix(int64(validity), 0)
-		remained := tm.Sub(time.Now())
+		remained := time.Until(tm)
 		if remained > 0 {
 			return remained
 		}
@@ -59,8 +59,5 @@ func getTokenRemainingValidity(timestamp interface{}) time.Duration {
 }
 func IsTokenExpired(token *jwt.Token) bool {
 	exp := int64(token.Claims.(jwt.MapClaims)["exp"].(float64))
-	if exp > time.Now().UTC().Unix() {
-		return false
-	}
-	return true
+	return exp <= time.Now().UTC().Unix()
 }

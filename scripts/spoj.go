@@ -46,21 +46,23 @@ func GetSpojProfileInfo(handle string) types.ProfileInfo {
 			if r := recover(); r != nil {
 				//catching index out of range exception in fetching School
 				School = ""
-				Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
+				Profile = types.ProfileInfo{Name: Name, UserName: UserName, School: School, WorldRank: WorldRank}
 			}
 		}()
 
 		School = strings.Split(e.ChildText(cssSelector2), ":")[1]
 
-		Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
+		Profile = types.ProfileInfo{Name: Name, UserName: UserName, School: School, WorldRank: WorldRank}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
-
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return Profile
 }
 
@@ -112,7 +114,7 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []types.SpojSubmissio
 				points = 100
 			}
 			tags := GetProbTags(URL)
-			submissions = append(submissions, types.SpojSubmission{Name, URL, CreationDate, status, language, points, tags})
+			submissions = append(submissions, types.SpojSubmission{Name: Name, URL: URL, CreationDate: CreationDate, Status: status, Language: language, Points: points, Tags: tags})
 		})
 	})
 
@@ -123,7 +125,10 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []types.SpojSubmissio
 	c.OnRequest(func(request *colly.Request) {
 		fmt.Println(request.URL)
 	})
-	c.Visit(fmt.Sprintf("https://www.spoj.com/status/%s/all/start=%d", handle, afterIndex))
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/status/%s/all/start=%d", handle, afterIndex))
+	if err != nil {
+		log.Println(err.Error())
+	}
 
 	return submissions
 }
@@ -143,8 +148,10 @@ func GetSpojProblems(handle string) SpojProblems {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
-
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return problems
 }
 
@@ -162,7 +169,10 @@ func GetSpojSolvedProblems(handle string) []SolvedProblems {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return solved
 
 }

@@ -20,12 +20,12 @@ type CodechefGraphPoint struct {
 	Rating      float64
 }
 
-func zero_pad(year *string) {
-	fmt.Println(len(*year))
-	if len(*year) == 1 {
-		*year = "0" + *year
-	}
-}
+//func zero_pad(year *string) {
+//	fmt.Println(len(*year))
+//	if len(*year) == 1 {
+//		*year = "0" + *year
+//	}
+//}
 
 func CheckCodechefHandle(handle string) bool {
 	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
@@ -43,10 +43,10 @@ func CheckCodechefHandle(handle string) bool {
 }
 
 func GetCodechefGraphData(handle string) []CodechefGraphPoint {
-	r, _ := regexp.Compile("\\[.*?\\]")
+	r, _ := regexp.Compile(`\[.*?\]`)
 
 	c := colly.NewCollector()
-	var long_contest_data []CodechefGraphPoint
+	var longContestData []CodechefGraphPoint
 
 	c.OnHTML("script", func(e *colly.HTMLElement) {
 
@@ -71,14 +71,17 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 				year := event["getyear"]
 				month := event["getmonth"]
 				ranking, err := strconv.ParseFloat(event["rank"], 64)
+				if err != nil {
+					log.Println(err.Error())
+				}
 				time, err := time.Parse("2006-1", fmt.Sprintf("%v-%s", year, month))
 				if err != nil {
-					panic(err)
+					log.Println(err.Error())
 				}
 				contest_name := fmt.Sprintf("%s Long Challenge 20%s", time.Format("January"), time.Format("06"))
 				// contest_url := fmt.Sprintf("https://www.codechef.com/%s%s", time.Format("JAN"), time.Format("06"))
 
-				long_contest_data = append(long_contest_data, CodechefGraphPoint{contest_name, time, ranking})
+				longContestData = append(longContestData, CodechefGraphPoint{contest_name, time, ranking})
 			}
 
 			// fmt.Println(long_contest_data)
@@ -98,9 +101,12 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 				month := event["getmonth"]
 				// code := event["code"]
 				ranking, err := strconv.ParseFloat(event["rank"], 64)
+				if err != nil {
+					log.Println(err.Error())
+				}
 				time, err := time.Parse("2006-1", fmt.Sprintf("%v-%s", year, month))
 				if err != nil {
-					panic(err)
+					log.Println(err.Error())
 				}
 				contest_name := fmt.Sprintf("%s Lunch Time 20%s", time.Format("January"), time.Format("06"))
 				// contest_url := fmt.Sprintf("https://www.codechef.com/" + code)
@@ -110,7 +116,7 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 
 			// fmt.Println(lunch_contest_data)
 
-			long_contest_data = append(long_contest_data, lunch_contest_data...)
+			longContestData = append(longContestData, lunch_contest_data...)
 		}
 	})
 
@@ -118,9 +124,11 @@ func GetCodechefGraphData(handle string) []CodechefGraphPoint {
 		// return nil
 		fmt.Println("Something went wrong:", err)
 	})
-	c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", handle))
-
-	return long_contest_data
+	err := c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", handle))
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return longContestData
 
 }
 
@@ -176,14 +184,17 @@ func GetCodechefProfileInfo(handle string) types.ProfileInfo {
 			}
 		}
 		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
-		Profile = types.ProfileInfo{Name, UserName, School, WorldRank, ""}
+		Profile = types.ProfileInfo{Name: Name, UserName: UserName, School: School, WorldRank: WorldRank}
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", handle))
+	err := c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", handle))
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return Profile
 }
 
@@ -219,7 +230,10 @@ func GetCodechefSubmissionParts(handle string, pageNo int) []types.CodechefSubmi
 	user_url := fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, pageNo)
 	fmt.Println(user_url)
 	byteValue := GetRequest(user_url)
-	json.Unmarshal(byteValue, &JsonInterFace)
+	err := json.Unmarshal(byteValue, &JsonInterFace)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	data := JsonInterFace.(map[string]interface{})
 	content := data["content"].(string)
 
@@ -252,7 +266,10 @@ func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 		url := "http://www.codechef.com/problems/" + prob
 		data := GetRequest(fmt.Sprintf("https://www.codechef.com/api/contests/PRACTICE/problems/%s", prob))
 		var JsonInterface map[string]interface{}
-		json.Unmarshal(data, &JsonInterface)
+		err := json.Unmarshal(data, &JsonInterface)
+		if err != nil {
+			log.Println(err.Error())
+		}
 		var tags []string
 		if JsonInterface["tags"] != nil {
 			htmlTag := JsonInterface["tags"].(string)
@@ -262,7 +279,7 @@ func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 		}
 		// SpojSubmission status
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
-		st := "AC"
+		var st string
 		if stat == "tick-icon" {
 			st = "AC"
 		} else if stat == "cross-icon" {
@@ -298,7 +315,6 @@ func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 		// lang := strings.TrimRight(contents[4], "</td>")
 
 		var submissionTime time.Time
-		var err error
 		//List[0] = number of hours or minutes to reduce
 		//List[1] = hours or minutes
 		//List[2] = "ago"
@@ -320,7 +336,15 @@ func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 				log.Println(err.Error())
 			}
 		}
-		submissions = append(submissions, types.CodechefSubmission{prob, url, submissionTime, st, points, tags, lang})
+		submissions = append(submissions, types.CodechefSubmission{
+			Name:         prob,
+			URL:          url,
+			CreationDate: submissionTime,
+			Status:       st,
+			Points:       points,
+			Tags:         tags,
+			LanguageUsed: lang,
+		})
 
 	}
 

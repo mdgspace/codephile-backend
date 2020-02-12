@@ -101,9 +101,9 @@ func ReturnFeedFriends(uid bson.ObjectId) ([]types.FeedObject, error) {
 	sort.Slice(Feed, func(i, j int) bool {
 		return Feed[i].CreationDate.After(Feed[j].CreationDate)
 	})
-	if UserMissing == true {
+	if UserMissing {
 		return Feed, ErrGeneric
-	} else if UsernameError == true {
+	} else if UsernameError {
 		return Feed, ErrGeneric
 	}
 	return Feed, nil

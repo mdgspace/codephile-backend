@@ -62,8 +62,8 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*types.User, error) {
 	defer collection.Close()
 	// err2 := collection.Collection.Update(bson.D{{"_id" , user.ID}},bson.D{{"$set" , ProfileTobeInserted}})
 	NewNode := site + "Profile"
-	SelectedUser := bson.D{{"_id", user.ID}}
-	Update := bson.D{{"$set", bson.D{{NewNode, ProfileTobeInserted}}}}
+	SelectedUser := bson.D{{Name: "_id", Value: user.ID}}
+	Update := bson.D{{Name: "$set", Value: bson.D{{Name: NewNode, Value: ProfileTobeInserted}}}}
 	_, err2 := collection.Collection.Upsert(SelectedUser, Update)
 	//inserted into the document
 	if err2 == nil {

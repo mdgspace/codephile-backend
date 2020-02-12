@@ -28,7 +28,7 @@ func Authenticate(ctx *context.Context) {
 	})
 	if err != nil {
 		ctx.ResponseWriter.WriteHeader(401)
-		ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
+		_, _ = ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
 		return
 	}
 	if requestToken.Valid && !auth.IsTokenExpired(requestToken) && !auth.IsTokenBlacklisted(requestToken) {
@@ -37,6 +37,6 @@ func Authenticate(ctx *context.Context) {
 		ctx.Input.SetData("uid", uid)
 	} else {
 		ctx.ResponseWriter.WriteHeader(401)
-		ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
+		_, _ = ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
 	}
 }

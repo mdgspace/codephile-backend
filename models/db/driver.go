@@ -25,7 +25,7 @@ func init() {
 		if err := beego.LoadAppConfig("ini", filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(file))), "conf/app.conf")); err != nil {
 			panic(err)
 		}
-		maxPool, err = beego.AppConfig.Int("DBMaxPool")
+		maxPool = beego.AppConfig.DefaultInt("DBMaxPool", 30)
 	}
 	// init method to start db
 	checkAndInitServiceConnection()
