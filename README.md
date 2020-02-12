@@ -1,4 +1,4 @@
-# Codephile
+# Codephile | [![CircleCI](https://circleci.com/gh/mdg-iitr/Codephile.svg?style=svg&circle-token=f989c04ad5d3a6578d45296b18cdca223e504bde)](https://circleci.com/gh/mdg-iitr/Codephile)
 
 ### Environment Variables
 
