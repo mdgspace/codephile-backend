@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/globalsign/mgo"
+	"log"
 )
 
 type Collection struct {
@@ -33,4 +34,12 @@ func NewUserCollectionSession() *Collection {
 
 func (c *Collection) Close() {
 	service.Close(c)
+}
+
+func (c *Collection) DropDatabase() {
+	log.Println("Dropping database ...")
+	err := c.db.DropDatabase()
+	if err != nil {
+		panic(err)
+	}
 }

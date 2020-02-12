@@ -1,26 +1,75 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
-version: 2
+version: 2 # use CircleCI 2.0
 jobs:
   build:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "on"
+          PORT: 8080
+          DBPath: mongodb://127.0.0.1:27017/test_db
+          HMACKEY: my_secret_key
+          REDISURL: redis://127.0.0.1:6379
+          ELASTICURL: http://127.0.0.1:9200
+          TEST_RESULTS: /tmp/test-results # path to where test results will be saved
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
+      - image: circleci/mongo:latest
+      - image: circleci/redis:latest
+        environment:
+          REDIS_URL: "redis://127.0.0.1:6379"
+      - image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+        environment:
+          cluster.name: group-project-test-cluster
+          xpack.security.enabled: false
+          transport.host: localhost
+          network.host: 127.0.0.1
+          http.port: 9200
+          discovery.type: single-node
 
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
-      - checkout
+      - checkout # check out source code to working directory
+      - run: mkdir -p $TEST_RESULTS # create the test results directory
+      - restore_cache: # restores saved cache if no changes are detected since last run
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+      - run:
+          name: Lint
+          command: |
+            mkdir -p /go/bin
+            command -v /go/bin/golangci-lint && exit
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+            wget -O- -q $download | sh -s -- -b /go/bin
+            /go/bin/golangci-lint run -v
 
-      # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
+      - run:
+          name: Build
+          command: |
+            go build -o bin/Codephile .
+
+      - run:
+          name: Test
+          command: |
+            go test -v ./tests
+
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+
+
+#      - run:
+#          name: Validate service is working
+#          command: |
+#            sleep 5
+#            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
+
+#      - store_artifacts: # upload test summary for display in Artifacts
+#          path: /tmp/test-results
+#          destination: raw-test-output
+#
+#      - store_test_results: # upload test results for display in Test Summary
+#          path: /tmp/test-results
+workflows:
+  version: 2
+  build-workflow:
+    jobs:
+      - build
