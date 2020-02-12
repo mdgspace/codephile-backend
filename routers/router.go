@@ -16,38 +16,33 @@ import (
 )
 
 func init() {
-	beego.InsertFilter("/v1/*",beego.BeforeRouter,middleware.Authenticate)
+	beego.InsertFilter("/v1/*", beego.BeforeRouter, middleware.Authenticate)
 	ns := beego.NewNamespace("/v1",
-		beego.NSNamespace("/object",
-			beego.NSInclude(
-				&controllers.ObjectController{},
-			),
-		),
 		beego.NSNamespace("/user",
 			beego.NSInclude(
 				&controllers.UserController{},
 			),
 		),
 		beego.NSNamespace("/contests",
-	        beego.NSInclude(
+			beego.NSInclude(
 				&controllers.ContestController{},
 			),
-	    ),
-	    beego.NSNamespace("/submission",
-	        beego.NSInclude(
+		),
+		beego.NSNamespace("/submission",
+			beego.NSInclude(
 				&controllers.SubmissionController{},
 			),
 		),
 		beego.NSNamespace("/follow",
-	        beego.NSInclude(
+			beego.NSInclude(
 				&controllers.FollowController{},
 			),
 		),
 		beego.NSNamespace("/feed",
-	        beego.NSInclude(
+			beego.NSInclude(
 				&controllers.FeedController{},
 			),
-	    ),
+		),
 	)
 	beego.AddNamespace(ns)
 }

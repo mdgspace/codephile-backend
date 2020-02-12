@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mdg-iitr/Codephile/models/types"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -88,7 +86,10 @@ func GetCodeforcesProfileInfo(handle string) types.ProfileInfo {
 	var profile types.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + handle
 	data := GetRequest(url)
-	json.Unmarshal(data, &profile)
+	err := json.Unmarshal(data, &profile)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return profile
 }
 
@@ -96,7 +97,10 @@ func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	var points CodeforcesGraphPoints
 	url := "http://codeforces.com/api/user.rating?handle=" + handle
 	data := GetRequest(url)
-	json.Unmarshal(data, &points)
+	err := json.Unmarshal(data, &points)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return points
 }
 func getCodeforcesSubmissionParts(handle string, afterIndex int) types.CodeforcesSubmissions {
@@ -104,7 +108,10 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) types.Codeforce
 	fmt.Println(url)
 	data := GetRequest(url)
 	var submissions types.CodeforcesSubmissions
-	json.Unmarshal(data, &submissions)
+	err := json.Unmarshal(data, &submissions)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return submissions
 }
 
@@ -140,18 +147,16 @@ func GetCodeforcesSubmissions(handle string, after time.Time) types.CodeforcesSu
 func GetCodeforcesContests() CodeforcesContests {
 	data := GetRequest("https://codeforces.com/api/contest.list?gym=false")
 	var contests CodeforcesContests
-	json.Unmarshal(data, &contests)
-	return contests
-}
-func CheckCodeforcesHandle(handle string) bool {
-	resp, err := http.Get("http://codeforces.com/api/user.info?handles=" + handle)
-	defer resp.Body.Close()
+	err := json.Unmarshal(data, &contests)
 	if err != nil {
 		log.Println(err.Error())
 	}
-	data, _ := ioutil.ReadAll(resp.Body)
+	return contests
+}
+func CheckCodeforcesHandle(handle string) bool {
+	data := GetRequest("http://codeforces.com/api/user.info?handles=" + handle)
 	var i interface{}
-	err = json.Unmarshal(data, &i)
+	err := json.Unmarshal(data, &i)
 	if err != nil {
 		log.Println(err.Error())
 	}

@@ -143,95 +143,6 @@ paths:
       security:
       - token_auth:
         - write:follow
-  /object/:
-    get:
-      tags:
-      - object
-      description: get all objects
-      operationId: ObjectController.GetAll
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/models.Object'
-        "403":
-          description: :objectId is empty
-    post:
-      tags:
-      - object
-      description: create object
-      operationId: ObjectController.Create
-      parameters:
-      - in: body
-        name: body
-        description: The object content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Object'
-      responses:
-        "200":
-          description: '{string} models.Object.Id'
-        "403":
-          description: body is empty
-  /object/{objectId}:
-    get:
-      tags:
-      - object
-      description: find object by objectid
-      operationId: ObjectController.Get
-      parameters:
-      - in: path
-        name: objectId
-        description: the objectid you want to get
-        required: true
-        type: string
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/models.Object'
-        "403":
-          description: :objectId is empty
-    put:
-      tags:
-      - object
-      description: update the object
-      operationId: ObjectController.Update
-      parameters:
-      - in: path
-        name: objectId
-        description: The objectid you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: The body
-        required: true
-        schema:
-          $ref: '#/definitions/models.Object'
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/models.Object'
-        "403":
-          description: :objectId is empty
-    delete:
-      tags:
-      - object
-      description: delete the object
-      operationId: ObjectController.Delete
-      parameters:
-      - in: path
-        name: objectId
-        description: The objectId you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: objectId is empty
   /submission/{site}:
     post:
       tags:
@@ -661,17 +572,6 @@ definitions:
   bson.ObjectId:
     title: ObjectId
     type: object
-  models.Object:
-    title: Object
-    type: object
-    properties:
-      ObjectId:
-        type: string
-      PlayerName:
-        type: string
-      Score:
-        type: integer
-        format: int64
   types.AllProfiles:
     title: AllProfiles
     type: object
@@ -965,9 +865,6 @@ securityDefinitions:
     name: Authorization
     in: header
 tags:
-- name: object
-  description: |
-    Operations about object
 - name: user
   description: |
     Operations about Users

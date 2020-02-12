@@ -271,16 +271,12 @@ func (u *UserController) Verify() {
 	switch site {
 	case CODECHEF:
 		valid = scripts.CheckCodechefHandle(handle)
-		break
 	case CODEFORCES:
 		valid = scripts.CheckCodeforcesHandle(handle)
-		break
 	case SPOJ:
 		valid = scripts.CheckSpojHandle(handle)
-		break
 	case HACKERRANK:
 		valid = scripts.CheckHackerrankHandle(handle)
-		break
 	}
 	if valid {
 		u.Data["json"] = map[string]string{"status": "Handle valid"}

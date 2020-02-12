@@ -35,7 +35,7 @@ func GetRequest(path string) []byte {
 		log.Println(err)
 		return nil
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // nolint: errcheck
 	byteValue, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
@@ -48,20 +48,26 @@ func GetHackerrankProfileInfo(handle string) types.ProfileInfo {
 	path := "https://www.hackerrank.com/rest/contests/master/hackers/" + handle + "/profile";
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
-	json.Unmarshal(byteValue, &JsonInterFace)
+	err := json.Unmarshal(byteValue, &JsonInterFace)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	Profile := JsonInterFace.(map[string]interface{})["model"].(map[string]interface{})
 	Name := Profile["name"].(string)
 	// Date := Profile["created_at"].(string)
 	UserName := Profile["username"].(string)
 	School := Profile["school"].(string)
-	return types.ProfileInfo{Name, UserName, School, "", ""}
+	return types.ProfileInfo{Name: Name, UserName: UserName, School: School}
 }
 
 func GetHackerrankSubmissions(handle string, after time.Time) types.HackerrankSubmissions {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/recent_challenges?limit=1000&response_version=v1"
 	byteValue := GetRequest(path)
 	var submissions types.HackerrankSubmissions
-	json.Unmarshal(byteValue, &submissions)
+	err := json.Unmarshal(byteValue, &submissions)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	var oldestSubIndex int;
 	if after.IsZero() {
 		oldestSubIndex = submissions.Count
@@ -85,7 +91,10 @@ func GetHackerrankContests() Contests {
 	path := "https://www.hackerrank.com/rest/contests/upcoming?offset=0&limit=20&contest_slug=active"
 	byteValue := GetRequest(path)
 	var ContestsArray Contests
-	json.Unmarshal(byteValue, &ContestsArray)
+	err := json.Unmarshal(byteValue, &ContestsArray)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return ContestsArray
 }
 
@@ -93,8 +102,10 @@ func GetHackerrankGraphData(handle string) []HackerrankGraphPoint {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/rating_histories_elo"
 	byteValue := GetRequest(path)
 	var JsonInterFace interface{}
-	json.Unmarshal(byteValue, &JsonInterFace)
-
+	err := json.Unmarshal(byteValue, &JsonInterFace)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	m := JsonInterFace.(map[string]interface{})
 
 	models := m["models"].([]interface{})
@@ -113,6 +124,7 @@ func CheckHackerrankHandle(handle string) bool {
 	resp, err := http.Get("https://www.hackerrank.com/rest/contests/master/hackers/" + handle + "/profile")
 	if err != nil {
 		log.Println(err.Error())
+		return false
 	}
 	return resp.StatusCode != http.StatusNotFound
 }
