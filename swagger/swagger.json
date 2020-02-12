@@ -1013,36 +1013,10 @@
             "title": "FeedObject",
             "type": "object",
             "properties": {
-                "CreationDate": {
-                    "type": "string",
-                    "format": "datetime"
+                "submission": {
+                    "$ref": "#/definitions/types.Submission"
                 },
-                "Language": {
-                    "type": "string"
-                },
-                "Name": {
-                    "type": "string"
-                },
-                "Points": {
-                    "type": "string"
-                },
-                "Rating": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "Status": {
-                    "type": "string"
-                },
-                "Tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "URL": {
-                    "type": "string"
-                },
-                "UserName": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -1221,6 +1195,41 @@
                     "type": "string"
                 },
                 "points": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Submission": {
+            "title": "Submission",
+            "type": "object",
+            "properties": {
+                "creation_date": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "string"
+                },
+                "rating": {
                     "type": "integer",
                     "format": "int64"
                 },

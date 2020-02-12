@@ -40,12 +40,8 @@ func (f *FeedController) ContestsFeed() {
 // @router /friend-activity [get]
 func (f *FeedController) FriendsFeed() {
 	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
-	feed, err := models.ReturnFeedFriends(uid)
-	if err == models.ErrGeneric {
-		//feed is altered (inform front-end)
-		f.Data["json"] = feed
-		f.ServeJSON()
-	} else if err != nil {
+	feed, err := models.GetAllFeed(uid)
+	if err != nil {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		f.Data["json"] = errors.InternalServerError("Internal server error")

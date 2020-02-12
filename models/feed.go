@@ -2,10 +2,8 @@ package models
 
 import (
 	"errors"
+	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
-	"log"
-	"sort"
-	"strconv"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -22,91 +20,57 @@ func ReturnFeedContests() (types.S, error) {
 	return SortedContests, nil
 }
 
-func ReturnFeedFriends(uid bson.ObjectId) ([]types.FeedObject, error) {
-	user, err := GetUser(uid)
+func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	var u types.User
+	err := coll.FindId(uid).Select(bson.M{"followingUsers.f_id": 1}).One(&u)
 	if err != nil {
-		//user invalid return error
-		log.Println("Invalid user")
 		return nil, err
 	}
-	UserMissing := false
-	UsernameError := false
-	var Feed []types.FeedObject
-	followingUsers, err2 := GetFollowingUsers(user.ID)
-	if err2 != nil {
-		return Feed, err2
+	followingUID := make([]bson.ObjectId, 0, len(u.FollowingUsers))
+	for _, f := range u.FollowingUsers {
+		followingUID = append(followingUID, f.ID)
 	}
-	for _, value := range followingUsers {
-		UserSubmissions, err1 := GetSubmissions(value.ID)
-		feedUser, err3 := GetUser(value.ID)
-		user_name := feedUser.Username
-		if err3 != nil {
-			//some alteration in feed
-			//this error will rarely occur
-			UsernameError = true
-		}
-		if err1 != nil {
-			//unable to fetch this user (feed will not be consisting this user's activity)
-			log.Println("Unable to fetch a user for feed obtain")
-			//handle error
-			UserMissing = true
-			continue
-		} else {
-			//user fetched
-			for _, submission := range UserSubmissions.Codechef {
-				var feedObject types.FeedObject
-				feedObject.UserName = user_name
-				feedObject.Name = submission.Name
-				feedObject.URL = submission.URL
-				feedObject.CreationDate = submission.CreationDate
-				feedObject.Status = submission.Status
-				feedObject.Points = submission.Points
-				feedObject.Tags = submission.Tags
-				Feed = append(Feed, feedObject)
-			}
-			for _, submission := range UserSubmissions.Codeforces {
-				var feedObject types.FeedObject
-				feedObject.UserName = user_name
-				feedObject.Name = submission.Name
-				feedObject.URL = submission.URL
-				feedObject.CreationDate = submission.CreationDate
-				feedObject.Status = submission.Status
-				feedObject.Points = strconv.Itoa(submission.Points)
-				feedObject.Tags = submission.Tags
-				feedObject.Rating = submission.Rating
-				Feed = append(Feed, feedObject)
-			}
-			for _, submission := range UserSubmissions.Spoj {
-				var feedObject types.FeedObject
-				feedObject.UserName = user_name
-				feedObject.Name = submission.Name
-				feedObject.URL = submission.URL
-				feedObject.CreationDate = submission.CreationDate
-				feedObject.Status = submission.Status
-				feedObject.Points = strconv.Itoa(submission.Points)
-				feedObject.Language = submission.Language
-				feedObject.Tags = submission.Tags
-				Feed = append(Feed, feedObject)
-			}
-			for _, submission := range UserSubmissions.Hackerrank {
-				var feedObject types.FeedObject
-				feedObject.UserName = user_name
-				feedObject.Name = submission.Name
-				feedObject.URL = submission.URL
-				feedObject.CreationDate = submission.CreationDate
-				Feed = append(Feed, feedObject)
-			}
-		}
+	filter := bson.M{
+		"$match": bson.M{
+			"_id": bson.M{
+				"$in": followingUID,
+			},
+		},
 	}
-	sort.Slice(Feed, func(i, j int) bool {
-		return Feed[i].CreationDate.After(Feed[j].CreationDate)
-	})
-	if UserMissing {
-		return Feed, ErrGeneric
-	} else if UsernameError {
-		return Feed, ErrGeneric
+	project := bson.M{
+		"$project": bson.M{
+			"_id":      0,
+			"username": 1,
+			"submission": bson.M{
+				"$setUnion": [4]string{
+					"$submission.codeforces",
+					"$submission.spoj",
+					"$submission.codechef",
+					"$submission.hackerrank",
+				},
+			},
+		},
 	}
-	return Feed, nil
+	unwind := bson.M{
+		"$unwind": "$submission",
+	}
+	sort := bson.M{
+		"$sort": bson.M{
+			"submission.creation_date": -1,
+		},
+	}
+	pipe := coll.Pipe([]bson.M{
+		filter,
+		project,
+		unwind,
+		sort,
+	}, )
+	var res []types.FeedObject
+	err = pipe.All(&res)
+	return res, err
 }
 
 //SortContests to sort contests according to StartTime and EndTime
