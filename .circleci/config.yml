@@ -1,8 +1,7 @@
-# Golang CircleCI 2.0 configuration file
 version: 2 # use CircleCI 2.0
-jobs: # basic units of work in a run
-  build: # runs not using Workflows must have a `build` job as entry point
-    docker: # run the steps with Docker
+jobs:
+  build:
+    docker:
       - image: circleci/golang:1.12
         environment:
           GO111MODULE: "on"
@@ -26,36 +25,49 @@ jobs: # basic units of work in a run
           http.port: 9200
           discovery.type: single-node
 
-    steps: # steps that comprise the `build` job
+    steps:
       - checkout # check out source code to working directory
       - run: mkdir -p $TEST_RESULTS # create the test results directory
-      - run: go test -v ./tests
       - restore_cache: # restores saved cache if no changes are detected since last run
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
+      - run:
+          name: Lint
+          command: |
+            mkdir -p /go/bin
+            command -v /go/bin/golangci-lint && exit
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+            wget -O- -q $download | sh -s -- -b /go/bin
+            /go/bin/golangci-lint run -v
 
-      - run: #make # pull and build dependencies for the project
+      - run:
           name: Build
           command: |
             go build -o bin/Codephile .
-            ./bin/Codephile
-          background: true
 
       - run:
-          name: Validate service is working
-          command: curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080
+          name: Test
+          command: |
+            go test -v ./tests
 
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
 
-      - store_artifacts: # upload test summary for display in Artifacts
-          path: /tmp/test-results
-          destination: raw-test-output
 
-      - store_test_results: # upload test results for display in Test Summary
-          path: /tmp/test-results
+#      - run:
+#          name: Validate service is working
+#          command: |
+#            sleep 5
+#            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
+
+#      - store_artifacts: # upload test summary for display in Artifacts
+#          path: /tmp/test-results
+#          destination: raw-test-output
+#
+#      - store_test_results: # upload test results for display in Test Summary
+#          path: /tmp/test-results
 workflows:
   version: 2
   build-workflow:
