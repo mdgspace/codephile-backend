@@ -17,7 +17,7 @@ type Submissions struct {
 type CodechefSubmission struct {
 	Name         string    `bson:"name" json:"name"`
 	URL          string    `bson:"url" json:"url"`
-	CreationDate time.Time `bson:"creation_date" json:"creation_date"`
+	CreationDate time.Time `bson:"created_at" json:"creation_date"`
 	Status       string    `bson:"status" json:"status"`
 	Points       string    `bson:"points" json:"points"`
 	Tags         []string  `bson:"tags" json:"tags"`
@@ -27,7 +27,7 @@ type CodechefSubmission struct {
 type SpojSubmission struct {
 	Name         string    `bson:"name" json:"name"`
 	URL          string    `bson:"url" json:"url"`
-	CreationDate time.Time `bson:"creation_date" json:"creation_date"`
+	CreationDate time.Time `bson:"created_at" json:"creation_date"`
 	Status       string    `bson:"status" json:"status"`
 	Language     string    `bson:"language" json:"language"`
 	Points       int       `bson:"points" json:"points"`

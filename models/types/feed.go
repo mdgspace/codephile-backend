@@ -5,7 +5,7 @@ import "time"
 type Submission struct {
 	Name         string    `json:"name" bson:"name"`
 	URL          string    `json:"url" bson:"url"`
-	CreationDate time.Time `json:"creation_date" bson:"creation_date"`
+	CreationDate time.Time `json:"created_at" bson:"created_at"`
 	Status       string    `json:"status" bson:"status"`
 	Language     string    `json:"language" bson:"language"`
 	Points       string    `json:"points" bson:"points"`

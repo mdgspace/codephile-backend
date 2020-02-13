@@ -59,7 +59,7 @@ func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
 	}
 	sort := bson.M{
 		"$sort": bson.M{
-			"submission.creation_date": -1,
+			"submission.created_at": -1,
 		},
 	}
 	pipe := coll.Pipe([]bson.M{
