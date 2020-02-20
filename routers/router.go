@@ -33,9 +33,9 @@ func init() {
 				&controllers.SubmissionController{},
 			),
 		),
-		beego.NSNamespace("/follow",
+		beego.NSNamespace("/friends",
 			beego.NSInclude(
-				&controllers.FollowController{},
+				&controllers.FriendsController{},
 			),
 		),
 		beego.NSNamespace("/feed",

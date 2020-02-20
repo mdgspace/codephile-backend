@@ -19,6 +19,20 @@ func GetFollowingUsers(ID bson.ObjectId) ([]types.Following, error) {
 	return user.FollowingUsers, nil
 }
 
+func UnFollowUser(uid1 bson.ObjectId, uid2 bson.ObjectId) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	update := bson.M{
+		"$pull": bson.M{
+			"followingUsers": bson.M{
+				"f_id": uid2,
+			},
+		},
+	}
+	return coll.UpdateId(uid1, update)
+}
+
 func FollowUser(uid1 bson.ObjectId, uid2 bson.ObjectId) error {
 	//uid1 is of the person who wants to follow
 	//uid2 is the person being followed
