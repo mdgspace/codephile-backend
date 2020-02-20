@@ -80,12 +80,12 @@ paths:
       security:
       - token_auth:
         - read:feed
-  /follow/compare:
+  /friends/compare:
     get:
       tags:
-      - follow
+      - friends
       description: Compares the data of two users
-      operationId: FollowController.CompareUser
+      operationId: FriendsController.CompareUser
       parameters:
       - in: query
         name: uid2
@@ -104,12 +104,34 @@ paths:
       security:
       - token_auth:
         - read:follow
-  /follow/following:
+  /friends/follow:
+    post:
+      tags:
+      - friends
+      description: Adds the Following user's uid to the database
+      operationId: FriendsController.FollowUser
+      parameters:
+      - in: query
+        name: uid2
+        description: uid of user to follow
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} user followed'
+        "400":
+          description: bad uid
+        "500":
+          description: server_error
+      security:
+      - token_auth:
+        - write:follow
+  /friends/following:
     get:
       tags:
-      - follow
+      - friends
       description: Fetches the users the user is following
-      operationId: FollowController.GetFollowing
+      operationId: FriendsController.GetFollowing
       responses:
         "200":
           description: ""
@@ -122,20 +144,21 @@ paths:
       security:
       - token_auth:
         - read:follow
+  /friends/unfollow:
     post:
       tags:
-      - follow
-      description: Adds the Following user's uid to the database
-      operationId: FollowController.FollowUser
+      - friends
+      description: Un-follows the user with the given uid
+      operationId: FriendsController.Un-follow User
       parameters:
       - in: query
         name: uid2
-        description: uid of user to follow
+        description: uid of user to un-follow
         required: true
         type: string
       responses:
         "200":
-          description: '{string} user followed'
+          description: '{string} user un-followed'
         "400":
           description: bad uid
         "500":

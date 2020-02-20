@@ -43,7 +43,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"],
         beego.ControllerComments{
             Method: "CompareUser",
             Router: `/compare`,
@@ -52,20 +52,29 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"],
         beego.ControllerComments{
             Method: "FollowUser",
-            Router: `/following`,
+            Router: `/follow`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FollowController"],
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"],
         beego.ControllerComments{
             Method: "GetFollowing",
             Router: `/following`,
             AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FriendsController"],
+        beego.ControllerComments{
+            Method: "UnFollowUser",
+            Router: `/unfollow`,
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
