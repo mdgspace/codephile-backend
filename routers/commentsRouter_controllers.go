@@ -36,8 +36,17 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"],
         beego.ControllerComments{
-            Method: "FriendsFeed",
+            Method: "PaginatedFeed",
             Router: `/friend-activity`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:FeedController"],
+        beego.ControllerComments{
+            Method: "AllFeed",
+            Router: `/friend-activity/all`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

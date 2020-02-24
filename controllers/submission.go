@@ -18,7 +18,7 @@ type SubmissionController struct {
 // @Description Get submissions of user(logged-in if uid is empty) across various platforms
 // @Security token_auth read:submission
 // @Param	uid		path 	string	false		"UID of user"
-// @Success 200 {object} types.Submissions
+// @Success 200 {object} []types.Submission
 // @Failure 400 invalid uid
 // @Failure 404 User/Submission not found
 // @router / [get]

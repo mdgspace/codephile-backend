@@ -7,6 +7,7 @@ import (
 	"github.com/mdg-iitr/Codephile/models"
 	"log"
 	"net/http"
+	"time"
 )
 
 type FeedController struct {
@@ -32,20 +33,16 @@ func (f *FeedController) ContestsFeed() {
 	f.ServeJSON()
 }
 
-// @Title FriendFeed
-// @Description Provides Data for Friend Activity in the Feed
+// @Title All Feed
+// @Description Gives all submission feed of the user
 // @Security token_auth read:feed
-// @Success 200 {object} types.FeedObject
+// @Success 200 {object} []types.FeedObject
 // @Failure 500 server_error
-// @router /friend-activity [get]
-func (f *FeedController) FriendsFeed() {
+// @router /friend-activity/all [get]
+func (f *FeedController) AllFeed() {
 	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
-	feed, err := models.ReturnFeedFriends(uid)
-	if err == models.ErrGeneric {
-		//feed is altered (inform front-end)
-		f.Data["json"] = feed
-		f.ServeJSON()
-	} else if err != nil {
+	feed, err := models.GetAllFeed(uid)
+	if err != nil {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -53,6 +50,40 @@ func (f *FeedController) FriendsFeed() {
 		return
 	} else {
 		f.Data["json"] = feed
+		_ = f.Ctx.Output.JSON(feed, false, false)
+	}
+}
+
+// @Title FriendFeed
+// @Description Gives submission feed in paginated manner giving 100 submissions at a time
+// @Security token_auth read:feed
+// @Param	before		query 	string	true  "Time before which feed to be returned, uses current time if empty or not present"
+// @Success 200 {object} []types.FeedObject
+// @Failure 400 invalid before value
+// @Failure 500 server_error
+// @router /friend-activity [get]
+func (f *FeedController) PaginatedFeed() {
+	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	before, err := f.GetInt64("before", time.Now().UTC().Unix())
+	if err != nil {
+		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		f.Data["json"] = errors.BadInputError("Invalid query param value")
 		f.ServeJSON()
+		return
+	}
+	if before == 0 {		f.ServeJSON()
+
+		before = time.Now().UTC().Unix()
+	}
+	feed, err := models.GetFeed(uid, time.Unix(before, 0))
+	if err != nil {
+		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		log.Println(err.Error())
+		f.Data["json"] = errors.InternalServerError("Internal server error")
+		f.ServeJSON()
+		return
+	} else {
+		f.Data["json"] = feed
+		_ = f.Ctx.Output.JSON(feed, false, false)
 	}
 }

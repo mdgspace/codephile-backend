@@ -68,13 +68,43 @@ paths:
     get:
       tags:
       - feed
-      description: Provides Data for Friend Activity in the Feed
+      description: Gives submission feed in paginated manner giving 100 submissions
+        at a time
       operationId: FeedController.FriendFeed
+      parameters:
+      - in: query
+        name: before
+        description: Time before which feed to be returned, uses current time if empty
+          or not present
+        required: true
+        type: string
       responses:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/types.FeedObject'
+            type: array
+            items:
+              $ref: '#/definitions/types.FeedObject'
+        "400":
+          description: invalid before value
+        "500":
+          description: server_error
+      security:
+      - token_auth:
+        - read:feed
+  /feed/friend-activity/all:
+    get:
+      tags:
+      - feed
+      description: Gives all submission feed of the user
+      operationId: FeedController.All Feed
+      responses:
+        "200":
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/types.FeedObject'
         "500":
           description: server_error
       security:
