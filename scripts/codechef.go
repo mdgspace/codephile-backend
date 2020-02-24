@@ -198,10 +198,10 @@ func GetCodechefProfileInfo(handle string) types.ProfileInfo {
 	return Profile
 }
 
-func GetCodechefSubmissions(handle string, after time.Time) []types.CodechefSubmission {
+func GetCodechefSubmissions(handle string, after time.Time) []types.Submission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
-	subs := []types.CodechefSubmission{{CreationDate: time.Now()}}
+	subs := []types.Submission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
 		newSub := GetCodechefSubmissionParts(handle, current)
@@ -225,7 +225,7 @@ func GetCodechefSubmissions(handle string, after time.Time) []types.CodechefSubm
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetCodechefSubmissionParts(handle string, pageNo int) []types.CodechefSubmission {
+func GetCodechefSubmissionParts(handle string, pageNo int) []types.Submission {
 	var JsonInterFace interface{}
 	user_url := fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, pageNo)
 	fmt.Println(user_url)
@@ -241,9 +241,9 @@ func GetCodechefSubmissionParts(handle string, pageNo int) []types.CodechefSubmi
 
 }
 
-func GetSubmissionsFromString(content string) []types.CodechefSubmission {
+func GetSubmissionsFromString(content string) []types.Submission {
 
-	var submissions []types.CodechefSubmission
+	var submissions []types.Submission
 
 	data := strings.Split(content, "<tr >")
 	for i := 1; i <= len(data)-1; i++ {
@@ -336,14 +336,18 @@ func GetSubmissionsFromString(content string) []types.CodechefSubmission {
 				log.Println(err.Error())
 			}
 		}
-		submissions = append(submissions, types.CodechefSubmission{
+		pt, err := strconv.Atoi(points)
+		if err != nil {
+			pt = 0
+		}
+		submissions = append(submissions, types.Submission{
 			Name:         prob,
 			URL:          url,
 			CreationDate: submissionTime,
 			Status:       st,
-			Points:       points,
+			Points:       pt,
 			Tags:         tags,
-			LanguageUsed: lang,
+			Language:     lang,
 		})
 
 	}

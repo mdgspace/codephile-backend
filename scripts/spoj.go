@@ -66,10 +66,10 @@ func GetSpojProfileInfo(handle string) types.ProfileInfo {
 	return Profile
 }
 
-func GetSpojSubmissions(handle string, after time.Time) []types.SpojSubmission {
+func GetSpojSubmissions(handle string, after time.Time) []types.Submission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
-	subs := []types.SpojSubmission{{CreationDate: time.Now()}}
+	subs := []types.Submission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
 		newSub := GetSpojSubmissionParts(handle, current)
@@ -93,10 +93,10 @@ func GetSpojSubmissions(handle string, after time.Time) []types.SpojSubmission {
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetSpojSubmissionParts(handle string, afterIndex int) []types.SpojSubmission {
+func GetSpojSubmissionParts(handle string, afterIndex int) []types.Submission {
 
 	c := colly.NewCollector()
-	var submissions []types.SpojSubmission
+	var submissions []types.Submission
 
 	c.OnHTML("tbody", func(e *colly.HTMLElement) {
 		e.ForEach("tr", func(_ int, elem *colly.HTMLElement) {
@@ -114,7 +114,7 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []types.SpojSubmissio
 				points = 100
 			}
 			tags := GetProbTags(URL)
-			submissions = append(submissions, types.SpojSubmission{Name: Name, URL: URL, CreationDate: CreationDate, Status: status, Language: language, Points: points, Tags: tags})
+			submissions = append(submissions, types.Submission{Name: Name, URL: URL, CreationDate: CreationDate, Status: status, Language: language, Points: points, Tags: tags})
 		})
 	})
 

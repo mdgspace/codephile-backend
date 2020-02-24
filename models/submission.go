@@ -13,14 +13,17 @@ import (
 
 //Returns HandleNotFoundError/UserNotFoundError/error
 func AddSubmissions(uid bson.ObjectId, site string) error {
-	user, err := GetUser(uid)
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	var user types.User
+	err := coll.FindId(uid).Select(bson.M{"handle": 1, "lastfetched": 1}).One(&user)
 	if err != nil {
 		//handle the error (Invalid user)
 		return UserNotFoundError
 	}
 	var handle string
-	coll := db.NewUserCollectionSession()
-	defer coll.Close()
+	var addSubmissions []types.Submission
 	switch site {
 	case CODECHEF:
 		handle = user.Handle.Codechef
@@ -28,81 +31,65 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 			return HandleNotFoundError
 		}
 		//TODO: Return errors from scripts
-		addSubmissions := scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
+		addSubmissions = scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
 		if len(addSubmissions) != 0 {
 			user.Last.Codechef = addSubmissions[0].CreationDate
-			change := bson.M{"$push": bson.M{"submission.codechef": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Collection.UpdateId(user.ID, change)
-			if err != nil {
-				log.Println(err.Error())
-				return err
-			}
 		}
-		return nil
 	case CODEFORCES:
 		handle = user.Handle.Codeforces
 		if handle == "" {
 			return HandleNotFoundError
 		}
 		//TODO: Return errors from scripts
-		addSubmissions := scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces).Data
+		addSubmissions = scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces)
 		if len(addSubmissions) != 0 {
 			user.Last.Codeforces = addSubmissions[0].CreationDate
-			change := bson.M{"$push": bson.M{"submission.codeforces": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Collection.UpdateId(user.ID, change)
-			if err != nil {
-				log.Println(err.Error())
-				return err
-			}
 		}
-		return nil
 	case SPOJ:
 		handle = user.Handle.Spoj
 		if handle == "" {
 			return HandleNotFoundError
 		}
 		//TODO: Return errors from scripts
-		addSubmissions := scripts.GetSpojSubmissions(handle, user.Last.Spoj)
+		addSubmissions = scripts.GetSpojSubmissions(handle, user.Last.Spoj)
 		if len(addSubmissions) != 0 {
 			user.Last.Spoj = addSubmissions[0].CreationDate
-			change := bson.M{"$push": bson.M{"submission.spoj": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Collection.UpdateId(user.ID, change)
-			if err != nil {
-				log.Println(err.Error())
-				return err
-			}
 		}
-		return nil
 	case HACKERRANK:
 		handle = user.Handle.Hackerrank
 		if handle == "" {
 			return HandleNotFoundError
 		}
 		//TODO: Return errors from scripts
-		addSubmissions := scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank).Data
+		addSubmissions = scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank)
 		if len(addSubmissions) != 0 {
 			user.Last.Hackerrank = addSubmissions[0].CreationDate
-			change := bson.M{"$push": bson.M{"submission.hackerrank": bson.M{"$each": addSubmissions}}, "$set": bson.M{"lastfetched": user.Last}}
-			err := coll.Collection.UpdateId(user.ID, change)
-			if err != nil {
-				log.Println(err.Error())
-				return err
-			}
 		}
-		return nil
+	}
+	change := bson.M{
+		"$push": bson.M{
+			"submissions": bson.M{
+				"$each": addSubmissions,
+				"$sort": bson.M{"created_at": -1},
+			}},
+		"$set": bson.M{"lastfetched": user.Last}}
+	err = coll.UpdateId(user.ID, change)
+	if err != nil {
+		log.Println(err.Error())
+		return err
 	}
 	return nil
 }
 
-func GetSubmissions(ID bson.ObjectId) (*types.Submissions, error) {
+func GetSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	var user types.User
-	err := coll.Collection.FindId(ID).Select(bson.M{"submission": 1}).One(&user)
+	err := coll.Collection.FindId(ID).Select(bson.M{"submissions": 1}).One(&user)
 	if err != nil {
 		return nil, err
 	}
-	return &user.Submissions, nil
+	return user.Submissions, nil
 }
 
 //TODO: Return proper errors in FilterSubmission

@@ -60,29 +60,29 @@ func GetHackerrankProfileInfo(handle string) types.ProfileInfo {
 	return types.ProfileInfo{Name: Name, UserName: UserName, School: School}
 }
 
-func GetHackerrankSubmissions(handle string, after time.Time) types.HackerrankSubmissions {
+func GetHackerrankSubmissions(handle string, after time.Time) []types.Submission {
 	path := "https://www.hackerrank.com/rest/hackers/" + handle + "/recent_challenges?limit=1000&response_version=v1"
 	byteValue := GetRequest(path)
-	var submissions types.HackerrankSubmissions
-	err := json.Unmarshal(byteValue, &submissions)
+	var data types.HackerrankSubmisson
+	err := json.Unmarshal(byteValue, &data)
+	submissions := data.Models
 	if err != nil {
 		log.Println(err.Error())
 	}
 	var oldestSubIndex int;
 	if after.IsZero() {
-		oldestSubIndex = submissions.Count
+		oldestSubIndex = len(submissions)
 	} else {
-		for i, sub := range submissions.Data {
+		for i, sub := range submissions {
 			if sub.CreationDate.Equal(after) || sub.CreationDate.Before(after) {
 				oldestSubIndex = i
 				break
 			}
 		}
 	}
-	submissions.Data = submissions.Data[0:oldestSubIndex]
-	submissions.Count = oldestSubIndex
-	for i := 0; i < len(submissions.Data); i++ {
-		submissions.Data[i].URL = "https://www.hackerrank.com" + submissions.Data[i].URL
+	submissions = submissions[0:oldestSubIndex]
+	for i := 0; i < len(submissions); i++ {
+		submissions[i].URL = "https://www.hackerrank.com" + submissions[i].URL
 	}
 	return submissions
 }

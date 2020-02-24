@@ -132,60 +132,56 @@ func CompareUser(uid1 bson.ObjectId, uid2 bson.ObjectId) (types.AllWorldRanks, e
 
 }
 
+func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmissionIdentifier string) (int, int, error) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	match := bson.M{"$match": bson.M{
+		"_id": uid,
+	}}
+	unwind := bson.M{
+		"$unwind": "$submissions",
+	}
+	match2 := bson.M{"$match": bson.M{
+		"submissions.url": bson.M{"$regex": bson.RegEx{
+			Pattern: "^" + websiteUrl,
+		}},
+	}}
+	pipe := coll.Pipe([]bson.M{
+		match,
+		unwind,
+		match2,
+		bson.M{
+			"$facet": bson.M{
+				"total": []bson.M{bson.M{"$count": "total"}},
+				"correct": []bson.M{
+					bson.M{"$match": bson.M{"submissions.status": correctSubmissionIdentifier}},
+					bson.M{"$count": "correct"}},
+			},
+		},
+	})
+	var result []map[string][]map[string]int
+	err := pipe.All(&result)
+	if err != nil || len(result) == 0 || len(result[0]["total"]) == 0 {
+		return 0, 1, errors.New("could not get accuracy")
+	}
+	return result[0]["correct"][0]["correct"], result[0]["total"][0]["total"], nil
+}
+
 // GetAccuracy function calculates the accuracy of a particular site and returns it
 func GetAccuracy(user *types.User, website string) (string, error) {
-	submissions, err := GetSubmissions(user.ID)
-
-	var accuracy string
-
-	if err != nil {
-		return accuracy, err
-	}
-
-	var correctSubmissions float32
-	var totalSubmissions float32
-
 	switch website {
 	case CODECHEF:
-		{
-			for _, value := range submissions.Codechef {
-				totalSubmissions += 1.0
-				if value.Status == "AC" {
-					if value.Points == "100" {
-						correctSubmissions += 1.0
-					}
-				}
-			}
-			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
-			return accuracy, nil
-		}
+		correct, total, err := getCorrectIncorrectCount(user.ID, "http://www.codechef.com/", "AC")
+		return fmt.Sprintf("%f", float64(correct)/float64(total)), err
 	case CODEFORCES:
-		{
-			for _, value := range submissions.Codeforces {
-				totalSubmissions += 1.0
-				if value.Status == "OK" {
-					correctSubmissions += 1.0
-				}
-			}
-			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
-			return accuracy, nil
-		}
+		correct, total, err := getCorrectIncorrectCount(user.ID, "http://codeforces.com/", "OK")
+		return fmt.Sprintf("%f", float64(correct)/float64(total)), err
 	case SPOJ:
-		{
-			for _, value := range submissions.Spoj {
-				totalSubmissions += 1.0
-				if value.Status == "accepted" {
-					correctSubmissions += 1.0
-				}
-			}
-			accuracy = fmt.Sprintf("%f", correctSubmissions/totalSubmissions)
-			return accuracy, nil
-		}
+		correct, total, err := getCorrectIncorrectCount(user.ID, "https://www.spoj.com", "accepted")
+		return fmt.Sprintf("%f", float64(correct)/float64(total)), err
 	case HACKERRANK:
-		{
-			//accuracy would be 100%
-			return "100", nil
-		}
+		return "1", nil
 	default:
 		return "", errors.New("Invalid Website")
 	}
