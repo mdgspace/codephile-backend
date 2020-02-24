@@ -14,7 +14,7 @@ type User struct {
 	Password       string                `bson:"password" json:"-" schema:"password"`
 	Picture        string                `bson:"picture" json:"picture"`
 	Handle         Handle                `bson:"handle" json:"handle" schema:"handle"`
-	Submissions    Submissions           `bson:"submission" json:"-" schema:"-"`
+	Submissions    []Submission          `bson:"submissions" json:"-" schema:"-"`
 	Last           LastFetchedSubmission `bson:"lastfetched" json:"-"`
 	FollowingUsers []Following           `bson:"followingUsers" json:"-"`
 }

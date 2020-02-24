@@ -1,16 +1,9 @@
 package types
 
-import "time"
+import "github.com/globalsign/mgo/bson"
 
 type FeedObject struct {
-	UserName     string    `bson:"username"`
-	Name         string    `bson:"name"`
-	URL          string    `bson:"url"`
-	CreationDate time.Time `bson:"creation_date"`
-	Status       string    `bson:"status"`
-	Language     string    `bson:"language"`
-	Points       string    `bson:"points"`
-	Tags         []string  `bson:"tags"`
-	Rating       int       `bson:"rating"`
+	UserName   string        `json:"username"`
+	ID         bson.ObjectId `json:"user_id" bson:"_id"`
+	Submission Submission    `json:"submission"`
 }
-
