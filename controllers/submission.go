@@ -8,22 +8,23 @@ import (
 	"github.com/mdg-iitr/Codephile/models"
 	"log"
 	"net/http"
+	"time"
 )
 
 type SubmissionController struct {
 	beego.Controller
 }
 
-// @Title Get
-// @Description Get submissions of user(logged-in if uid is empty) across various platforms
+// @Title All submissions
+// @Description Get all submissions of a user(logged-in if uid is empty) across various platforms
 // @Security token_auth read:submission
 // @Param	uid		path 	string	false		"UID of user"
 // @Success 200 {object} []types.Submission
 // @Failure 400 invalid uid
 // @Failure 404 User/Submission not found
-// @router / [get]
-// @router /:uid [get]
-func (s *SubmissionController) GetSubmission() {
+// @router /all [get]
+// @router /all/:uid [get]
+func (s *SubmissionController) GetAllSubmissions() {
 	uidString := s.GetString(":uid")
 	var uid bson.ObjectId
 	if bson.IsObjectIdHex(uidString) {
@@ -36,7 +37,7 @@ func (s *SubmissionController) GetSubmission() {
 		s.ServeJSON()
 		return
 	}
-	subs, err := models.GetSubmissions(uid)
+	subs, err := models.GetAllSubmissions(uid)
 	if err != nil {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
 		s.Data["json"] = NotFoundError("User/Submission not found")
@@ -45,7 +46,53 @@ func (s *SubmissionController) GetSubmission() {
 	} else {
 		s.Data["json"] = subs
 	}
-	s.ServeJSON()
+	_ = s.Ctx.Output.JSON(s.Data["json"], false, false)
+}
+
+// @Title Get Submissions
+// @Description Get paginated submissions(100 per page) of user(logged-in if uid is empty) across various platforms
+// @Security token_auth read:submission
+// @Param	uid		path 	string	false		"UID of user"
+// @Param	before		query 	string	true  "Time before which submissions to be returned, uses current time if empty or not present"
+// @Success 200 {object} []types.Submission
+// @Failure 400 invalid uid
+// @Failure 404 User/Submission not found
+// @router / [get]
+// @router /:uid [get]
+func (s *SubmissionController) PaginatedSubmissions() {
+	uidString := s.GetString(":uid")
+	var uid bson.ObjectId
+	if bson.IsObjectIdHex(uidString) {
+		uid = bson.ObjectIdHex(uidString)
+	} else if uidString == "" {
+		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
+	} else {
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		s.Data["json"] = BadInputError("Invalid UID")
+		s.ServeJSON()
+		return
+	}
+	before, err := s.GetInt64("before", time.Now().UTC().Unix())
+	if err != nil {
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		s.Data["json"] = BadInputError("Invalid query param value")
+		s.ServeJSON()
+		return
+	}
+	if before == 0 {
+		before = time.Now().UTC().Unix()
+	}
+	feed, err := models.GetSubmissions(uid, time.Unix(before, 0))
+	if err != nil {
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		log.Println(err.Error())
+		s.Data["json"] = InternalServerError("Internal server error")
+		s.ServeJSON()
+		return
+	} else {
+		s.Data["json"] = feed
+		s.ServeJSON()
+	}
 }
 
 // @Title Post
