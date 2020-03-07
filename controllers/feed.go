@@ -71,8 +71,7 @@ func (f *FeedController) PaginatedFeed() {
 		f.ServeJSON()
 		return
 	}
-	if before == 0 {		f.ServeJSON()
-
+	if before == 0 {
 		before = time.Now().UTC().Unix()
 	}
 	feed, err := models.GetFeed(uid, time.Unix(before, 0))

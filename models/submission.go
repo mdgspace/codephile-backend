@@ -9,6 +9,7 @@ import (
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scripts"
 	"log"
+	"time"
 )
 
 //Returns HandleNotFoundError/UserNotFoundError/error
@@ -81,7 +82,45 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 	return nil
 }
 
-func GetSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
+func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, error) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	match := bson.M{
+		"$match": bson.M{
+			"_id": ID,
+		},
+	}
+	project := bson.M{
+		"$project": bson.M{
+			"_id": 0,
+			"submission": bson.M{"$filter": bson.M{
+				"input": "$submissions",
+				"as":    "sub",
+				"cond":  bson.M{"$lt": []interface{}{"$$sub.created_at", before}},
+			},
+			},
+		},
+	}
+	unwind := bson.M{
+		"$unwind": "$submission",
+	}
+	limit := bson.M{
+		"$limit": 100,
+	}
+	group := bson.M{"$group": bson.M{"_id": ID, "submissions": bson.M{"$push": "$submission"}}}
+	pipe := coll.Pipe([]bson.M{
+		match,
+		project,
+		unwind,
+		limit,
+		group,
+	}, )
+	var res []types.User
+	err := pipe.All(&res)
+	return res[0].Submissions, err
+}
+func GetAllSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	var user types.User

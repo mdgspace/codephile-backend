@@ -317,6 +317,47 @@
                 ]
             }
         },
+        "/submission/all/{uid}": {
+            "get": {
+                "tags": [
+                    "submission"
+                ],
+                "description": "Get all submissions of a user(logged-in if uid is empty) across various platforms",
+                "operationId": "SubmissionController.All submissions",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "UID of user",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Submission"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid uid"
+                    },
+                    "404": {
+                        "description": "User/Submission not found"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:submission"
+                        ]
+                    }
+                ]
+            }
+        },
         "/submission/{site}": {
             "post": {
                 "tags": [
@@ -418,13 +459,20 @@
                 "tags": [
                     "submission"
                 ],
-                "description": "Get submissions of user(logged-in if uid is empty) across various platforms",
-                "operationId": "SubmissionController.Get",
+                "description": "Get paginated submissions(100 per page) of user(logged-in if uid is empty) across various platforms",
+                "operationId": "SubmissionController.Get Submissions",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "uid",
                         "description": "UID of user",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "before",
+                        "description": "Time before which submissions to be returned, uses current time if empty or not present",
+                        "required": true,
                         "type": "string"
                     }
                 ],
@@ -432,7 +480,10 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.Submissions"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Submission"
+                            }
                         }
                     },
                     "400": {
@@ -1225,10 +1276,6 @@
                     "type": "string"
                 }
             }
-        },
-        "types.Submissions": {
-            "title": "Submissions",
-            "type": "object"
         },
         "types.Upcoming": {
             "title": "Upcoming",
