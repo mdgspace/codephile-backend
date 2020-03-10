@@ -56,6 +56,26 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	pipe := collection.Collection.Pipe([]bson.M{
+		bson.M{
+			"$match": bson.M{
+				"_id": uid,
+			},
+		},
+		bson.M{
+			"$project": bson.M{
+				"_id": 0,
+				"following": bson.M{
+					"$size": "$followingUsers",
+				},
+			}},
+	})
+	var res map[string]int
+	err = pipe.One(&res)
+	if err != nil {
+		return nil, err
+	}
+	user.NoOfFollowing = res["following"]
 	return &user, nil
 }
 
@@ -68,6 +88,23 @@ func GetAllUsers() ([]types.User, error) {
 		"picture": 1, "fullname": 1, "institute": 1}).All(&users)
 	if err != nil {
 		return nil, err
+	}
+	pipe := collection.Collection.Pipe([]bson.M{
+		bson.M{
+			"$project": bson.M{
+				"_id": 0,
+				"following": bson.M{
+					"$size": "$followingUsers",
+				},
+			}},
+	})
+	var res []map[string]int
+	err = pipe.All(&res)
+	if err != nil {
+		return nil, err
+	}
+	for i := range users {
+		users[i].NoOfFollowing = res[i]["following"]
 	}
 	return users, nil
 }

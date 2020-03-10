@@ -17,6 +17,7 @@ type User struct {
 	Submissions    []Submission          `bson:"submissions" json:"-" schema:"-"`
 	Last           LastFetchedSubmission `bson:"lastfetched" json:"-"`
 	FollowingUsers []Following           `bson:"followingUsers" json:"-"`
+	NoOfFollowing  int                   `bson:"-" json:"no_of_following"`
 }
 type LastFetchedSubmission struct {
 	Codechef   time.Time `bson:"codechef"`
