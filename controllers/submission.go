@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -83,7 +84,12 @@ func (s *SubmissionController) PaginatedSubmissions() {
 		before = time.Now().UTC().Unix()
 	}
 	feed, err := models.GetSubmissions(uid, time.Unix(before, 0))
-	if err != nil {
+	if err == mgo.ErrNotFound {
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
+		s.Data["json"] = NotFoundError("User not found")
+		s.ServeJSON()
+		return
+	} else if err != nil {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		s.Data["json"] = InternalServerError("Internal server error")

@@ -116,9 +116,9 @@ func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, err
 		limit,
 		group,
 	}, )
-	var res []types.User
-	err := pipe.All(&res)
-	return res[0].Submissions, err
+	var res types.User
+	err := pipe.One(&res)
+	return res.Submissions, err
 }
 func GetAllSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
 	coll := db.NewUserCollectionSession()
