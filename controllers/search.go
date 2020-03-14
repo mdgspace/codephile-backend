@@ -13,7 +13,7 @@ import (
 // @Security token_auth read:user
 // @Param	count		query 	string	false		"No of search objects to be returned"
 // @Param	query		query 	string	true		"Search query"
-// @Success 200 {object} []types.User
+// @Success 200 {object} []types.SearchDoc
 // @Failure 400 "search query too small"
 // @Failure 500 server_error
 // @router /search [get]
@@ -29,7 +29,7 @@ func (u *UserController) Search() {
 	c, err := strconv.Atoi(count)
 	//Default query response size
 	if err != nil {
-		c = 15
+		c = 100
 	}
 	results, err := models.SearchUser(query, c)
 	if err != nil {
