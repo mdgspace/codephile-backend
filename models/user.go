@@ -256,29 +256,23 @@ func UserExists(username string) (bool, error) {
 	return false, nil
 }
 
-func SearchUser(query string, c int) ([]interface{}, error) {
+func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 	pq := elastic.NewQueryStringQuery("*" + query + "*").
 		Field("username").Field("fullname").
 		Field("handle.codechef").Field("handle.spoj").
 		Field("handle.codeforces").Field("handle.hackerrank").
 		Fuzziness("4")
-	q := elastic.NewMultiMatchQuery(query,
-		"username", "fullname",
-		"handle.codechef", "handle.spoj",
-		"handle.codeforces", "handle.hackerrank",
-	).Fuzziness("4")
-	bq := elastic.NewBoolQuery().Should(q, pq)
 	client := search.GetElasticClient()
 	result, err := client.Search().Index("codephile").
-		Pretty(false).Query(bq).Size(c).
+		Pretty(false).Query(pq).Size(c).
 		Do(context.Background())
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	var results []interface{}
+	results := make([]types.SearchDoc, 0, result.TotalHits())
 	for _, hit := range result.Hits.Hits {
-		var result interface{}
+		var result types.SearchDoc
 		err := json.Unmarshal(hit.Source, &result)
 		if err != nil {
 			log.Println(err.Error())
