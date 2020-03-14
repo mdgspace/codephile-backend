@@ -113,7 +113,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) []types.Submiss
 		log.Println(err.Error())
 	}
 	if codeforcesSubmission.Status != "OK" {
-		log.Println("Codeforces submission could not be retrieved")
+		log.Println("Codeforces submission could not be retrieved\n", string(data))
 		return nil
 	}
 	submissions := make([]types.Submission, len(codeforcesSubmission.Result))
@@ -124,7 +124,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) []types.Submiss
 		submissions[i].Name = problem["name"].(string)
 		submissions[i].URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)
 		submissions[i].CreationDate = time.Unix(int64(result["creationTimeSeconds"].(float64)), 0)
-		if (problem["points"] != nil) {
+		if problem["points"] != nil {
 			submissions[i].Points = int(problem["points"].(float64))
 		}
 		if problem["rating"] != nil {
@@ -143,7 +143,7 @@ func GetCodeforcesSubmissions(handle string, after time.Time) []types.Submission
 	var subs []types.Submission
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := getCodeforcesSubmissionParts(handle, current+1);
+		newSub := getCodeforcesSubmissionParts(handle, current+1)
 		//Check for repetition of previous fetched submission
 		if len(newSub) != 0 {
 			for i, sub := range newSub {
