@@ -854,7 +854,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/types.User"
+                                "$ref": "#/definitions/types.SearchDoc"
                             }
                         }
                     },
@@ -1241,6 +1241,30 @@
                 }
             }
         },
+        "types.SearchDoc": {
+            "title": "SearchDoc",
+            "type": "object",
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                },
+                "handle": {
+                    "$ref": "#/definitions/types.Handle"
+                },
+                "id": {
+                    "$ref": "#/definitions/bson.ObjectId"
+                },
+                "institute": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "types.Submission": {
             "title": "Submission",
             "type": "object",
@@ -1319,6 +1343,10 @@
                 },
                 "institute": {
                     "type": "string"
+                },
+                "no_of_following": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "picture": {
                     "type": "string"

@@ -56,7 +56,7 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 
 type SearchDoc struct {
-	ID        bson.ObjectId `json:"_id"`
+	ID        bson.ObjectId `json:"id"`
 	Username  string        `json:"username"`
 	FullName  string        `json:"fullname"`
 	Institute string        `json:"institute"`
