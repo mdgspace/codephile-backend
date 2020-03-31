@@ -16,6 +16,11 @@ import (
 func AddSubmissions(uid bson.ObjectId, site string) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
+	// Since each website submission can be allowed to fetch
+	// concurrently, so a different mutex for each website
+	mutex := GetMutexForWebsiteSubmission(site)
+	mutex.Lock()
+	defer mutex.Unlock()
 	coll := sess.Collection
 	var user types.User
 	err := coll.FindId(uid).Select(bson.M{"handle": 1, "lastfetched": 1}).One(&user)

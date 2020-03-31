@@ -1,6 +1,7 @@
 package types
 
 import (
+	"sync"
 	"time"
 )
 
@@ -21,4 +22,9 @@ type HackerrankSubmisson struct {
 type CodeforcesSubmissions struct {
 	Status string                   `json:"status"`
 	Result []map[string]interface{} `json:"result"`
+}
+
+type SubmissionMutex struct {
+	Website string
+	sync.Mutex
 }
