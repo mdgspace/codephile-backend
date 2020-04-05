@@ -120,7 +120,7 @@ func (s *SubmissionController) SaveSubmission() {
 		return
 	}
 
-	job := worker.NewJob(uid, site)
+	job := worker.NewJob(uid, site, models.AddSubmissions)
 	err := worker.Enqueue(job)
 	if err != nil {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)

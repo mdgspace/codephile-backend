@@ -7,7 +7,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/errors"
-	"github.com/mdg-iitr/Codephile/models"
 )
 
 type User bson.ObjectId
@@ -16,6 +15,8 @@ type Website string
 type Job struct {
 	user        User
 	websiteName Website
+	//handler func which is called when job is performed
+	handler func(user bson.ObjectId, website string) error
 }
 
 // Keeps track if a job corresponding to a user is already in the queue
@@ -27,8 +28,8 @@ type UserQueue struct {
 var jobQueue chan Job
 var userQueue UserQueue
 
-func NewJob(user bson.ObjectId, websiteName string) Job {
-	return Job{user: User(user), websiteName: Website(websiteName)}
+func NewJob(user bson.ObjectId, websiteName string, handler func(user bson.ObjectId, website string) error) Job {
+	return Job{user: User(user), websiteName: Website(websiteName), handler: handler}
 }
 
 func init() {
@@ -39,7 +40,7 @@ func init() {
 
 func work() {
 	for job := range jobQueue {
-		err := models.AddSubmissions(bson.ObjectId(job.user), string(job.websiteName))
+		err := job.handler(bson.ObjectId(job.user), string(job.websiteName))
 		if err != nil {
 			log.Println("unable to fetch submissions", err.Error())
 		}
