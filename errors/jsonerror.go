@@ -31,3 +31,9 @@ func NotFoundError(error string) ErrorResponse {
 		Err:       error,
 	}
 }
+func UnavailableError(error string) ErrorResponse {
+	return ErrorResponse{
+		ErrorType: "unavailable",
+		Err:       error,
+	}
+}

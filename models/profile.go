@@ -11,11 +11,11 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 )
 
-func AddorUpdateProfile(uid bson.ObjectId, site string) (*types.User, error) {
+func AddOrUpdateProfile(uid bson.ObjectId, site string) error {
 	user, err := GetUser(uid)
 	if err != nil {
 		//handle the error (Invalid user)
-		return nil, UserNotFoundError
+		return UserNotFoundError
 	}
 	var UserProfile types.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
@@ -67,9 +67,9 @@ func AddorUpdateProfile(uid bson.ObjectId, site string) (*types.User, error) {
 	_, err2 := collection.Collection.Upsert(SelectedUser, Update)
 	//inserted into the document
 	if err2 == nil {
-		return user, nil
+		return nil
 	}
-	return nil, err2
+	return err2
 }
 
 func GetProfiles(ID bson.ObjectId) (types.AllProfiles, error) {

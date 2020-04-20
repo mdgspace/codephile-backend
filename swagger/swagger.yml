@@ -214,10 +214,8 @@ paths:
           description: submission successfully saved
         "400":
           description: site invalid
-        "404":
-          description: user/handle found
-        "500":
-          description: server_error
+        "503":
+          description: Could not save submission, try later
       security:
       - token_auth:
         - write:submission

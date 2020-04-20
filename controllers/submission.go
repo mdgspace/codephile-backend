@@ -7,6 +7,7 @@ import (
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
+	"github.com/mdg-iitr/Codephile/services/worker"
 	"log"
 	"net/http"
 	"time"
@@ -107,8 +108,7 @@ func (s *SubmissionController) PaginatedSubmissions() {
 // @Param	site		path 	string	true		"Platform site name"
 // @Success 200 submission successfully saved
 // @Failure 400 site invalid
-// @Failure 404 user/handle found
-// @Failure 500 server_error
+// @Failure 503 Could not save submission, try later
 // @router /:site [post]
 func (s *SubmissionController) SaveSubmission() {
 	uid := s.Ctx.Input.GetData("uid").(bson.ObjectId)
@@ -120,21 +120,16 @@ func (s *SubmissionController) SaveSubmission() {
 		return
 	}
 
-	err := models.AddSubmissions(uid, site)
-	if err == UserNotFoundError || err == HandleNotFoundError {
-		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
-		s.Data["json"] = NotFoundError("User/Handle not found")
-		s.ServeJSON()
-		return
-	} else if err != nil {
-		log.Println(err.Error())
-		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
-		s.Data["json"] = InternalServerError("Internal server error")
+	job := worker.NewJob(uid, site, models.AddSubmissions)
+	err := worker.Enqueue(job)
+	if err != nil {
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
+		s.Data["json"] = UnavailableError("slow down cowboy")
 		s.ServeJSON()
 		return
 	}
 
-	s.Data["json"] = map[string]string{"status": "submission successfully saved"}
+	s.Data["json"] = map[string]string{"status": "submission will be saved in a moment"}
 	s.ServeJSON()
 }
 

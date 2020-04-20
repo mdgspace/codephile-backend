@@ -14,6 +14,7 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
+	"github.com/mdg-iitr/Codephile/services/worker"
 	"log"
 	"net/http"
 	"os"
@@ -304,21 +305,16 @@ func (u *UserController) Fetch() {
 		u.ServeJSON()
 		return
 	}
-	_, err := models.AddorUpdateProfile(uid, site)
-	if err == UserNotFoundError {
-		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
-		u.Data["json"] = BadInputError("Invalid user id")
-		u.ServeJSON()
-		return
-	} else if err != nil {
-		log.Println(err.Error())
-		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
-		u.Data["json"] = InternalServerError("Internal server error")
+	job := worker.NewJob(uid, site, models.AddOrUpdateProfile)
+	err := worker.Enqueue(job)
+	if err != nil {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
+		u.Data["json"] = UnavailableError("slow down cowboy")
 		u.ServeJSON()
 		return
 	}
 	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
-	u.Data["json"] = map[string]string{"status": "Data fetched"}
+	u.Data["json"] = map[string]string{"status": "data will be fetched in a moment"}
 	u.ServeJSON()
 }
 
