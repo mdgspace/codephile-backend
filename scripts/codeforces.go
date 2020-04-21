@@ -86,9 +86,14 @@ func GetCodeforcesProfileInfo(handle string) types.ProfileInfo {
 	var profile types.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + handle
 	data := GetRequest(url)
+	if data == nil {
+		log.Println(errors.New("GetRequest failed. Please check connection status"))
+		return types.ProfileInfo{}
+	}
 	err := json.Unmarshal(data, &profile)
 	if err != nil {
 		log.Println(err.Error())
+		return types.ProfileInfo{}
 	}
 	return profile
 }
@@ -103,18 +108,48 @@ func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
 	}
 	return points
 }
-func getCodeforcesSubmissionParts(handle string, afterIndex int) []types.Submission {
+
+// Calls the codeforces submission API and return the response in same format
+func callCodeforcesAPI(handle string, afterIndex int) (types.CodeforcesSubmissions, error) {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
 	fmt.Println(url)
 	data := GetRequest(url)
+	if data == nil {
+		return types.CodeforcesSubmissions{}, errors.New("GetRequest failed. Please check connection status")
+	}
 	var codeforcesSubmission types.CodeforcesSubmissions
 	err := json.Unmarshal(data, &codeforcesSubmission)
 	if err != nil {
 		log.Println(err.Error())
+		return types.CodeforcesSubmissions{}, err
+	}
+	return codeforcesSubmission, nil
+}
+
+//Get submissions of a user after an index.
+//Returns an error if unsuccessful
+//On receiving the error caller should return empty submission list
+func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submission, error) {
+	codeforcesSubmission, err := callCodeforcesAPI(handle, afterIndex)
+	if err != nil {
+		return nil, err
 	}
 	if codeforcesSubmission.Status != "OK" {
-		log.Println("Codeforces submission could not be retrieved\n", string(data))
-		return nil
+		log.Println("Codeforces submission could not be retrieved. Retrying...")
+		var newCodeforcesSub types.CodeforcesSubmissions
+		for attempt := 1; attempt < 5; attempt++ {
+			time.Sleep(time.Second * time.Duration(attempt))
+			newCodeforcesSub, err = callCodeforcesAPI(handle, afterIndex)
+			if err != nil {
+				return nil, err
+			}
+			if newCodeforcesSub.Status == "OK" {
+				break
+			}
+		}
+		if newCodeforcesSub.Status == "FAILED" {
+			return nil, errors.New("codeforces API repeatedly returned FAILED")
+		}
 	}
 	submissions := make([]types.Submission, len(codeforcesSubmission.Result))
 	for i, result := range codeforcesSubmission.Result {
@@ -134,7 +169,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) []types.Submiss
 			submissions[i].Tags = append(submissions[i].Tags, x.(string))
 		}
 	}
-	return submissions
+	return submissions, nil
 }
 
 func GetCodeforcesSubmissions(handle string, after time.Time) []types.Submission {
@@ -143,7 +178,11 @@ func GetCodeforcesSubmissions(handle string, after time.Time) []types.Submission
 	var subs []types.Submission
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := getCodeforcesSubmissionParts(handle, current+1)
+		newSub, err := getCodeforcesSubmissionParts(handle, current+1)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 		//Check for repetition of previous fetched submission
 		if len(newSub) != 0 {
 			for i, sub := range newSub {

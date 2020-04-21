@@ -31,7 +31,6 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 		if handle == "" {
 			return HandleNotFoundError
 		}
-		//TODO: Return errors from scripts
 		addSubmissions = scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
 		if len(addSubmissions) != 0 {
 			user.Last.Codechef = addSubmissions[0].CreationDate
@@ -41,7 +40,6 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 		if handle == "" {
 			return HandleNotFoundError
 		}
-		//TODO: Return errors from scripts
 		addSubmissions = scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces)
 		if len(addSubmissions) != 0 {
 			user.Last.Codeforces = addSubmissions[0].CreationDate
@@ -51,7 +49,6 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 		if handle == "" {
 			return HandleNotFoundError
 		}
-		//TODO: Return errors from scripts
 		addSubmissions = scripts.GetSpojSubmissions(handle, user.Last.Spoj)
 		if len(addSubmissions) != 0 {
 			user.Last.Spoj = addSubmissions[0].CreationDate
@@ -61,7 +58,6 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 		if handle == "" {
 			return HandleNotFoundError
 		}
-		//TODO: Return errors from scripts
 		addSubmissions = scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank)
 		if len(addSubmissions) != 0 {
 			user.Last.Hackerrank = addSubmissions[0].CreationDate
