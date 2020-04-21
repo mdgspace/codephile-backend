@@ -90,6 +90,9 @@ func GetSpojSubmissions(handle string, after time.Time) []types.Submission {
 			break
 		}
 	}
+	if len(subs) < 2 {
+		return nil
+	}
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }

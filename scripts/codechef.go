@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
@@ -19,13 +20,6 @@ type CodechefGraphPoint struct {
 	Date        time.Time
 	Rating      float64
 }
-
-//func zero_pad(year *string) {
-//	fmt.Println(len(*year))
-//	if len(*year) == 1 {
-//		*year = "0" + *year
-//	}
-//}
 
 func CheckCodechefHandle(handle string) bool {
 	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
@@ -204,7 +198,10 @@ func GetCodechefSubmissions(handle string, after time.Time) []types.Submission {
 	subs := []types.Submission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := GetCodechefSubmissionParts(handle, current)
+		newSub, err := GetCodechefSubmissionParts(handle, current)
+		if err != nil {
+			return nil
+		}
 		//Check for repetition of previous fetched submission
 		if newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
@@ -225,23 +222,31 @@ func GetCodechefSubmissions(handle string, after time.Time) []types.Submission {
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetCodechefSubmissionParts(handle string, pageNo int) []types.Submission {
+
+//Get submissions of a user after an index.
+//Returns an error if unsuccessful
+//On receiving the error caller should return empty submission list
+func GetCodechefSubmissionParts(handle string, pageNo int) ([]types.Submission, error) {
 	var JsonInterFace interface{}
 	user_url := fmt.Sprintf("http://www.codechef.com/recent/user?user_handle=%s&page=%d", handle, pageNo)
 	fmt.Println(user_url)
 	byteValue := GetRequest(user_url)
+	if byteValue == nil {
+		return nil, errors.New("GetRequest failed. Please check connection status")
+	}
 	err := json.Unmarshal(byteValue, &JsonInterFace)
 	if err != nil {
 		log.Println(err.Error())
+		return nil, err
 	}
 	data := JsonInterFace.(map[string]interface{})
 	content := data["content"].(string)
 
-	return GetSubmissionsFromString(content)
+	return getSubmissionsFromString(content)
 
 }
 
-func GetSubmissionsFromString(content string) []types.Submission {
+func getSubmissionsFromString(content string) ([]types.Submission, error) {
 
 	var submissions []types.Submission
 
@@ -250,7 +255,9 @@ func GetSubmissionsFromString(content string) []types.Submission {
 		info := strings.Split(data[i], "</tr>")[0]
 
 		contents := strings.Split(info, "<td >")
-
+		if len(contents) < 2 {
+			return nil, errors.New("Invalid Handle")
+		}
 		// tos = time_of_submission
 		tos := strings.Split(contents[1], "</td>")[0]
 		tos = strings.Replace(tos, "\\", "", -1)
@@ -352,5 +359,5 @@ func GetSubmissionsFromString(content string) []types.Submission {
 
 	}
 
-	return submissions
+	return submissions, nil
 }

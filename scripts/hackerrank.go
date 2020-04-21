@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"io/ioutil"
 	"log"
@@ -47,10 +48,15 @@ func GetRequest(path string) []byte {
 func GetHackerrankProfileInfo(handle string) types.ProfileInfo {
 	path := "https://www.hackerrank.com/rest/contests/master/hackers/" + handle + "/profile";
 	byteValue := GetRequest(path)
+	if byteValue == nil {
+		log.Println(errors.New("GetRequest failed. Please check connection status"))
+		return types.ProfileInfo{}
+	}
 	var JsonInterFace interface{}
 	err := json.Unmarshal(byteValue, &JsonInterFace)
 	if err != nil {
 		log.Println(err.Error())
+		return types.ProfileInfo{}
 	}
 	Profile := JsonInterFace.(map[string]interface{})["model"].(map[string]interface{})
 	Name := Profile["name"].(string)
@@ -68,6 +74,7 @@ func GetHackerrankSubmissions(handle string, after time.Time) []types.Submission
 	submissions := data.Models
 	if err != nil {
 		log.Println(err.Error())
+		return nil
 	}
 	var oldestSubIndex int;
 	if after.IsZero() {
