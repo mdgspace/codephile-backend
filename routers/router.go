@@ -9,10 +9,12 @@
 package routers
 
 import (
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/context"
 	"github.com/mdg-iitr/Codephile/controllers"
 	"github.com/mdg-iitr/Codephile/middleware"
-
-	"github.com/astaxie/beego"
+	"net/http"
+	"path"
 )
 
 func init() {
@@ -44,5 +46,9 @@ func init() {
 			),
 		),
 	)
-	beego.AddNamespace(ns)
+
+	ns2 := beego.NewNamespace("/institutes", beego.NSGet("/", func(context *context.Context) {
+		http.ServeFile(context.ResponseWriter, context.Request, path.Join(beego.AppPath, "conf/institute_list.json"))
+	}))
+	beego.AddNamespace(ns, ns2)
 }
