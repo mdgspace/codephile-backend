@@ -144,6 +144,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 				return nil, err
 			}
 			if newCodeforcesSub.Status == "OK" {
+				codeforcesSubmission = newCodeforcesSub
 				break
 			}
 		}

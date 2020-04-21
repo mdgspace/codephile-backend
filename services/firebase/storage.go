@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-var bucket *storage.BucketHandle
+var app *firebase.App
 var conf map[string]string
 
 func init() {
@@ -24,29 +24,20 @@ func init() {
 	if err != nil {
 		log.Println("bad firebase configuration")
 	}
-}
-func GetStorageBucket() *storage.BucketHandle {
-	if bucket == nil {
-
-		opt := option.WithCredentialsJSON([]byte(os.Getenv("FIREBASE_CREDENTIALS")))
-		app, err := firebase.NewApp(context.Background(), nil, opt)
-
-		if err != nil {
-			log.Println(err.Error())
-		}
-		client, err := app.Storage(context.Background())
-		if err != nil {
-			log.Println(err.Error())
-		}
-		bucket, err = client.DefaultBucket()
-		if err != nil {
-			log.Println(err.Error())
-		}
+	opt := option.WithCredentialsJSON([]byte(os.Getenv("FIREBASE_CREDENTIALS")))
+	app, err = firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Println(err.Error())
 	}
-	return bucket
 }
+
 func AddFile(f multipart.File, fh *multipart.FileHeader, oldPic string) (string, error) {
-	bucket := GetStorageBucket()
+	client, err := app.Storage(context.Background())
+	if err != nil {
+		log.Println(err.Error())
+		return "", err
+	}
+	bucket, _ := client.DefaultBucket()
 	publicURL := "https://storage.googleapis.com/" + conf["storageBucket"] + "/"
 	if bucket == nil {
 		err := errors.New("nil bucket")
