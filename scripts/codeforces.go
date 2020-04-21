@@ -135,7 +135,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 		return nil, err
 	}
 	if codeforcesSubmission.Status != "OK" {
-		log.Printf("Codeforces submission could not be retrieved%s. Retrying...\n")
+		log.Println("Codeforces submission could not be retrieved. Retrying...")
 		var newCodeforcesSub types.CodeforcesSubmissions
 		for attempt := 1; attempt < 5; attempt++ {
 			time.Sleep(time.Second * time.Duration(attempt))
