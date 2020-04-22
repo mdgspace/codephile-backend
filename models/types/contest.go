@@ -1,11 +1,8 @@
 package types
 
-import "time"
-
-type S struct {
-	Result      Result    `json:"result" bson:"result"`
-	LastFetched time.Time `json:"last_fetched" bson:"last_fetched"`
-}
+import (
+	"encoding/json"
+)
 
 type Ongoing struct {
 	EndTime       string `json:"EndTime" bson:"EndTime"`
@@ -31,3 +28,10 @@ type Result struct {
 	Upcoming  []Upcoming `json:"upcoming" bson:"upcoming"`
 }
 
+func (res Result) MarshalBinary() ([]byte, error) {
+	return json.Marshal(res)
+}
+
+func (res *Result) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, res)
+}

@@ -2,94 +2,94 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
-	"github.com/mdg-iitr/Codephile/models/db"
+	r "github.com/go-redis/redis"
 	"github.com/mdg-iitr/Codephile/models/types"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
 
-func ReturnContests() (types.S, error) {
-	data, err := fetchContests()
-	if err != nil {
-		return types.S{}, err
-	}
-	return data, nil
+func ReturnContests() (types.Result, error) {
+	return contestsFromCache()
 }
 
-func ReturnSpecificContests(site string) (types.S, error) {
-	InitialResult, err := fetchContests()
+func ReturnSpecificContests(site string) (types.Result, error) {
+	initialResult, err := contestsFromCache()
 	if err != nil {
-		// handle error 
-		return types.S{}, err
+		// handle error
+		return types.Result{}, err
 	}
-	//InitialResult stores all the contests
-	var FinalResult types.S //FinalResult will store the website's contests only
+	//initialResult stores all the contests
+	var finalResult types.Result //finalResult will store the website's contests only
 
 	//looping over all the ongoing contests and selecting only those specific to the website
-	for _, v := range InitialResult.Result.Ongoing {
+	for _, v := range initialResult.Ongoing {
 		if strings.ToLower(v.Platform) == site {
-			FinalResult.Result.Ongoing = append(FinalResult.Result.Ongoing, v)
+			finalResult.Ongoing = append(finalResult.Ongoing, v)
 		}
 	}
 	//looping over all the upcoming contests and selecting only those specific to the website
-	for _, v := range InitialResult.Result.Upcoming {
+	for _, v := range initialResult.Upcoming {
 		if strings.ToLower(v.Platform) == site {
-			FinalResult.Result.Upcoming = append(FinalResult.Result.Upcoming, v)
+			finalResult.Upcoming = append(finalResult.Upcoming, v)
 		}
 	}
 	//equating the timestamp
-	FinalResult.Result.Timestamp = InitialResult.Result.Timestamp
-	return FinalResult, nil
+	finalResult.Timestamp = initialResult.Timestamp
+	return finalResult, nil
 }
 
-func fetchContests() (types.S, error) {
-	var Contests types.S
-	var ContestsToBeReturned types.S
-
-	collection := db.NewCollectionSession("contests")
-	defer collection.Close()
-
-	err := collection.Collection.Find(nil).Select(bson.M{"result": 1, "last_fetched": 1}).One(&Contests)
-	if err != nil {
-		//contests are not saved in the database
-		ContestsWeb := FetchFromWeb()
-		err := json.Unmarshal(ContestsWeb, &ContestsToBeReturned)
+func contestsFromCache() (types.Result, error) {
+	var result types.Result
+	client := redis.GetRedisClient()
+	err := client.Get("contest").Scan(&result)
+	if err == r.Nil {
+		result, err = updateCache()
 		if err != nil {
-			//error in unmarshalling 
-			return types.S{}, err
+			return types.Result{}, err
 		}
-		ContestsToBeReturned.LastFetched = time.Now()
-		//save contests in database and return them
-		_ = UpdateDatabase(ContestsToBeReturned)
-		return ContestsToBeReturned, nil
-	} else {
-		//contests are saved in the database
-		TimeLast := Contests.LastFetched
-		Difference := time.Since(TimeLast)
-		//Time difference since last call is greater than 1 hour
-		if Difference.Hours() >= 1.0 {
-			ContestsWeb := FetchFromWeb()
-			err := json.Unmarshal(ContestsWeb, &ContestsToBeReturned)
-			if err != nil {
-				//error in unmarshalling 
-				return types.S{}, err
-			}
-			//save contests in database and return
-			ContestsToBeReturned.LastFetched = time.Now()
-			_ = UpdateDatabase(ContestsToBeReturned)
-			return ContestsToBeReturned, nil
-		} else {
-			//contests are to be returned from the database
-			return Contests, nil
-		}
+	} else if err != nil {
+		return types.Result{}, err
 	}
+	return result, nil
 }
 
-func FetchFromWeb() (data []byte) {
+func updateCache() (types.Result, error) {
+	data := fetchFromWeb()
+	var s map[string]types.Result
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		//error in unmarshalling
+		return types.Result{}, err
+	}
+	result := s["result"]
+	sort.Slice(result.Upcoming, func(i, j int) bool {
+		timeLayout := "Mon, 2 Jan 2006 15:04"
+		time1, _ := time.Parse(timeLayout, result.Upcoming[i].StartTime)
+		time2, _ := time.Parse(timeLayout, result.Upcoming[j].StartTime)
+		diff := time2.Sub(time1).Seconds()
+		return diff < 0.0
+	})
+	sort.Slice(result.Ongoing, func(i, j int) bool {
+		timeLayout := "Mon, 2 Jan 2006 15:04"
+		time1, _ := time.Parse(timeLayout, result.Ongoing[i].EndTime)
+		time2, _ := time.Parse(timeLayout, result.Ongoing[j].EndTime)
+		diff := time2.Sub(time1).Seconds()
+		return diff < 0.0
+	})
+	client := redis.GetRedisClient()
+	_, err = client.Set("contest", result, time.Hour).Result()
+	if err != nil {
+		return types.Result{}, err
+	}
+	return result, nil
+}
+
+func fetchFromWeb() (data []byte) {
 	resp, err := http.Get("https://contesttrackerapi.herokuapp.com/")
 
 	if err != nil {
@@ -104,13 +104,4 @@ func FetchFromWeb() (data []byte) {
 		return
 	}
 	return body
-}
-
-func UpdateDatabase(contests types.S) (error) {
-	collection := db.NewCollectionSession("contests")
-	defer collection.Close()
-
-	Update := bson.D{{Name: "$set", Value: &contests}}
-	_, err := collection.Collection.Upsert(nil, Update)
-	return err
 }

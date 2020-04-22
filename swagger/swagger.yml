@@ -18,7 +18,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/types.S'
+            $ref: '#/definitions/types.Result'
         "500":
           description: error
       security:
@@ -40,7 +40,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/types.S'
+            $ref: '#/definitions/types.Result'
         "400":
           description: incorrect site
         "500":
@@ -58,7 +58,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/types.S'
+            $ref: '#/definitions/types.Result'
         "500":
           description: server_error
       security:
@@ -782,15 +782,6 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/types.Upcoming'
-  types.S:
-    title: S
-    type: object
-    properties:
-      last_fetched:
-        type: string
-        format: datetime
-      result:
-        $ref: '#/definitions/types.Result'
   types.SearchDoc:
     title: SearchDoc
     type: object

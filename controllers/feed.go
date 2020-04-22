@@ -17,11 +17,11 @@ type FeedController struct {
 // @Title ContestsFeed
 // @Description Provides Data for contests in the Feed
 // @Security token_auth read:feed
-// @Success 200 {object} types.S
+// @Success 200 {object} types.Result
 // @Failure 500 server_error
 // @router /contests [get]
 func (f *FeedController) ContestsFeed() {
-	contests, err := models.ReturnFeedContests()
+	contests, err := models.GetContestsFeed()
 	if err != nil {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())

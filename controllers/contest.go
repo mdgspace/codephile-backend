@@ -20,7 +20,7 @@ type ContestController struct {
 // @Title GetContests
 // @Description displays all contests
 // @Security token_auth read:contests
-// @Success 200 {object} types.S
+// @Success 200 {object} types.Result
 // @Failure 500 error
 // @router / [get]
 func (u *ContestController) GetContests() {
@@ -41,7 +41,7 @@ func (u *ContestController) GetContests() {
 // @Description Returns the contests of a specific website
 // @Security token_auth read:contests
 // @Param	site		path 	string	true		"site name"
-// @Success 200 {object} types.S
+// @Success 200 {object} types.Result
 // @Failure 400 incorrect site
 // @Failure 500 server_error
 // @router /:site [get]
