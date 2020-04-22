@@ -3,10 +3,10 @@ package db
 import (
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo"
+	"github.com/mdg-iitr/Codephile/conf"
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 var maxPool int
@@ -21,8 +21,7 @@ func init() {
 	var err error
 	maxPool, err = beego.AppConfig.Int("DBMaxPool")
 	if err != nil {
-		_, file, _, _ := runtime.Caller(0)
-		if err := beego.LoadAppConfig("ini", filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(file))), "conf/app.conf")); err != nil {
+		if err := beego.LoadAppConfig("ini", filepath.Join(conf.AppRootDir, "conf/app.conf")); err != nil {
 			panic(err)
 		}
 		maxPool = beego.AppConfig.DefaultInt("DBMaxPool", 30)

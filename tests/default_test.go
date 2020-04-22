@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/globalsign/mgo/bson"
+	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
 
 	"github.com/astaxie/beego"
@@ -13,15 +14,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"runtime"
 	"testing"
 )
 
 func init() {
-	_, file, _, _ := runtime.Caller(0)
-	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	beego.TestBeegoInit(apppath)
+	beego.TestBeegoInit(conf.AppRootDir)
 	db.NewUserCollectionSession().DropDatabase()
 }
 
