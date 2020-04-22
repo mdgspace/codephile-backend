@@ -22,7 +22,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.S"
+                            "$ref": "#/definitions/types.Result"
                         }
                     },
                     "500": {
@@ -58,7 +58,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.S"
+                            "$ref": "#/definitions/types.Result"
                         }
                     },
                     "400": {
@@ -88,7 +88,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.S"
+                            "$ref": "#/definitions/types.Result"
                         }
                     },
                     "500": {
@@ -1222,19 +1222,6 @@
                     "items": {
                         "$ref": "#/definitions/types.Upcoming"
                     }
-                }
-            }
-        },
-        "types.S": {
-            "title": "S",
-            "type": "object",
-            "properties": {
-                "last_fetched": {
-                    "type": "string",
-                    "format": "datetime"
-                },
-                "result": {
-                    "$ref": "#/definitions/types.Result"
                 }
             }
         },

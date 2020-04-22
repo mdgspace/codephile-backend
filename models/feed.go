@@ -11,13 +11,9 @@ import (
 
 var ErrGeneric = errors.New("Feed is not absolutely correct")
 
-func ReturnFeedContests() (types.S, error) {
-	UnsortedContests, err := ReturnContests()
-	if err != nil {
-		return types.S{}, err
-	}
-	SortedContests := SortContests(UnsortedContests)
-	return SortedContests, nil
+func GetContestsFeed() (types.Result, error) {
+	//contests stored are already sorted
+	return contestsFromCache()
 }
 
 func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
@@ -65,6 +61,7 @@ func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
 	err = pipe.All(&res)
 	return res, err
 }
+
 func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
@@ -119,54 +116,4 @@ func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
 	err = pipe.All(&res)
 	//fmt.Println(res)
 	return res, err
-}
-
-//SortContests to sort contests according to StartTime and EndTime
-func SortContests(contests types.S) types.S {
-	// sorting the ongoing contests
-	var (
-		n          = len(contests.Result.Ongoing)
-		sorted     = false
-		timeLayout = "Mon, 2 Jan 2006 15:04"
-	)
-	for !sorted {
-		swapped := false
-		for i := 0; i < n-1; i++ {
-			time1, _ := time.Parse(timeLayout, contests.Result.Ongoing[i].EndTime)
-			time2, _ := time.Parse(timeLayout, contests.Result.Ongoing[i+1].EndTime)
-			diff := time2.Sub(time1).Seconds()
-			if diff < 0.0 {
-				//swap objects
-				contests.Result.Ongoing[i+1], contests.Result.Ongoing[i] = contests.Result.Ongoing[i], contests.Result.Ongoing[i+1]
-				swapped = true
-			}
-		}
-		if !swapped {
-			sorted = true
-		}
-		n = n - 1
-	}
-	//sorting the upcoming contests
-
-	n = len(contests.Result.Upcoming)
-	sorted = false
-
-	for !sorted {
-		swapped := false
-		for i := 0; i < n-1; i++ {
-			time1, _ := time.Parse(timeLayout, contests.Result.Upcoming[i].StartTime)
-			time2, _ := time.Parse(timeLayout, contests.Result.Upcoming[i+1].StartTime)
-			diff := time2.Sub(time1).Seconds()
-			if diff < 0.0 {
-				//swap objects
-				contests.Result.Ongoing[i+1], contests.Result.Ongoing[i] = contests.Result.Ongoing[i], contests.Result.Ongoing[i+1]
-				swapped = true
-			}
-		}
-		if !swapped {
-			sorted = true
-		}
-		n = n - 1
-	}
-	return contests
 }
