@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/errors"
@@ -33,6 +34,8 @@ func (f *FriendsController) FollowUser() {
 	}
 	err := models.FollowUser(uid1, bson.ObjectIdHex(uid2))
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -68,6 +71,8 @@ func (f *FriendsController) UnFollowUser() {
 		f.ServeJSON()
 		return
 	} else if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -97,6 +102,8 @@ func (f *FriendsController) CompareUser() {
 	}
 	worldRanks, err := models.CompareUser(uid1, bson.ObjectIdHex(uid2))
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -117,6 +124,8 @@ func (f *FriendsController) GetFollowing() {
 	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
 	following, err := models.GetFollowingUsers(uid)
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		f.Data["json"] = errors.InternalServerError("Internal server error")

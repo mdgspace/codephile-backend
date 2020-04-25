@@ -1,11 +1,14 @@
 package conf
 
 import (
+	"github.com/getsentry/sentry-go"
 	"github.com/joho/godotenv"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 var AppRootDir string
@@ -18,4 +21,12 @@ func init() {
 	if err != nil {
 		log.Println("No .env file found")
 	}
+	err = sentry.Init(sentry.ClientOptions{
+		Dsn:              os.Getenv("SENTRY_DSN"),
+		AttachStacktrace: true,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
 }

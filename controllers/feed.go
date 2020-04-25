@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
@@ -23,6 +24,8 @@ type FeedController struct {
 func (f *FeedController) ContestsFeed() {
 	contests, err := models.GetContestsFeed()
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -43,6 +46,8 @@ func (f *FeedController) AllFeed() {
 	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
 	feed, err := models.GetAllFeed(uid)
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		f.Data["json"] = errors.InternalServerError("Internal server error")
@@ -76,6 +81,8 @@ func (f *FeedController) PaginatedFeed() {
 	}
 	feed, err := models.GetFeed(uid, time.Unix(before, 0))
 	if err != nil {
+		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
+		hub.CaptureException(err)
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		f.Data["json"] = errors.InternalServerError("Internal server error")

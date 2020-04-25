@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
@@ -40,9 +41,17 @@ func (s *SubmissionController) GetAllSubmissions() {
 		return
 	}
 	subs, err := models.GetAllSubmissions(uid)
-	if err != nil {
+	if err == mgo.ErrNotFound {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
 		s.Data["json"] = NotFoundError("User/Submission not found")
+		s.ServeJSON()
+		return
+	} else if err != nil {
+		hub := sentry.GetHubFromContext(s.Ctx.Request.Context())
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		s.Data["json"] = InternalServerError("Internal server error")
 		s.ServeJSON()
 		return
 	} else {
@@ -91,6 +100,8 @@ func (s *SubmissionController) PaginatedSubmissions() {
 		s.ServeJSON()
 		return
 	} else if err != nil {
+		hub := sentry.GetHubFromContext(s.Ctx.Request.Context())
+		hub.CaptureException(err)
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		s.Data["json"] = InternalServerError("Internal server error")
@@ -163,6 +174,8 @@ func (s *SubmissionController) FilterSubmission() {
 	tag := s.GetString("tag")
 	subs, err := models.FilterSubmission(uid, status, tag, site)
 	if err != nil {
+		hub := sentry.GetHubFromContext(s.Ctx.Request.Context())
+		hub.CaptureException(err)
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		s.Data["json"] = InternalServerError("Internal server error")
 		s.ServeJSON()
