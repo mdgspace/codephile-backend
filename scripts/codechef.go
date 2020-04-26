@@ -23,7 +23,12 @@ type CodechefGraphPoint struct {
 
 func CheckCodechefHandle(handle string) bool {
 	path := fmt.Sprintf("https://www.codechef.com/users/%s", handle)
-	resp, err := http.Get(path)
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Get(path)
 	if err != nil {
 		log.Fatal(err)
 		return false
