@@ -48,6 +48,7 @@ func contestsFromCache() (types.Result, error) {
 	client := redis.GetRedisClient()
 	err := client.Get("contest").Scan(&result)
 	if err == r.Nil {
+		log.Println("cache miss")
 		result, err = updateCache()
 		if err != nil {
 			return types.Result{}, err
