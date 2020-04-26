@@ -3,6 +3,7 @@ package controllers
 import (
 	// "encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/errors"
 	"log"
@@ -27,6 +28,8 @@ func (u *ContestController) GetContests() {
 	contests, err := models.ReturnContests()
 	if err != nil {
 		//handle error
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		log.Println(err.Error())
 		u.Data["json"] = errors.InternalServerError("Internal server error")
@@ -56,6 +59,8 @@ func (u *ContestController) GetSpecificContests() {
 	contests, err := models.ReturnSpecificContests(site)
 	if err != nil {
 		//handle error
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = errors.InternalServerError("Internal server error")

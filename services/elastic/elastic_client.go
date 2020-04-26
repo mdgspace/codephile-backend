@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/getsentry/sentry-go"
 	"github.com/olivere/elastic/v7"
 	"github.com/olivere/elastic/v7/config"
 	"log"
@@ -18,6 +19,7 @@ func GetElasticClient() *elastic.Client {
 		}
 		client, err = elastic.NewClientFromConfig(conf)
 		if err != nil {
+			sentry.CaptureException(err)
 			log.Println(err.Error())
 		}
 	}

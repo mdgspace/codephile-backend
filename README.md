@@ -13,4 +13,5 @@ REDISURL = <connection string of redis server>
 FIREBASE_CONFIG = <Firebase config including bucket name(json)>
 FIREBASE_CREDENTIALS = <Firebase admin SDK credentials(json)>
 ELASTICURL = <connection string of elasticsearch cloud>
+SENTRY_DSN = <Data source name of sentry server>
 ```

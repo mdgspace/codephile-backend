@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"github.com/getsentry/sentry-go"
 	"github.com/go-redis/redis"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ func initRedisClient() {
 	client = redis.NewClient(opt)
 	_, err = client.Ping().Result()
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Printf("Could not connect to redis %v", err)
 	}
 }

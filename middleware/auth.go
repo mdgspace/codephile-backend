@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"os"
@@ -35,6 +36,13 @@ func Authenticate(ctx *context.Context) {
 		claim := requestToken.Claims.(jwt.MapClaims)
 		uid := bson.ObjectIdHex(claim["sub"].(string))
 		ctx.Input.SetData("uid", uid)
+		if hub := sentry.GetHubFromContext(ctx.Request.Context()); hub != nil {
+			hub.ConfigureScope(func(scope *sentry.Scope) {
+				scope.SetUser(sentry.User{
+					ID: uid.Hex(),
+				})
+			})
+		}
 	} else {
 		ctx.ResponseWriter.WriteHeader(401)
 		_, _ = ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))

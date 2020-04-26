@@ -7,6 +7,7 @@ import (
 	"errors"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/storage"
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"google.golang.org/api/option"
 	"io"
@@ -28,11 +29,13 @@ func init() {
 	opt := option.WithCredentialsJSON([]byte(os.Getenv("FIREBASE_CREDENTIALS")))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Println(err.Error())
 		return
 	}
 	client, err = app.Storage(context.Background())
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Println(err.Error())
 	}
 }

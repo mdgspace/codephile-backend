@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo/bson"
 	"github.com/gorilla/schema"
 	. "github.com/mdg-iitr/Codephile/conf"
@@ -63,6 +64,8 @@ func (u *UserController) CreateUser() {
 		u.ServeJSON()
 		return
 	} else if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -83,6 +86,8 @@ func (u *UserController) CreateUser() {
 func (u *UserController) GetAll() {
 	users, err := models.GetAllUsers()
 	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -162,6 +167,8 @@ func (u *UserController) Put() {
 		u.ServeJSON()
 		return
 	} else if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -209,6 +216,8 @@ func (u *UserController) Logout() {
 		u.ServeJSON()
 		return
 	} else if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -218,6 +227,8 @@ func (u *UserController) Logout() {
 	if requestToken.Valid && !auth.IsTokenExpired(requestToken) {
 		err := auth.BlacklistToken(requestToken)
 		if err != nil {
+			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+			hub.CaptureException(err)
 			log.Println(err.Error())
 			u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 			u.Data["json"] = InternalServerError("Internal server error")
@@ -372,6 +383,8 @@ func (u *UserController) ProfilePic() {
 	}
 	newPic, err := firebase.AddFile(f, fh, models.GetPicture(uid))
 	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -380,6 +393,8 @@ func (u *UserController) ProfilePic() {
 	}
 	err = models.UpdatePicture(uid, newPic)
 	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
@@ -406,6 +421,8 @@ func (u *UserController) IsAvailable() {
 	}
 	exists, err := models.UserExists(username)
 	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")

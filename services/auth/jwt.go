@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/getsentry/sentry-go"
 	r "github.com/go-redis/redis"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"log"
@@ -21,6 +22,7 @@ func GenerateToken(uid string) string {
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv("HMACKEY")))
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Fatal(err)
 	}
 	return tokenString
@@ -30,6 +32,7 @@ func BlacklistToken(token *jwt.Token) error {
 	claims := token.Claims.(jwt.MapClaims)
 	_, err := client.Set(claims["sub"].(string), int64(claims["iat"].(float64)), getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"])).Result()
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Println(err.Error())
 	}
 	return err

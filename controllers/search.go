@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/getsentry/sentry-go"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 	"log"
@@ -33,6 +34,8 @@ func (u *UserController) Search() {
 	}
 	results, err := models.SearchUser(query, c)
 	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
 		u.Data["json"] = InternalServerError("Internal server error")
