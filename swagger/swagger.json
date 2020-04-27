@@ -1045,16 +1045,16 @@
             "type": "object",
             "properties": {
                 "codechefProfile": {
-                    "$ref": "#/definitions/types.Profile"
+                    "$ref": "#/definitions/types.ProfileInfo"
                 },
                 "codeforcesProfile": {
-                    "$ref": "#/definitions/types.Profile"
+                    "$ref": "#/definitions/types.ProfileInfo"
                 },
                 "hackerrankProfile": {
-                    "$ref": "#/definitions/types.Profile"
+                    "$ref": "#/definitions/types.ProfileInfo"
                 },
                 "spojProfile": {
-                    "$ref": "#/definitions/types.Profile"
+                    "$ref": "#/definitions/types.ProfileInfo"
                 }
             }
         },
@@ -1167,18 +1167,6 @@
                     "type": "string"
                 },
                 "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.Profile": {
-            "title": "Profile",
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "$ref": "#/definitions/types.ProfileInfo"
-                },
-                "website": {
                     "type": "string"
                 }
             }
@@ -1334,6 +1322,15 @@
                 },
                 "picture": {
                     "type": "string"
+                },
+                "profiles": {
+                    "$ref": "#/definitions/types.AllProfiles"
+                },
+                "recent_submissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Submission"
+                    }
                 },
                 "username": {
                     "type": "string"
