@@ -213,6 +213,7 @@ func GetCodeforcesContests() CodeforcesContests {
 	}
 	return contests
 }
+
 func CheckCodeforcesHandle(handle string) bool {
 	data := GetRequest("http://codeforces.com/api/user.info?handles=" + handle)
 	var i interface{}

@@ -1,29 +1,24 @@
 package types
 
-import(
-	  "encoding/json"
-	  "errors"
+import (
+	"encoding/json"
+	"errors"
 )
 
-type ProfileInfo struct{
-	Name      string   `bson:"name" json:"name" schema:"name"`
-	UserName  string   `bson:"userName" json:"userName" schema:"userName"`
-	School    string   `bson:"school" json:"school" schema:"school"`
-	WorldRank string   `bson:"rank" json:"rank" schema:"rank"`
-	Accuracy  string   `bson:"accuracy" json:"accuracy" schema:"accuracy"`
-}
-
-type Profile struct {
-	Website     string          `bson:"website" json:"website" schema:"website"`
-	Profileinfo ProfileInfo     `bson:"profile" json:"profile" schema:"profile"`
+type ProfileInfo struct {
+	Name      string `bson:"name" json:"name" schema:"name"`
+	UserName  string `bson:"userName" json:"userName" schema:"userName"`
+	School    string `bson:"school" json:"school" schema:"school"`
+	WorldRank string `bson:"rank" json:"rank" schema:"rank"`
+	Accuracy  string `bson:"accuracy" json:"accuracy" schema:"accuracy"`
 }
 
 //create an allProfilesStruct
 type AllProfiles struct {
-	CodechefProfile    Profile   `bson:"codechefProfile" json:"codechefProfile"`
-	CodeforcesProfile  Profile   `bson:"codeforcesProfile" json:"codeforcesProfile"`
-	HackerrankProfile  Profile   `bson:"hackerrankProfile" json:"hackerrankProfile"`
-	SpojProfile        Profile   `bson:"spojProfile" json:"spojProfile"`
+	CodechefProfile   ProfileInfo `bson:"codechefProfile" json:"codechefProfile"`
+	CodeforcesProfile ProfileInfo `bson:"codeforcesProfile" json:"codeforcesProfile"`
+	HackerrankProfile ProfileInfo `bson:"hackerrankProfile" json:"hackerrankProfile"`
+	SpojProfile       ProfileInfo `bson:"spojProfile" json:"spojProfile"`
 }
 
 //UnmarshalJSON implements the unmarshaler interface for CodeforcesProfileInfo

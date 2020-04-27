@@ -42,7 +42,7 @@ func work() {
 	for job := range jobQueue {
 		err := job.handler(bson.ObjectId(job.user), string(job.websiteName))
 		if err != nil {
-			log.Println("unable to fetch submissions", err.Error())
+			log.Println("unable to fetch submissions/profile", err.Error())
 		}
 		userQueue.Lock()
 		delete(userQueue.m, job.user)

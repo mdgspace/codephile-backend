@@ -1,15 +1,12 @@
 package models
 
 import (
-	"errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
 )
-
-var ErrGeneric = errors.New("Feed is not absolutely correct")
 
 func GetContestsFeed() (types.Result, error) {
 	//contests stored are already sorted

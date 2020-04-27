@@ -39,6 +39,7 @@ func AddUser(u types.User) (string, error) {
 	go func() {
 		for _, value := range ValidSites {
 			_ = AddSubmissions(u.ID, value)
+			_ = AddOrUpdateProfile(u.ID, value)
 		}
 	}()
 
@@ -50,8 +51,8 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	err := collection.Collection.FindId(uid).Select(bson.M{"_id": 1, "username": 1,
-		"handle": 1, "lastfetched": 1,
-		"picture": 1, "fullname": 1, "institute": 1}).One(&user)
+		"handle": 1, "lastfetched": 1, "profiles": 1,
+		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, err
@@ -84,8 +85,8 @@ func GetAllUsers() ([]types.User, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	err := collection.Collection.Find(nil).Select(bson.M{"_id": 1, "username": 1,
-		"handle": 1, "lastfetched": 1,
-		"picture": 1, "fullname": 1, "institute": 1}).All(&users)
+		"handle": 1, "lastfetched": 1, "profiles": 1,
+		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).All(&users)
 	if err != nil {
 		return nil, err
 	}
@@ -223,11 +224,7 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 	}
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
-	_, err = coll.Collection.UpsertId(uid, bson.M{"$set": bson.M{"picture": url}})
-	if err != nil {
-		return err
-	}
-	return nil
+	return coll.Collection.UpdateId(uid, bson.M{"$set": bson.M{"picture": url}})
 }
 
 func GetPicture(uid bson.ObjectId) string {
