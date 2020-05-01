@@ -1,4 +1,4 @@
-package delete_user
+package main
 
 import (
 	"context"

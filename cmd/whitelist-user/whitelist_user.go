@@ -1,4 +1,4 @@
-package whitelist_user
+package main
 
 import (
 	"fmt"

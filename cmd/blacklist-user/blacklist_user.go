@@ -1,4 +1,4 @@
-package blacklist_user
+package main
 
 import (
 	"fmt"
