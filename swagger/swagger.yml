@@ -688,6 +688,10 @@ definitions:
     title: FeedObject
     type: object
     properties:
+      fullname:
+        type: string
+      picture:
+        type: string
       submission:
         $ref: '#/definitions/types.Submission'
       user_id:

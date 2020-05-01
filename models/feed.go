@@ -37,6 +37,8 @@ func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
 		"$project": bson.M{
 			"_id":        1,
 			"username":   1,
+			"picture":    1,
+			"fullname":   1,
 			"submission": "$submissions",
 		},
 	}
@@ -83,6 +85,8 @@ func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
 		"$project": bson.M{
 			"_id":      1,
 			"username": 1,
+			"picture":  1,
+			"fullname": 1,
 			"submission": bson.M{"$filter": bson.M{"input": "$submissions",
 				"as":   "sub",
 				"cond": bson.M{"$lt": []interface{}{"$$sub.created_at", before}},
