@@ -30,7 +30,7 @@ func (u *UserController) Search() {
 	c, err := strconv.Atoi(count)
 	//Default query response size
 	if err != nil {
-		c = 100
+		c = 500
 	}
 	results, err := models.SearchUser(query, c)
 	if err != nil {

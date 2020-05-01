@@ -31,7 +31,15 @@ func AddUser(u types.User) (string, error) {
 		return "", UserAlreadyExistError
 	}
 	client := search.GetElasticClient()
-	_, err = client.Index().Index("codephile").BodyJson(u).Id(u.ID.String()).Refresh("true").Do(context.Background())
+	_, err = client.Index().Index("codephile").BodyJson(types.SearchDoc{
+		ID:        u.ID,
+		Username:  u.Username,
+		FullName:  u.FullName,
+		Institute: u.Institute,
+		Picture:   u.Picture,
+		Handle:    u.Handle,
+	}).Id(u.ID.Hex()).Refresh("true").Do(context.Background())
+
 	if err != nil {
 		return "", err
 	}
@@ -183,7 +191,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 			return nil, UserAlreadyExistError
 		}
 		client := search.GetElasticClient()
-		_, err = client.Update().Index("codephile").Id(uid.String()).Doc(elasticDoc).Do(context.Background())
+		_, err = client.Update().Index("codephile").Id(uid.Hex()).Doc(elasticDoc).Do(context.Background())
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -218,7 +226,7 @@ func AuthenticateUser(username string, password string) (*types.User, bool) {
 
 func UpdatePicture(uid bson.ObjectId, url string) error {
 	client := search.GetElasticClient()
-	_, err := client.Update().Index("codephile").Id(uid.String()).Doc(map[string]interface{}{"picture": url}).Do(context.Background())
+	_, err := client.Update().Index("codephile").Id(uid.Hex()).Doc(map[string]interface{}{"picture": url}).Do(context.Background())
 	if err != nil {
 		log.Println(err.Error())
 	}
