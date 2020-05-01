@@ -1,15 +1,22 @@
 package auth
 
 import (
+	"errors"
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/getsentry/sentry-go"
+	"github.com/globalsign/mgo/bson"
 	r "github.com/go-redis/redis"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
+
+// identifier used to prevent user from logging in again
+// to be used if a user is suspicious
+var UserBlacklisted = "blacklisted"
 
 func GenerateToken(uid string) string {
 	currentTimestamp := time.Now().UTC().Unix()
@@ -40,11 +47,14 @@ func BlacklistToken(token *jwt.Token) error {
 func IsTokenBlacklisted(token *jwt.Token) bool {
 	client := redis.GetRedisClient()
 	claims := token.Claims.(jwt.MapClaims)
-	iat, err := client.Get(claims["sub"].(string)).Int64()
+	val, err := client.Get(claims["sub"].(string)).Result()
 	if err == r.Nil {
 		return false
+	} else if err != nil {
+		return true
 	}
-	if int64(claims["iat"].(float64)) == iat {
+	iat, _ := strconv.ParseInt(val, 10, 64)
+	if int64(claims["iat"].(float64)) == iat || val == UserBlacklisted {
 		return true
 	}
 	return false
@@ -63,4 +73,20 @@ func getTokenRemainingValidity(timestamp interface{}) time.Duration {
 func IsTokenExpired(token *jwt.Token) bool {
 	exp := int64(token.Claims.(jwt.MapClaims)["exp"].(float64))
 	return exp <= time.Now().UTC().Unix()
+}
+
+func BlacklistUser(uid bson.ObjectId) error {
+	client := redis.GetRedisClient()
+	_, err := client.Set(string(uid), UserBlacklisted, 0).Result()
+	return err
+}
+
+func WhitelistUser(uid bson.ObjectId) error {
+	client := redis.GetRedisClient()
+	val := client.Get(string(uid)).Val()
+	if val != UserBlacklisted {
+		return errors.New("already whitelisted")
+	}
+	_, err := client.Del(string(uid)).Result()
+	return err
 }

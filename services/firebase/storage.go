@@ -75,3 +75,8 @@ func AddFile(f multipart.File, fh *multipart.FileHeader, oldPic string) (string,
 	picUrl := publicURL + name
 	return picUrl, nil
 }
+
+func DeleteObject(key string) error {
+	bucket, _ := client.DefaultBucket()
+	return bucket.Object(key).Delete(context.Background())
+}
