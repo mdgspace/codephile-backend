@@ -37,6 +37,7 @@ func main() {
 	}
 	// Delete user from our database
 	sess := db.NewUserCollectionSession()
+	defer sess.Close()
 	coll := sess.Collection
 	err = coll.RemoveId(user.ID)
 	if err != nil {

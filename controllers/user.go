@@ -15,6 +15,7 @@ import (
 	"github.com/mdg-iitr/Codephile/scripts"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/mdg-iitr/Codephile/services/worker"
 	"log"
 	"net/http"
@@ -71,6 +72,13 @@ func (u *UserController) CreateUser() {
 		u.Data["json"] = InternalServerError("Internal server error")
 		u.ServeJSON()
 		return
+	}
+	// Keep track of which IP creates how many user
+	client := redis.GetRedisClient()
+	err = client.Incr(u.Ctx.Request.RemoteAddr).Err()
+	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
 	}
 	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
 	u.Data["json"] = map[string]string{"id": id}
