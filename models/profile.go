@@ -148,7 +148,7 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 	})
 	var result []map[string][]map[string]int
 	err := pipe.All(&result)
-	if err != nil || len(result) == 0 || len(result[0]["total"]) == 0 {
+	if err != nil || len(result) == 0 || len(result[0]["total"]) == 0 || len(result[0]["correct"]) == 0 {
 		return 0, 1, errors.New("could not get accuracy")
 	}
 	return result[0]["correct"][0]["correct"], result[0]["total"][0]["total"], nil
