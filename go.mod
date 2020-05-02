@@ -1,4 +1,5 @@
 module github.com/mdg-iitr/Codephile
+// +heroku install ./cmd/... .
 
 go 1.12
 
