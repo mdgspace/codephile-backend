@@ -14,7 +14,7 @@ func GetFollowingUsers(ID bson.ObjectId) ([]types.FollowingUser, error) {
 	var user types.User
 	err := coll.FindId(ID).Select(bson.M{"followingUsers.f_id": 1}).One(&user)
 	if err != nil {
-		return nil, err
+		return nil, UserNotFoundError
 	}
 	followingUIDs := make([]bson.ObjectId, 0, len(user.FollowingUsers))
 	for _, f := range user.FollowingUsers {
