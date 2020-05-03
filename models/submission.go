@@ -1,76 +1,52 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
-	"github.com/mdg-iitr/Codephile/scripts"
+	"github.com/mdg-iitr/Codephile/scrappers"
 	"log"
 	"time"
 )
 
 //Returns HandleNotFoundError/UserNotFoundError/error
 func AddSubmissions(uid bson.ObjectId, site string) error {
+	if !IsSiteValid(site) {
+		return errors.New("site invalid")
+	}
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	var user types.User
-	err := coll.FindId(uid).Select(bson.M{"handle": 1, "lastfetched": 1}).One(&user)
+	var result map[string]interface{}
+	err := coll.FindId(uid).Select(bson.M{"handle": 1, "lastfetched": 1}).One(&result)
 	if err != nil {
 		//handle the error (Invalid user)
 		return UserNotFoundError
 	}
-	var handle string
 	var addSubmissions []types.Submission
-	switch site {
-	case CODECHEF:
-		handle = user.Handle.Codechef
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		addSubmissions = scripts.GetCodechefSubmissions(handle, user.Last.Codechef)
-		if len(addSubmissions) != 0 {
-			user.Last.Codechef = addSubmissions[0].CreationDate
-		}
-	case CODEFORCES:
-		handle = user.Handle.Codeforces
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		addSubmissions = scripts.GetCodeforcesSubmissions(handle, user.Last.Codeforces)
-		if len(addSubmissions) != 0 {
-			user.Last.Codeforces = addSubmissions[0].CreationDate
-		}
-	case SPOJ:
-		handle = user.Handle.Spoj
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		addSubmissions = scripts.GetSpojSubmissions(handle, user.Last.Spoj)
-		if len(addSubmissions) != 0 {
-			user.Last.Spoj = addSubmissions[0].CreationDate
-		}
-	case HACKERRANK:
-		handle = user.Handle.Hackerrank
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		addSubmissions = scripts.GetHackerrankSubmissions(handle, user.Last.Hackerrank)
-		if len(addSubmissions) != 0 {
-			user.Last.Hackerrank = addSubmissions[0].CreationDate
-		}
+	lastFetched := result["lastfetched"].(map[string]interface{})[site].(time.Time)
+	handle := result["handle"].(map[string]interface{})[site].(string)
+	scrapper, err := scrappers.NewScrapper(site, handle)
+	if err != nil {
+		return err
 	}
+	addSubmissions = scrapper.GetSubmissions(lastFetched)
+	if len(addSubmissions) != 0 {
+		lastFetched = addSubmissions[0].CreationDate
+	}
+
 	change := bson.M{
 		"$push": bson.M{
 			"submissions": bson.M{
 				"$each": addSubmissions,
 				"$sort": bson.M{"created_at": -1},
 			}},
-		"$set": bson.M{"lastfetched": user.Last}}
-	err = coll.UpdateId(user.ID, change)
+		"$set": bson.M{"lastfetched." + site: lastFetched}}
+	err = coll.UpdateId(uid, change)
 	if err != nil {
 		log.Println(err.Error())
 		return err

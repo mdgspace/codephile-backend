@@ -8,6 +8,6 @@ shorturl/shorturl
 todo/todo
 *.exe
 *.exe~
-
+build/
 # Intellij
 .idea/*

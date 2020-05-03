@@ -1,91 +1,24 @@
-package scripts
+package codeforces
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/mdg-iitr/Codephile/models/types"
+	"github.com/mdg-iitr/Codephile/scrappers/common"
 	"log"
 	"strconv"
 	"time"
 )
 
-// CodeforcesGraphPoint represents a single point for codeforces
-type CodeforcesGraphPoint struct {
-	ContestName string
-	Date        time.Time
-	Rating      float64
+type Scrapper struct {
+	Handle string
 }
 
-// CodeforcesGraphPoints represents the graph points for codeforces
-type CodeforcesGraphPoints struct {
-	Count  int
-	Points []CodeforcesGraphPoint
-}
-
-//CodeforcesContests represents the codeforces contest
-type CodeforcesContests struct {
-	Data  []CodeforcesContest
-	Count int
-}
-type CodeforcesContest struct {
-	ContestName string `json:"name"`
-	Rated       bool   `json:"rated"`
-	EpochStart  int64  `json:"epoch_starttime"`
-	EpochEnd    int64  `json:"epoch_endtime"`
-	Archived    bool   `json:"archived"`
-}
-
-// UnmarshalJSON implements the unmarshaler interface for CodeforcesGraphPoint
-func (points *CodeforcesGraphPoints) UnmarshalJSON(b []byte) error {
-	var data map[string]interface{}
-	err := json.Unmarshal(b, &data)
-	if data["status"] != "OK" {
-		return errors.New("Bad Request")
-	}
-	results := data["result"].([]interface{})
-	points.Count = len(results)
-	for _, result := range results {
-		point := CodeforcesGraphPoint{
-			ContestName: result.(map[string]interface{})["contestName"].(string),
-			Date:        time.Unix(int64(result.(map[string]interface{})["ratingUpdateTimeSeconds"].(float64)), 0),
-			Rating:      result.(map[string]interface{})["newRating"].(float64),
-		}
-		points.Points = append(points.Points, point)
-	}
-	return err
-}
-
-// UnmarshalJSON implements the unmarshaler interface for CodeforcesContests
-func (contests *CodeforcesContests) UnmarshalJSON(b []byte) error {
-	var data map[string]interface{}
-	err := json.Unmarshal(b, &data)
-	if data["status"] != "OK" {
-		return errors.New("Bad Request")
-	}
-	results := data["result"].([]interface{})[0:20]
-	contests.Count = 20
-	for _, result := range results {
-		resultMap := result.(map[string]interface{})
-		Contest := CodeforcesContest{
-			ContestName: resultMap["name"].(string),
-			Rated:       true,
-			EpochStart:  int64(resultMap["startTimeSeconds"].(float64)),
-		}
-		Contest.EpochEnd = int64(resultMap["durationSeconds"].(float64)) + Contest.EpochStart
-		phase := resultMap["phase"].(string)
-		if phase == "FINISHED" {
-			Contest.Archived = true
-		}
-		contests.Data = append(contests.Data, Contest)
-	}
-	return err
-}
-
-func GetCodeforcesProfileInfo(handle string) types.ProfileInfo {
+func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 	var profile types.ProfileInfo
-	url := "http://codeforces.com/api/user.info?handles=" + handle
-	data := GetRequest(url)
+	url := "http://codeforces.com/api/user.info?handles=" + s.Handle
+	data := common.HitGetRequest(url)
 	if data == nil {
 		log.Println(errors.New("GetRequest failed. Please check connection status"))
 		return types.ProfileInfo{}
@@ -98,22 +31,11 @@ func GetCodeforcesProfileInfo(handle string) types.ProfileInfo {
 	return profile
 }
 
-func GetCodeforcesGraphData(handle string) CodeforcesGraphPoints {
-	var points CodeforcesGraphPoints
-	url := "http://codeforces.com/api/user.rating?handle=" + handle
-	data := GetRequest(url)
-	err := json.Unmarshal(data, &points)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	return points
-}
-
 // Calls the codeforces submission API and return the response in same format
 func callCodeforcesAPI(handle string, afterIndex int) (types.CodeforcesSubmissions, error) {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
 	fmt.Println(url)
-	data := GetRequest(url)
+	data := common.HitGetRequest(url)
 	if data == nil {
 		return types.CodeforcesSubmissions{}, errors.New("GetRequest failed. Please check connection status")
 	}
@@ -173,13 +95,13 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 	return submissions, nil
 }
 
-func GetCodeforcesSubmissions(handle string, after time.Time) []types.Submission {
+func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
 	var subs []types.Submission
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub, err := getCodeforcesSubmissionParts(handle, current+1)
+		newSub, err := getCodeforcesSubmissionParts(s.Handle, current+1)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
@@ -204,18 +126,8 @@ func GetCodeforcesSubmissions(handle string, after time.Time) []types.Submission
 	return subs
 }
 
-func GetCodeforcesContests() CodeforcesContests {
-	data := GetRequest("https://codeforces.com/api/contest.list?gym=false")
-	var contests CodeforcesContests
-	err := json.Unmarshal(data, &contests)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	return contests
-}
-
-func CheckCodeforcesHandle(handle string) bool {
-	data := GetRequest("http://codeforces.com/api/user.info?handles=" + handle)
+func (s Scrapper) CheckHandle() bool {
+	data := common.HitGetRequest("http://codeforces.com/api/user.info?handles=" + s.Handle)
 	var i interface{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
