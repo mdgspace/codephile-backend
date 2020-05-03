@@ -8,71 +8,34 @@ import (
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
-	"github.com/mdg-iitr/Codephile/scripts"
+	"github.com/mdg-iitr/Codephile/scrappers"
 )
 
 func AddOrUpdateProfile(uid bson.ObjectId, site string) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	var user types.User
-	err := coll.FindId(uid).Select(bson.M{"handle": 1}).One(&user)
+	var result map[string]interface{}
+	err := coll.FindId(uid).Select(bson.M{"handle": 1}).One(&result)
 	if err != nil {
 		//handle the error (Invalid user)
 		return UserNotFoundError
 	}
+	handle := result["handle"].(map[string]interface{})[site].(string)
 	var userProfile types.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
-	switch site {
-	case CODECHEF:
-		handle := user.Handle.Codechef
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		userProfile = scripts.GetCodechefProfileInfo(handle)
-		accuracy, err := GetAccuracy(uid, CODECHEF)
-		if err != nil {
-			userProfile.Accuracy = ""
-		} else {
-			userProfile.Accuracy = accuracy
-		}
-	case CODEFORCES:
-		handle := user.Handle.Codeforces
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		userProfile = scripts.GetCodeforcesProfileInfo(handle)
-		accuracy, err := GetAccuracy(uid, CODEFORCES)
-		if err != nil {
-			userProfile.Accuracy = ""
-		} else {
-			userProfile.Accuracy = accuracy
-		}
-	case SPOJ:
-		handle := user.Handle.Spoj
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		userProfile = scripts.GetSpojProfileInfo(handle)
-		accuracy, err := GetAccuracy(uid, SPOJ)
-		if err != nil {
-			userProfile.Accuracy = ""
-		} else {
-			userProfile.Accuracy = accuracy
-		}
-	case HACKERRANK:
-		handle := user.Handle.Hackerrank
-		if handle == "" {
-			return HandleNotFoundError
-		}
-		userProfile = scripts.GetHackerrankProfileInfo(handle)
-		accuracy, err := GetAccuracy(uid, HACKERRANK)
-		if err != nil {
-			userProfile.Accuracy = ""
-		} else {
-			userProfile.Accuracy = accuracy
-		}
-	} // add a default case for non-existent website
+	scrapper, err := scrappers.NewScrapper(site, handle)
+	if err != nil {
+		return err
+	}
+	userProfile = scrapper.GetProfileInfo()
+	accuracy, err := GetAccuracy(uid, site)
+	if err != nil {
+		userProfile.Accuracy = ""
+	} else {
+		userProfile.Accuracy = accuracy
+	}
+
 	//Profile fetched. Store in database
 	newNode := "profiles." + site + "Profile"
 	return coll.UpdateId(uid, bson.M{"$set": bson.M{newNode: userProfile}})

@@ -1,27 +1,20 @@
-package scripts
+package spoj
 
 import (
 	"fmt"
+	"github.com/gocolly/colly"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/gocolly/colly"
 )
 
-type SpojProblems struct {
-	count     string
-	Submitted string
+type Scrapper struct {
+	Handle string
 }
 
-type SolvedProblems struct {
-	problem string
-	link    string
-}
-
-func GetSpojProfileInfo(handle string) types.ProfileInfo {
+func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 
 	c := colly.NewCollector()
 	var Profile types.ProfileInfo
@@ -31,7 +24,7 @@ func GetSpojProfileInfo(handle string) types.ProfileInfo {
 		flag := 0
 		var WorldRank string
 		var School string
-		UserName := handle
+		UserName := s.Handle
 		for i := 4; i <= 6; i++ {
 			cssSelector1 := fmt.Sprintf(":nth-child(%d)", i)
 			if strings.Split(e.ChildText(cssSelector1), ":")[0] == "World Rank" {
@@ -59,20 +52,20 @@ func GetSpojProfileInfo(handle string) types.ProfileInfo {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
 	if err != nil {
 		log.Println(err.Error())
 	}
 	return Profile
 }
 
-func GetSpojSubmissions(handle string, after time.Time) []types.Submission {
+func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	var oldestSubIndex, current int
 	var oldestSubFound = false
 	subs := []types.Submission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := GetSpojSubmissionParts(handle, current)
+		newSub := getSubmissionParts(s.Handle, current)
 		//Check for repetition of previous fetched submission
 		if len(newSub) != 0 && newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
@@ -96,7 +89,8 @@ func GetSpojSubmissions(handle string, after time.Time) []types.Submission {
 	subs = subs[1 : oldestSubIndex+1]
 	return subs
 }
-func GetSpojSubmissionParts(handle string, afterIndex int) []types.Submission {
+
+func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 
 	c := colly.NewCollector()
 	var submissions []types.Submission
@@ -116,7 +110,7 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []types.Submission {
 			if status == "accepted" {
 				points = 100
 			}
-			tags := GetProbTags(URL)
+			tags := getProbTags(URL)
 			submissions = append(submissions, types.Submission{Name: Name, URL: URL, CreationDate: CreationDate, Status: status, Language: language, Points: points, Tags: tags})
 		})
 	})
@@ -136,63 +130,20 @@ func GetSpojSubmissionParts(handle string, afterIndex int) []types.Submission {
 	return submissions
 }
 
-func GetSpojProblems(handle string) SpojProblems {
-
-	c := colly.NewCollector()
-	var problems SpojProblems
-	c.OnHTML(".dl-horizontal", func(e *colly.HTMLElement) {
-		count := e.ChildText(":nth-child(2)")
-		submitted := e.ChildText(":nth-child(4)")
-
-		problems = SpojProblems{count, submitted}
-	})
-
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong:", err)
-	})
-
-	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
-	if err != nil {
-		log.Println(err.Error())
-	}
-	return problems
-}
-
-func GetSpojSolvedProblems(handle string) []SolvedProblems {
-
-	c := colly.NewCollector()
-	var solved []SolvedProblems
-	c.OnHTML("#user-profile-tables tr", func(e *colly.HTMLElement) {
-		Name := e.ChildText("a")
-		link := "https://www.spoj.com" + e.ChildAttr("a", "href")
-		solved = append(solved, SolvedProblems{Name, link})
-	})
-
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong:", err)
-	})
-
-	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
-	if err != nil {
-		log.Println(err.Error())
-	}
-	return solved
-
-}
-func CheckSpojHandle(handle string) bool {
+func (s Scrapper) CheckHandle() bool {
 	c := colly.NewCollector()
 	var valid = false
 	c.OnResponse(func(response *colly.Response) {
 		valid, _ = regexp.Match("user-profile-left", response.Body)
 	})
-	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", handle))
+	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
 	if err != nil {
 		log.Println(err.Error())
 	}
 	return valid
 }
 
-func GetProbTags(url string) []string {
+func getProbTags(url string) []string {
 	var tags []string
 	c := colly.NewCollector()
 	c.OnHTML(".problem-tag", func(e *colly.HTMLElement) {

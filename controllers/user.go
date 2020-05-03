@@ -12,7 +12,7 @@ import (
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/types"
-	"github.com/mdg-iitr/Codephile/scripts"
+	"github.com/mdg-iitr/Codephile/scrappers"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
@@ -281,23 +281,14 @@ func (u *UserController) parseRequestBody() (types.User, error) {
 func (u *UserController) Verify() {
 	handle := u.GetString("handle")
 	site := u.GetString(":site")
-	var valid = false
-	if !IsSiteValid(site) {
+	scrapper, err := scrappers.NewScrapper(site, handle)
+	if err != nil {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid contest site")
 		u.ServeJSON()
 		return
 	}
-	switch site {
-	case CODECHEF:
-		valid = scripts.CheckCodechefHandle(handle)
-	case CODEFORCES:
-		valid = scripts.CheckCodeforcesHandle(handle)
-	case SPOJ:
-		valid = scripts.CheckSpojHandle(handle)
-	case HACKERRANK:
-		valid = scripts.CheckHackerrankHandle(handle)
-	}
+	valid := scrapper.CheckHandle()
 	if valid {
 		u.Data["json"] = map[string]string{"status": "Handle valid"}
 	} else {
