@@ -264,7 +264,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/types.Following"
+                                "$ref": "#/definitions/types.FollowingUser"
                             }
                         }
                     },
@@ -1105,11 +1105,26 @@
             "title": "Following",
             "type": "object",
             "properties": {
-                "codephile_handle": {
-                    "type": "string"
-                },
                 "f_id": {
                     "$ref": "#/definitions/bson.ObjectId"
+                }
+            }
+        },
+        "types.FollowingUser": {
+            "title": "FollowingUser",
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "$ref": "#/definitions/bson.ObjectId"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
