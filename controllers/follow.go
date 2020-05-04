@@ -1,14 +1,15 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
-	"log"
-	"net/http"
 )
 
 type FriendsController struct {
@@ -117,7 +118,7 @@ func (f *FriendsController) CompareUser() {
 // @Title GetFollowing
 // @Description Fetches the users the user is following
 // @Security token_auth read:follow
-// @Success 200 {object} []types.Following
+// @Success 200 {object} []types.FollowingUser
 // @Failure 500 server_error
 // @router /following [get]
 func (f *FriendsController) GetFollowing() {

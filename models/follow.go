@@ -1,22 +1,34 @@
 package models
 
 import (
-	"errors"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 )
 
-func GetFollowingUsers(ID bson.ObjectId) ([]types.Following, error) {
-	coll := db.NewUserCollectionSession()
-	defer coll.Close()
+func GetFollowingUsers(ID bson.ObjectId) ([]types.FollowingUser, error) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
 	var user types.User
-	err := coll.Collection.FindId(ID).Select(bson.M{"followingUsers": 1}).One(&user)
+	err := coll.FindId(ID).Select(bson.M{"followingUsers.f_id": 1}).One(&user)
 	if err != nil {
-		return nil, errors.New("user not found")
+		return nil, UserNotFoundError
 	}
-	return user.FollowingUsers, nil
+	followingUIDs := make([]bson.ObjectId, 0, len(user.FollowingUsers))
+	for _, f := range user.FollowingUsers {
+		followingUIDs = append(followingUIDs, f.ID)
+	}
+	var followingUsers []types.FollowingUser
+	err2 := coll.Find(bson.M{"_id": bson.M{"$in": followingUIDs}}).Select(
+		bson.M{"_id": 1, "username": 1, "picture": 1,
+			"fullname": 1}).All(&followingUsers)
+
+	if err2 != nil {
+		return nil, err2
+	}
+	return followingUsers, nil
 }
 
 func UnFollowUser(uid1 bson.ObjectId, uid2 bson.ObjectId) error {
@@ -44,7 +56,6 @@ func FollowUser(uid1 bson.ObjectId, uid2 bson.ObjectId) error {
 	//add the uid2 in the database of uid1
 	var following types.Following
 	following.ID = user2.ID
-	following.CodephileHandle = user2.Username
 	update := bson.M{"$addToSet": bson.M{"followingUsers": following}}
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
