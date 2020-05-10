@@ -2,8 +2,8 @@
 ## Services
 We use the following services in our server,
 
-* MongoDB: Main database of server, stores user info, submission, profile,etc. Install from [here](https://docs.mongodb.com/manual/installation/)
-* Redis: Used to logout and blacklist users. Servers as cache for contests API. Download from [here](https://redis.io/download) 
+* MongoDB: Main database of the server, stores user info, submission, profile,etc. Install from [here](https://docs.mongodb.com/manual/installation/)
+* Redis: Used to logout and blacklist users. Serves as cache for contests API. Download from [here](https://redis.io/download) 
 * Elastic Search: Some of user data is indexed to elasticsearch db, in order to use the search API. Download it from [here](elastic.co/downloads/)
 * Firebase storage: The profile pictures are stored in firebase storage. Create a firebase account.
 
@@ -36,8 +36,7 @@ This should give non empty output
 
 Now clone the repo in the appropriate directory.
 ```shell script
-$ mkdir $GOPATH/src/github.com/mdg-iitr/Codephile 
-$ cd $GOPATH/src/github.com/mdg-iitr/Codephile 
+$ mkdir -p $GOPATH/src/github.com/mdg-iitr/Codephile && cd $_ 
 $ git clone https://github.com/mdg-iitr/Codephile.git
 ```
 We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.me/quickstart).
@@ -46,17 +45,17 @@ In order to generate documentation from comments, run:
 ```shell script
 $ bee run -downdoc=true -gendoc=true
 ```
-If you did'nt make any changes in documentation comment, simply run:
+If you didn't make any changes in documentation comment, simply run:
 ```shell script
-bee run
+$ bee run
 ```
 Custom programs could be run using
 ```shell script
-go run cmd/<path to main package go file>
+$ go run cmd/<path to main package go file>
 ```
 E.g.
 ```shell script
- go run cmd/blacklist-user/blacklist_user.go
+ $ go run cmd/blacklist-user/blacklist_user.go
 ```
 
 ## Tests
@@ -65,23 +64,23 @@ Change the `DBPath` and `ELASTICURL` in .env file
 
 Run the tests
 ```shell script
-go test -v ./tests
+$ go test -v ./tests
 ```
 
 ## Components
 
-* `cmd`: Contains standalone program for specific task like updating user submissions, deleting, blacklist users.
+* `cmd`: Contains standalone programs for specific tasks like updating user submissions, deleting, blacklist users.
 
-* `conf`: Contains global app level constants and configuration file. This package has to be imported first in the main package, as it loads various import global variables and inits various clients(sentry, elasticsearch).
+* `conf`: Contains global app level constants and configuration files. This package has to be imported first in the main package, as it loads various global variables and inits various clients(sentry, elasticsearch).
 
 * `controller`:  Responsible for handling the requests corresponding to various endpoints. Contains separate files for separate namespaces.
 
-* `errors`: Contains custom error messages and json response struct in case of errors.
+* `errors`: Contains custom error messages and json response structs to respond with, in case of errors.
 
 * `middleware`: Sits before controllers. Mainly authenticates user and extracts uid from user token
 
 * `models`:
-    * `models/db`: Handles db connection and manages connection pool. Provides a clean interface to connect to db.
+    * `models/db`: Handles db connection and manages connection pool. Provides a clean interface to establish db connections.
     * `models/types`: Contains the types for various database schema and response models.
     * `/`: Contains database operations, queries.
     
@@ -101,6 +100,6 @@ Beginners are advised to begin with writing some tests.
 ## CI
 
 When a pull request is submitted, continuous integration jobs are run automatically to ensure the code builds and is relatively well-written. The jobs are run on circleci.
-At present, the tests, build, test and linters are run on CI.
+At present, the build, tests and linters are run on CI.
 
 We use [golang-ci](https://github.com/golangci/golangci-lint) lint for linting jobs. Download and run the linter locally before submitting a PR.
