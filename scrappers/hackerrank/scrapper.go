@@ -3,6 +3,7 @@ package hackerrank
 import (
 	"encoding/json"
 	"errors"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers/common"
 	"log"
@@ -58,6 +59,8 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	}
 	submissions = submissions[0:oldestSubIndex]
 	for i := 0; i < len(submissions); i++ {
+		submissions[i].Points = 100
+		submissions[i].Status = StatusCorrect
 		submissions[i].URL = "https://www.hackerrank.com" + submissions[i].URL
 	}
 	return submissions

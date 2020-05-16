@@ -3,6 +3,7 @@ package spoj
 import (
 	"fmt"
 	"github.com/gocolly/colly"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"log"
 	"regexp"
@@ -107,7 +108,19 @@ func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 			status := elem.ChildText(".statusres")
 			language := elem.ChildText(".slang span")
 			points := 0
-			if status == "accepted" {
+			switch status {
+			case "accepted":
+				status = StatusCorrect
+			case "wrong answer":
+				status = StatusWrongAnswer
+			case "compilation error":
+				status = StatusCompilationError
+			case "runtime error":
+				status = StatusRuntimeError
+			default:
+				status = StatusWrongAnswer
+			}
+			if status == StatusCorrect {
 				points = 100
 			}
 			tags := getProbTags(URL)
