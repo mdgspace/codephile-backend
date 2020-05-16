@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers/common"
 	"log"
@@ -77,7 +78,28 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 	submissions := make([]types.Submission, len(codeforcesSubmission.Result))
 	for i, result := range codeforcesSubmission.Result {
 		problem := result["problem"].(map[string]interface{})
-		submissions[i].Status = result["verdict"].(string)
+		var status string
+		switch result["verdict"].(string) {
+		case "FAILED":
+			status = StatusWrongAnswer
+		case "OK":
+			status = StatusCorrect
+		case "PARTIAL":
+			status = StatusPartial
+		case "COMPILATION_ERROR":
+			status = StatusCompilationError
+		case "RUNTIME_ERROR":
+			status = StatusRuntimeError
+		case "WRONG_ANSWER":
+			status = StatusWrongAnswer
+		case "TIME_LIMIT_EXCEEDED":
+			status = StatusTimeLimitExceeded
+		case "MEMORY_LIMIT_EXCEEDED":
+			status = StatusMemoryLimitExceeded
+		default:
+			status = StatusWrongAnswer
+		}
+		submissions[i].Status = status
 		submissions[i].Language = result["programmingLanguage"].(string)
 		submissions[i].Name = problem["name"].(string)
 		submissions[i].URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)

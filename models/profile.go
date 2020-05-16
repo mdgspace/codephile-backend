@@ -104,7 +104,7 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 			"$facet": bson.M{
 				"total": []bson.M{bson.M{"$count": "total"}},
 				"correct": []bson.M{
-					bson.M{"$match": bson.M{"submissions.status": correctSubmissionIdentifier}},
+					bson.M{"$match": bson.M{"submissions.status": StatusCorrect}},
 					bson.M{"$count": "correct"}},
 			},
 		},

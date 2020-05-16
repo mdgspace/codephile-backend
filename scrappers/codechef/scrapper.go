@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gocolly/colly"
+	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers/common"
 	"log"
@@ -201,17 +202,17 @@ func getSubmissionsFromString(content string) ([]types.Submission, error) {
 		stat := strings.Split(strings.Split(contents[3], "/misc/")[1], ".gif")[0]
 		var st string
 		if stat == "tick-icon" {
-			st = "AC"
+			st = StatusCorrect
 		} else if stat == "cross-icon" {
-			st = "WA"
+			st = StatusWrongAnswer
 		} else if stat == "alert-icon" {
-			st = "CE"
+			st = StatusCompilationError
 		} else if stat == "runtime-error" {
-			st = "RE"
+			st = StatusRuntimeError
 		} else if stat == "clock_error" {
-			st = "TLE"
+			st = StatusTimeLimitExceeded
 		} else {
-			st = "OTH"
+			st = StatusWrongAnswer
 		}
 
 		//Language used

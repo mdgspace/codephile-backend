@@ -18,3 +18,12 @@ func IsSiteValid(s string) bool {
 	return false
 }
 
+const (
+	StatusCorrect             = "AC"
+	StatusWrongAnswer         = "WA"
+	StatusCompilationError    = "CE"
+	StatusRuntimeError        = "RE"
+	StatusTimeLimitExceeded   = "TLE"
+	StatusMemoryLimitExceeded = "MLE"
+	StatusPartial             = "PTL"
+)
