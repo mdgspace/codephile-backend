@@ -15,6 +15,84 @@ import (
 	"log"
 )
 
+var (
+	getCodechefSolvesQuery = bson.M{
+		"$size": bson.M{
+			"$filter": bson.M{
+				"input": "$submissions",
+				"as":    "sub",
+				"cond": bson.M{
+					"$and": []bson.M{
+						{
+							"$regexMatch": bson.M{
+								"input": "$$sub.url",
+								"regex": bson.RegEx{Pattern: "^" + "http://www.codechef.com"},
+							},
+						},
+						{"$eq": []string{"$$sub.status", StatusCorrect}}},
+				},
+			},
+		},
+	}
+	getCodeforcesSolvesQuery = bson.M{
+		"$size": bson.M{
+			"$filter": bson.M{
+				"input": "$submissions",
+				"as":    "sub",
+				"cond": bson.M{
+					"$and": []bson.M{
+						{
+							"$regexMatch": bson.M{
+								"input": "$$sub.url",
+								"regex": bson.RegEx{Pattern: "^" + "http://codeforces.com"},
+							},
+						},
+						{"$eq": []string{"$$sub.status", StatusCorrect}}},
+				},
+			},
+		},
+	}
+	getHackerrankSolvesQuery = bson.M{
+		"$size": bson.M{
+			"$filter": bson.M{
+				"input": "$submissions",
+				"as":    "sub",
+				"cond": bson.M{
+					"$and": []bson.M{
+						{
+							"$regexMatch": bson.M{
+								"input": "$$sub.url",
+								"regex": bson.RegEx{Pattern: "^" + "https://www.hackerrank.com"},
+							},
+						},
+						{"$eq": []string{"$$sub.status", StatusCorrect}}},
+				},
+			},
+		},
+	}
+	getSpojSolvesQuery = bson.M{
+		"$size": bson.M{
+			"$filter": bson.M{
+				"input": "$submissions",
+				"as":    "sub",
+				"cond": bson.M{
+					"$and": []bson.M{
+						{
+							"$regexMatch": bson.M{
+								"input": "$$sub.url",
+								"regex": bson.RegEx{Pattern: "^" + "https://www.spoj.com"},
+							},
+						},
+						{"$eq": []string{"$$sub.status", StatusCorrect}}},
+				},
+			},
+		},
+	}
+	getFollowingCountQuery = bson.M{
+		"$size": "$followingUsers",
+	}
+)
+
 func AddUser(u types.User) (string, error) {
 	u.ID = bson.NewObjectId()
 	collection := db.NewUserCollectionSession()
@@ -73,10 +151,12 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 		},
 		bson.M{
 			"$project": bson.M{
-				"_id": 0,
-				"following": bson.M{
-					"$size": "$followingUsers",
-				},
+				"_id":              0,
+				"following":        getFollowingCountQuery,
+				"codechefSolves":   getCodechefSolvesQuery,
+				"codeforcesSolves": getCodeforcesSolvesQuery,
+				"hackerrankSolves": getHackerrankSolvesQuery,
+				"spojSolves":       getSpojSolvesQuery,
 			}},
 	})
 	var res map[string]int
@@ -85,6 +165,12 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 		return nil, err
 	}
 	user.NoOfFollowing = res["following"]
+	user.SolvedProblemsCount = types.SolvedProblemsCount{
+		Codechef:   res["codechefSolves"],
+		Codeforces: res["codeforcesSolves"],
+		Hackerrank: res["hackerrankSolves"],
+		Spoj:       res["spojSolves"],
+	}
 	return &user, nil
 }
 
@@ -101,10 +187,12 @@ func GetAllUsers() ([]types.User, error) {
 	pipe := collection.Collection.Pipe([]bson.M{
 		bson.M{
 			"$project": bson.M{
-				"_id": 0,
-				"following": bson.M{
-					"$size": "$followingUsers",
-				},
+				"_id":              0,
+				"following":        getFollowingCountQuery,
+				"codechefSolves":   getCodechefSolvesQuery,
+				"codeforcesSolves": getCodeforcesSolvesQuery,
+				"hackerrankSolves": getHackerrankSolvesQuery,
+				"spojSolves":       getSpojSolvesQuery,
 			}},
 	})
 	var res []map[string]int
@@ -113,6 +201,12 @@ func GetAllUsers() ([]types.User, error) {
 		return nil, err
 	}
 	for i := range users {
+		users[i].SolvedProblemsCount = types.SolvedProblemsCount{
+			Codechef:   res[i]["codechefSolves"],
+			Codeforces: res[i]["codeforcesSolves"],
+			Hackerrank: res[i]["hackerrankSolves"],
+			Spoj:       res[i]["spojSolves"],
+		}
 		users[i].NoOfFollowing = res[i]["following"]
 	}
 	return users, nil
