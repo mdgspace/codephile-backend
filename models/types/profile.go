@@ -40,3 +40,10 @@ func (data *ProfileInfo) UnmarshalJSON(b []byte) error {
 	data.WorldRank = ""
 	return err
 }
+
+type SolvedProblemsCount struct {
+	Codechef   int `json:"codechef"`
+	Codeforces int `json:"codeforces"`
+	Hackerrank int `json:"hackerrank"`
+	Spoj       int `json:"spoj"`
+}

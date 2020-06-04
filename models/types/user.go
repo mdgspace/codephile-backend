@@ -7,18 +7,19 @@ import (
 )
 
 type User struct {
-	ID             bson.ObjectId         `bson:"_id" json:"id" schema:"-"`
-	Username       string                `bson:"username" json:"username" schema:"username"`
-	FullName       string                `bson:"fullname" json:"fullname" schema:"fullname"`
-	Institute      string                `bson:"institute" json:"institute" schema:"institute"`
-	Password       string                `bson:"password" json:"-" schema:"password"`
-	Picture        string                `bson:"picture" json:"picture"`
-	Handle         Handle                `bson:"handle" json:"handle" schema:"handle"`
-	Submissions    []Submission          `bson:"submissions" json:"recent_submissions" schema:"-"`
-	Profiles       AllProfiles           `json:"profiles" bson:"profiles" schema:"-"`
-	Last           LastFetchedSubmission `bson:"lastfetched" json:"-"`
-	FollowingUsers []Following           `bson:"followingUsers" json:"-"`
-	NoOfFollowing  int                   `bson:"-" json:"no_of_following"`
+	ID                  bson.ObjectId         `bson:"_id" json:"id" schema:"-"`
+	Username            string                `bson:"username" json:"username" schema:"username"`
+	FullName            string                `bson:"fullname" json:"fullname" schema:"fullname"`
+	Institute           string                `bson:"institute" json:"institute" schema:"institute"`
+	Password            string                `bson:"password" json:"-" schema:"password"`
+	Picture             string                `bson:"picture" json:"picture"`
+	Handle              Handle                `bson:"handle" json:"handle" schema:"handle"`
+	Submissions         []Submission          `bson:"submissions" json:"recent_submissions" schema:"-"`
+	Profiles            AllProfiles           `json:"profiles" bson:"profiles" schema:"-"`
+	Last                LastFetchedSubmission `bson:"lastfetched" json:"-"`
+	FollowingUsers      []Following           `bson:"followingUsers" json:"-"`
+	NoOfFollowing       int                   `bson:"-" json:"no_of_following"`
+	SolvedProblemsCount SolvedProblemsCount   `json:"solved_problems_count"`
 }
 type LastFetchedSubmission struct {
 	Codechef   time.Time `bson:"codechef"`
