@@ -24,10 +24,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// Delete profile pic
-	err = firebase.DeleteObject(user.Picture)
-	if err != nil {
-		panic(err)
+	if user.Picture != "" {
+		// Delete profile pic
+		err = firebase.DeleteObject(user.Picture)
+		if err != nil {
+			panic(err)
+		}
 	}
 	// Delete user from elasticsearch index
 	client := search.GetElasticClient()
