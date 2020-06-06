@@ -8,11 +8,11 @@ type SubmissionCount struct {
 }
 
 type StatusCounts struct {
-	StatusCorrect             int `bson:"ac_count"`
-	StatusWrongAnswer         int `bson:"wa_count"`
-	StatusCompilationError    int `bson:"ce_count"`
-	StatusRuntimeError        int `bson:"re_count"`
-	StatusTimeLimitExceeded   int `bson:"tle_count"`
-	StatusMemoryLimitExceeded int `bson:"mle_count"`
-	StatusPartial             int `bson:"ptl_count"`
+	StatusCorrect             int `bson:"ac_count" json:"ac"`
+	StatusWrongAnswer         int `bson:"wa_count" json:"wa"`
+	StatusCompilationError    int `bson:"ce_count" json:"ce"`
+	StatusRuntimeError        int `bson:"re_count" json:"re"`
+	StatusTimeLimitExceeded   int `bson:"tle_count" json:"tle"`
+	StatusMemoryLimitExceeded int `bson:"mle_count" json:"mle"`
+	StatusPartial             int `bson:"ptl_count" json:"ptl"`
 }

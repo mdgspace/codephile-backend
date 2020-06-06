@@ -1379,31 +1379,31 @@
             "title": "StatusCounts",
             "type": "object",
             "properties": {
-                "StatusCompilationError": {
+                "ac": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusCorrect": {
+                "ce": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusMemoryLimitExceeded": {
+                "mle": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusPartial": {
+                "ptl": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusRuntimeError": {
+                "re": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusTimeLimitExceeded": {
+                "tle": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "StatusWrongAnswer": {
+                "wa": {
                     "type": "integer",
                     "format": "int64"
                 }
