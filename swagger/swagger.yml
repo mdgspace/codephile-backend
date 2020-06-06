@@ -196,6 +196,34 @@ paths:
       security:
       - token_auth:
         - write:follow
+  /graph/activity/{uid}:
+    get:
+      tags:
+      - graph
+      description: Gives the activity graph for a user with given uid, (Logged-in
+        user if uid is empty)
+      operationId: GraphController.Activity Graph
+      parameters:
+      - in: path
+        name: uid
+        description: uid of user
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/types.ActivityGraph'
+        "400":
+          description: :uid is invalid
+        "401":
+          description: ': Unauthorized'
+        "404":
+          description: user not found
+        "500":
+          description: server_error
+      security:
+      - token_auth:
+        - read:user
   /submission/{site}:
     post:
       tags:
@@ -657,6 +685,11 @@ definitions:
   bson.ObjectId:
     title: ObjectId
     type: object
+  types.ActivityGraph:
+    title: ActivityGraph
+    type: array
+    items:
+      $ref: '#/definitions/types.SubmissionCount'
   types.AllProfiles:
     title: AllProfiles
     type: object
@@ -804,6 +837,22 @@ definitions:
         type: string
       username:
         type: string
+  types.SolvedProblemsCount:
+    title: SolvedProblemsCount
+    type: object
+    properties:
+      codechef:
+        type: integer
+        format: int64
+      codeforces:
+        type: integer
+        format: int64
+      hackerrank:
+        type: integer
+        format: int64
+      spoj:
+        type: integer
+        format: int64
   types.Submission:
     title: Submission
     type: object
@@ -829,6 +878,18 @@ definitions:
           type: string
       url:
         type: string
+  types.SubmissionCount:
+    title: SubmissionCount
+    type: object
+    properties:
+      correct:
+        type: integer
+        format: int64
+      created_at:
+        type: string
+      total:
+        type: integer
+        format: int64
   types.Upcoming:
     title: Upcoming
     type: object
@@ -870,6 +931,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/types.Submission'
+      solved_problems_count:
+        $ref: '#/definitions/types.SolvedProblemsCount'
       username:
         type: string
   types.WorldRankComparison:

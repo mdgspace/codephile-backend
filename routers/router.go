@@ -46,6 +46,11 @@ func init() {
 				&controllers.FeedController{},
 			),
 		),
+		beego.NSNamespace("/graph",
+			beego.NSInclude(
+				&controllers.GraphController{},
+			),
+		),
 	)
 
 	ns2 := beego.NewNamespace("/institutes", beego.NSGet("/", func(context *context.Context) {
