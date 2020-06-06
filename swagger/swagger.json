@@ -336,7 +336,51 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.User"
+                            "$ref": "#/definitions/types.ActivityGraph"
+                        }
+                    },
+                    "400": {
+                        "description": ":uid is invalid"
+                    },
+                    "401": {
+                        "description": ": Unauthorized"
+                    },
+                    "404": {
+                        "description": "user not found"
+                    },
+                    "500": {
+                        "description": "server_error"
+                    }
+                },
+                "security": [
+                    {
+                        "token_auth": [
+                            "read:user"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/graph/status/{uid}": {
+            "get": {
+                "tags": [
+                    "graph"
+                ],
+                "description": "Gives the count of the various different submissions of the user with a uid (Logged-in user if uid is empty)",
+                "operationId": "GraphController.Submissions Status",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "description": "uid of user",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/types.StatusCounts"
                         }
                     },
                     "400": {
@@ -1084,6 +1128,13 @@
             "title": "ObjectId",
             "type": "object"
         },
+        "types.ActivityGraph": {
+            "title": "ActivityGraph",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/types.SubmissionCount"
+            }
+        },
         "types.AllProfiles": {
             "title": "AllProfiles",
             "type": "object",
@@ -1324,6 +1375,40 @@
                 }
             }
         },
+        "types.StatusCounts": {
+            "title": "StatusCounts",
+            "type": "object",
+            "properties": {
+                "StatusCompilationError": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusCorrect": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusMemoryLimitExceeded": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusPartial": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusRuntimeError": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusTimeLimitExceeded": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "StatusWrongAnswer": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
         "types.Submission": {
             "title": "Submission",
             "type": "object",
@@ -1357,6 +1442,23 @@
                 },
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "types.SubmissionCount": {
+            "title": "SubmissionCount",
+            "type": "object",
+            "properties": {
+                "correct": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
