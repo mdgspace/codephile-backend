@@ -336,7 +336,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/types.User"
+                            "$ref": "#/definitions/types.ActivityGraph"
                         }
                     },
                     "400": {
@@ -1084,6 +1084,13 @@
             "title": "ObjectId",
             "type": "object"
         },
+        "types.ActivityGraph": {
+            "title": "ActivityGraph",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/types.SubmissionCount"
+            }
+        },
         "types.AllProfiles": {
             "title": "AllProfiles",
             "type": "object",
@@ -1357,6 +1364,23 @@
                 },
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "types.SubmissionCount": {
+            "title": "SubmissionCount",
+            "type": "object",
+            "properties": {
+                "correct": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },

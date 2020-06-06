@@ -17,7 +17,7 @@ type GraphController struct {
 // @Description Gives the activity graph for a user with given uid, (Logged-in user if uid is empty)
 // @Security token_auth read:user
 // @Param	uid		path 	string	false		"uid of user"
-// @Success 200 {object} types.User
+// @Success 200 {object} types.ActivityGraph
 // @Failure 401 : Unauthorized
 // @Failure 400 :uid is invalid
 // @Failure 404 user not found

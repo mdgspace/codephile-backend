@@ -212,7 +212,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/types.User'
+            $ref: '#/definitions/types.ActivityGraph'
         "400":
           description: :uid is invalid
         "401":
@@ -685,6 +685,11 @@ definitions:
   bson.ObjectId:
     title: ObjectId
     type: object
+  types.ActivityGraph:
+    title: ActivityGraph
+    type: array
+    items:
+      $ref: '#/definitions/types.SubmissionCount'
   types.AllProfiles:
     title: AllProfiles
     type: object
@@ -873,6 +878,18 @@ definitions:
           type: string
       url:
         type: string
+  types.SubmissionCount:
+    title: SubmissionCount
+    type: object
+    properties:
+      correct:
+        type: integer
+        format: int64
+      created_at:
+        type: string
+      total:
+        type: integer
+        format: int64
   types.Upcoming:
     title: Upcoming
     type: object
