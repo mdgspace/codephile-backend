@@ -224,6 +224,34 @@ paths:
       security:
       - token_auth:
         - read:user
+  /graph/status/{uid}:
+    get:
+      tags:
+      - graph
+      description: Gives the count of the various different submissions of the user
+        with a uid (Logged-in user if uid is empty)
+      operationId: GraphController.Submissions Status
+      parameters:
+      - in: path
+        name: uid
+        description: uid of user
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/types.StatusCounts'
+        "400":
+          description: :uid is invalid
+        "401":
+          description: ': Unauthorized'
+        "404":
+          description: user not found
+        "500":
+          description: server_error
+      security:
+      - token_auth:
+        - read:user
   /submission/{site}:
     post:
       tags:
@@ -851,6 +879,31 @@ definitions:
         type: integer
         format: int64
       spoj:
+        type: integer
+        format: int64
+  types.StatusCounts:
+    title: StatusCounts
+    type: object
+    properties:
+      ac:
+        type: integer
+        format: int64
+      ce:
+        type: integer
+        format: int64
+      mle:
+        type: integer
+        format: int64
+      ptl:
+        type: integer
+        format: int64
+      re:
+        type: integer
+        format: int64
+      tle:
+        type: integer
+        format: int64
+      wa:
         type: integer
         format: int64
   types.Submission:

@@ -3,6 +3,8 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"log"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
@@ -12,7 +14,6 @@ import (
 	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 var (

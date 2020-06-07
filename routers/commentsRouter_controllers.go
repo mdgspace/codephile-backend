@@ -106,6 +106,24 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:GraphController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:GraphController"],
+        beego.ControllerComments{
+            Method: "GetStatusCounts",
+            Router: `/status`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:GraphController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:GraphController"],
+        beego.ControllerComments{
+            Method: "GetStatusCounts",
+            Router: `/status/:uid`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"] = append(beego.GlobalControllerRouter["github.com/mdg-iitr/Codephile/controllers:SubmissionController"],
         beego.ControllerComments{
             Method: "PaginatedSubmissions",
