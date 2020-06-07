@@ -3,14 +3,15 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers"
-	"log"
-	"time"
 )
 
 //Returns HandleNotFoundError/UserNotFoundError/error
@@ -54,6 +55,26 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 	return nil
 }
 
+func DeleteSubmissions(uid bson.ObjectId, site string) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+
+	var resetTime time.Time
+	err := coll.UpdateId(uid, bson.M{
+		"$pull": bson.M{
+			"submissions": bson.M{
+				"url": bson.M{
+					"$regex": bson.RegEx{
+						Pattern: "^" + GetRegexSite(site)},
+				}},
+		},
+		"$set": bson.M{"lastfetched." + site: resetTime},
+	})
+
+	return err
+}
+
 func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
@@ -87,7 +108,7 @@ func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, err
 		unwind,
 		limit,
 		group,
-	}, )
+	})
 	var res types.User
 	err := pipe.One(&res)
 	return res.Submissions, err

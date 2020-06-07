@@ -9,6 +9,20 @@ const (
 
 var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
 
+func GetRegexSite(site string) string {
+	switch site {
+	case CODECHEF:
+		return "http://www.codechef.com"
+	case CODEFORCES:
+		return "http://codeforces.com"
+	case HACKERRANK:
+		return "https://www.hackerrank.com"
+	case SPOJ:
+		return "https://www.spoj.com"
+	}
+	return " "
+}
+
 func IsSiteValid(s string) bool {
 	for _, vs := range ValidSites {
 		if s == vs {

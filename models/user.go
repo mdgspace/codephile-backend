@@ -228,6 +228,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	var updateDoc = bson.M{}
 	var elasticDoc = map[string]interface{}{}
 	newHandle, err := GetHandle(uid)
+	var UpdatedSites []string
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -257,22 +258,27 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	if uu.Handle.Codechef != "" {
 		updateDoc["handle.codechef"] = uu.Handle.Codechef
 		newHandle.Codechef = uu.Handle.Codechef
+		UpdatedSites = append(UpdatedSites, CODECHEF)
 	}
 	if uu.Handle.Codeforces != "" {
 		updateDoc["handle.codeforces"] = uu.Handle.Codeforces
 		newHandle.Codeforces = uu.Handle.Codeforces
+		UpdatedSites = append(UpdatedSites, CODEFORCES)
 	}
 	if uu.Handle.Hackerearth != "" {
 		updateDoc["handle.hackerearth"] = uu.Handle.Hackerearth
 		newHandle.Hackerearth = uu.Handle.Hackerearth
+		// UpdatedSites = append(UpdatedSites, HACKEREARTH)
 	}
 	if uu.Handle.Hackerrank != "" {
 		updateDoc["handle.hackerrank"] = uu.Handle.Hackerrank
 		newHandle.Hackerrank = uu.Handle.Hackerrank
+		UpdatedSites = append(UpdatedSites, HACKERRANK)
 	}
 	if uu.Handle.Spoj != "" {
 		updateDoc["handle.spoj"] = uu.Handle.Spoj
 		newHandle.Spoj = uu.Handle.Spoj
+		UpdatedSites = append(UpdatedSites, SPOJ)
 	}
 	elasticDoc["handle"] = newHandle
 	if len(updateDoc) != 0 {
@@ -291,6 +297,14 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 			log.Println(err.Error())
 		}
 	}
+
+	go func() {
+		for _, value := range UpdatedSites {
+			_ = DeleteSubmissions(uid, value)
+			_ = AddSubmissions(uid, value)
+		}
+	}()
+
 	u, err := GetUser(uid)
 	if err != nil {
 		return nil, err
