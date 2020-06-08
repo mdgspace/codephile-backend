@@ -14,6 +14,8 @@ import (
 	"github.com/mdg-iitr/Codephile/scrappers"
 )
 
+// Fetches Submissions which are made after the lastFetched time, and
+// adds that to the database.
 //Returns HandleNotFoundError/UserNotFoundError/error
 func AddSubmissions(uid bson.ObjectId, site string) error {
 	if !IsSiteValid(site) {
