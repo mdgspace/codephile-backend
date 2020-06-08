@@ -381,10 +381,6 @@ paths:
         description: New Username
         type: string
       - in: formData
-        name: password
-        description: New Password
-        type: string
-      - in: formData
         name: fullname
         description: New Full name of User
         type: string
@@ -576,6 +572,33 @@ paths:
           description: invalid authentication token
         "500":
           description: server_error
+      security:
+      - token_auth:
+        - write:user
+  /user/password-reset:
+    post:
+      tags:
+      - user
+      description: Changes password of the user
+      operationId: UserController.Password Change
+      parameters:
+      - in: body
+        name: data
+        description: JSON body containing old and new password
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdatePassword'
+      responses:
+        "200":
+          description: '{string} success'
+        "400":
+          description: bad request
+        "401":
+          description: Unauthenticated
+        "403":
+          description: old password incorrect
+        "500":
+          description: server error
       security:
       - token_auth:
         - write:user
@@ -960,6 +983,14 @@ definitions:
       challenge_type:
         type: string
       url:
+        type: string
+  types.UpdatePassword:
+    title: UpdatePassword
+    type: object
+    properties:
+      new_password:
+        type: string
+      old_password:
         type: string
   types.User:
     title: User

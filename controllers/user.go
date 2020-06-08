@@ -145,7 +145,6 @@ func (u *UserController) Get() {
 // @Description update the logged in user
 // @Security token_auth write:user
 // @Param	username 		formData	string	false "New Username"
-// @Param	password		formData 	string	false "New Password"
 // @Param	fullname		formData 	string	false "New Full name of User"
 // @Param	institute		formData 	string	false "New Name of Institute"
 // @Param	handle.codechef	formData	string 	false "New Codechef Handle"
@@ -435,5 +434,44 @@ func (u *UserController) IsAvailable() {
 	}
 	u.Ctx.ResponseWriter.WriteHeader(403)
 	u.Data["json"] = "unavailable"
+	u.ServeJSON()
+}
+
+// @Title Password Change
+// @Description Changes password of the user
+// @Security token_auth write:user
+// @Param	data body types.UpdatePassword  true "JSON body containing old and new password
+// @Success 200 {string} success
+// @Failure 401 Unauthenticated
+// @Failure 400 bad request
+// @Failure 403 old password incorrect
+// @Failure 500 server error
+// @router /password-reset [post]
+func (u *UserController) PasswordChange() {
+	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	var passwordUpdateRequest types.UpdatePassword
+	err := json.Unmarshal(u.Ctx.Input.RequestBody, &passwordUpdateRequest)
+	if err != nil {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		u.Data["json"] = BadInputError("json body is malformed")
+		u.ServeJSON()
+		return
+	}
+	err = models.UpdatePassword(uid, passwordUpdateRequest)
+	if err == PasswordIncorrectError {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusForbidden)
+		u.Data["json"] = BadInputError("old password is incorrect")
+		u.ServeJSON()
+		return
+	} else if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("server error.. report to admin")
+		u.ServeJSON()
+		return
+	}
+	u.Data["json"] = "success"
 	u.ServeJSON()
 }
