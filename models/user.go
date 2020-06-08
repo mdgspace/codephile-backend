@@ -237,16 +237,6 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 		updateDoc["username"] = uu.Username
 		elasticDoc["username"] = uu.Username
 	}
-	if uu.Password != "" {
-		hash, err := bcrypt.GenerateFromPassword([]byte(uu.Password), bcrypt.DefaultCost)
-		if err != nil {
-			log.Println(err)
-			return nil, err
-		}
-		uu.Password = string(hash)
-		updateDoc["password"] = uu.Password
-		elasticDoc["password"] = uu.Password
-	}
 	if uu.Institute != "" {
 		updateDoc["institute"] = uu.Institute
 		elasticDoc["institute"] = uu.Institute
@@ -395,4 +385,25 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 		results = append(results, result)
 	}
 	return results, nil
+}
+
+// Updates the password of a given uid
+func UpdatePassword(uid bson.ObjectId, updatePasswordRequest types.UpdatePassword) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	var u types.User
+	err := coll.FindId(uid).Select(bson.M{"password": 1}).One(&u)
+	if err != nil {
+		return err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(updatePasswordRequest.OldPassword))
+	if err != nil || updatePasswordRequest.NewPassword == "" {
+		return PasswordIncorrectError
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(updatePasswordRequest.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return coll.UpdateId(uid, bson.M{"password": string(hash)})
 }

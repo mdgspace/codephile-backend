@@ -65,3 +65,8 @@ type SearchDoc struct {
 	Picture   string        `json:"picture"`
 	Handle    Handle        `json:"handle"`
 }
+
+type UpdatePassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
