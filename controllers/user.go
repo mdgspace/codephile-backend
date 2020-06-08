@@ -460,7 +460,7 @@ func (u *UserController) PasswordChange() {
 	err = models.UpdatePassword(uid, passwordUpdateRequest)
 	if err == PasswordIncorrectError {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusForbidden)
-		u.Data["json"] = BadInputError("old password is incorrect")
+		u.Data["json"] = BadInputError("old password is incorrect or new password is empty")
 		u.ServeJSON()
 		return
 	} else if err != nil {
