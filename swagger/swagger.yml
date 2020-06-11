@@ -768,6 +768,9 @@ definitions:
   types.CodechefSubmission:
     title: CodechefSubmission
     type: object
+  types.ContestTime:
+    title: ContestTime
+    type: object
   types.FeedObject:
     title: FeedObject
     type: object
@@ -835,7 +838,7 @@ definitions:
     type: object
     properties:
       EndTime:
-        type: string
+        $ref: '#/definitions/types.ContestTime'
       Name:
         type: string
       Platform:
@@ -973,13 +976,13 @@ definitions:
       Duration:
         type: string
       EndTime:
-        type: string
+        $ref: '#/definitions/types.ContestTime'
       Name:
         type: string
       Platform:
         type: string
       StartTime:
-        type: string
+        $ref: '#/definitions/types.ContestTime'
       challenge_type:
         type: string
       url:
