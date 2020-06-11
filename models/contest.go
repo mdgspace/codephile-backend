@@ -73,13 +73,13 @@ func updateCache() (types.Result, error) {
 		time1 := result.Upcoming[i].StartTime.Time
 		time2 := result.Upcoming[j].StartTime.Time
 		diff := time2.Sub(time1).Seconds()
-		return diff < 0.0
+		return diff > 0.0
 	})
 	sort.Slice(result.Ongoing, func(i, j int) bool {
 		time1 := result.Ongoing[i].EndTime.Time
 		time2 := result.Ongoing[j].EndTime.Time
 		diff := time2.Sub(time1).Seconds()
-		return diff < 0.0
+		return diff > 0.0
 	})
 	client := redis.GetRedisClient()
 	_, err = client.Set("contest", result, time.Hour).Result()
