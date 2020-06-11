@@ -2,15 +2,16 @@ package models
 
 import (
 	"encoding/json"
-	r "github.com/go-redis/redis"
-	"github.com/mdg-iitr/Codephile/models/types"
-	"github.com/mdg-iitr/Codephile/services/redis"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
+	r "github.com/go-redis/redis"
+	"github.com/mdg-iitr/Codephile/models/types"
+	"github.com/mdg-iitr/Codephile/services/redis"
 )
 
 func ReturnContests() (types.Result, error) {
@@ -69,18 +70,16 @@ func updateCache() (types.Result, error) {
 	}
 	result := s["result"]
 	sort.Slice(result.Upcoming, func(i, j int) bool {
-		timeLayout := "Mon, 2 Jan 2006 15:04"
-		time1, _ := time.Parse(timeLayout, result.Upcoming[i].StartTime)
-		time2, _ := time.Parse(timeLayout, result.Upcoming[j].StartTime)
+		time1 := result.Upcoming[i].StartTime.Time
+		time2 := result.Upcoming[j].StartTime.Time
 		diff := time2.Sub(time1).Seconds()
-		return diff < 0.0
+		return diff > 0.0
 	})
 	sort.Slice(result.Ongoing, func(i, j int) bool {
-		timeLayout := "Mon, 2 Jan 2006 15:04"
-		time1, _ := time.Parse(timeLayout, result.Ongoing[i].EndTime)
-		time2, _ := time.Parse(timeLayout, result.Ongoing[j].EndTime)
+		time1 := result.Ongoing[i].EndTime.Time
+		time2 := result.Ongoing[j].EndTime.Time
 		diff := time2.Sub(time1).Seconds()
-		return diff < 0.0
+		return diff > 0.0
 	})
 	client := redis.GetRedisClient()
 	_, err = client.Set("contest", result, time.Hour).Result()

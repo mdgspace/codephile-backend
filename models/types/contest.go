@@ -2,24 +2,25 @@ package types
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type Ongoing struct {
-	EndTime       string `json:"EndTime" bson:"EndTime"`
-	Name          string `json:"Name" bson:"Name"`
-	Platform      string `json:"Platform" bson:"Platform"`
-	ChallengeType string `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
-	URL           string `json:"url" bson:"url"`
+	EndTime       ContestTime `json:"EndTime" bson:"EndTime"`
+	Name          string      `json:"Name" bson:"Name"`
+	Platform      string      `json:"Platform" bson:"Platform"`
+	ChallengeType string      `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
+	URL           string      `json:"url" bson:"url"`
 }
 
 type Upcoming struct {
-	Duration      string `json:"Duration" bson:"Duration"`
-	EndTime       string `json:"EndTime" bson:"EndTime"`
-	Name          string `json:"Name" bson:"Name"`
-	Platform      string `json:"Platform" bson:"Platform"`
-	StartTime     string `json:"StartTime" bson:"StartTime"`
-	URL           string `json:"url" bson:"url"`
-	ChallengeType string `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
+	Duration      string      `json:"Duration" bson:"Duration"`
+	EndTime       ContestTime `json:"EndTime" bson:"EndTime"`
+	Name          string      `json:"Name" bson:"Name"`
+	Platform      string      `json:"Platform" bson:"Platform"`
+	StartTime     ContestTime `json:"StartTime" bson:"StartTime"`
+	URL           string      `json:"url" bson:"url"`
+	ChallengeType string      `json:"challenge_type,omitempty" bson:"challenge_type,omitempty"`
 }
 
 type Result struct {
@@ -34,4 +35,21 @@ func (res Result) MarshalBinary() ([]byte, error) {
 
 func (res *Result) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, res)
+}
+
+type ContestTime struct {
+	time.Time
+}
+
+func (c *ContestTime) UnmarshalJSON(b []byte) error {
+	timeLayout := "Mon, 2 Jan 2006 15:04"
+	timeLayout2 := "Mon Jan 2 2006 00:00"
+	var ts string
+	_ = json.Unmarshal(b, &ts)
+	timeToAssign, err := time.Parse(timeLayout, ts)
+	if err != nil {
+		timeToAssign, _ = time.Parse(timeLayout2, ts)
+	}
+	*c = ContestTime{timeToAssign}
+	return nil
 }
