@@ -42,14 +42,19 @@ type ContestTime struct {
 }
 
 func (c *ContestTime) UnmarshalJSON(b []byte) error {
-	timeLayout := "Mon, 2 Jan 2006 15:04"
-	timeLayout2 := "Mon Jan 2 2006 00:00"
-	var ts string
-	_ = json.Unmarshal(b, &ts)
-	timeToAssign, err := time.Parse(timeLayout, ts)
+	timeLayout := "\"Mon, 2 Jan 2006 15:04\""
+	timeLayout2 := "\"Mon Jan 2 2006 00:00\""
+	ts := string(b)
+	if ts == "null" {
+		return nil
+	}
+	timeToAssign, err := time.Parse(`"`+time.RFC3339+`"`, ts)
 	if err != nil {
-		timeToAssign, _ = time.Parse(timeLayout2, ts)
+		timeToAssign, err = time.Parse(timeLayout, ts)
+		if err != nil {
+			timeToAssign, err = time.Parse(timeLayout2, ts)
+		}
 	}
 	*c = ContestTime{timeToAssign}
-	return nil
+	return err
 }
