@@ -407,3 +407,13 @@ func UpdatePassword(uid bson.ObjectId, updatePasswordRequest types.UpdatePasswor
 	}
 	return coll.UpdateId(uid, bson.M{"password": string(hash)})
 }
+
+func FilterUsers(instituteName string) ([]types.SearchDoc, error) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	var result []types.SearchDoc
+	err := coll.Find(bson.M{"institute": instituteName}).Select(bson.M{"_id": 1, "username": 1,
+		"handle": 1, "picture": 1, "fullname": 1, "institute": 1}).All(&result)
+	return result, err
+}
