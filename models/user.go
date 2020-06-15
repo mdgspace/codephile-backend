@@ -405,5 +405,5 @@ func UpdatePassword(uid bson.ObjectId, updatePasswordRequest types.UpdatePasswor
 	if err != nil {
 		return err
 	}
-	return coll.UpdateId(uid, bson.M{"password": string(hash)})
+	return coll.UpdateId(uid, bson.M{"$set": bson.M{"password": string(hash)}})
 }
