@@ -537,6 +537,32 @@ paths:
       security:
       - token_auth:
         - read:user
+  /user/filter:
+    get:
+      tags:
+      - user
+      description: Filter users on basis of institute name
+      operationId: UserController.Filter
+      parameters:
+      - in: query
+        name: institute
+        description: Institute Name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/types.SearchDoc'
+        "404":
+          description: '"No users found"'
+        "500":
+          description: server_error
+      security:
+      - token_auth:
+        - read:user
   /user/login:
     post:
       tags:

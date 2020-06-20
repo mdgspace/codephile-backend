@@ -475,3 +475,33 @@ func (u *UserController) PasswordChange() {
 	u.Data["json"] = "success"
 	u.ServeJSON()
 }
+
+// @Title Filter
+// @Description Filter users on basis of institute name
+// @Security token_auth read:user
+// @Param	institute		query 	string	true		"Institute Name"
+// @Success 200 {object} []types.SearchDoc
+// @Failure 404 "No users found"
+// @Failure 500 server_error
+// @router /filter [get]
+func (u *UserController) FilterUsers() {
+	instituteName := u.GetString("institute")
+	res, err := models.FilterUsers(instituteName)
+	if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("server error.. report to admin")
+		u.ServeJSON()
+		return
+	}
+	if len(res) == 0 {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
+		u.Data["json"] = NotFoundError("no such user")
+		u.ServeJSON()
+		return
+	}
+	u.Data["json"] = res
+	u.ServeJSON()
+}
