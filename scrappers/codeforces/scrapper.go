@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	. "github.com/mdg-iitr/Codephile/conf"
-	"github.com/mdg-iitr/Codephile/models/types"
-	"github.com/mdg-iitr/Codephile/scrappers/common"
 	"log"
 	"strconv"
 	"time"
+
+	. "github.com/mdg-iitr/Codephile/conf"
+	"github.com/mdg-iitr/Codephile/models/types"
+	"github.com/mdg-iitr/Codephile/scrappers/common"
 )
 
 type Scrapper struct {
@@ -102,7 +103,11 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 		submissions[i].Status = status
 		submissions[i].Language = result["programmingLanguage"].(string)
 		submissions[i].Name = problem["name"].(string)
-		submissions[i].URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)
+		if problem["contestId"] != nil {
+			submissions[i].URL = "http://codeforces.com/problemset/problem/" + strconv.Itoa(int(problem["contestId"].(float64))) + "/" + problem["index"].(string)
+		} else {
+			submissions[i].URL = ""
+		}
 		submissions[i].CreationDate = time.Unix(int64(result["creationTimeSeconds"].(float64)), 0)
 		if problem["points"] != nil {
 			submissions[i].Points = int(problem["points"].(float64))
