@@ -26,6 +26,7 @@ func init() {
 func TestGetAllUsers(t *testing.T) {
 	uid, _ := models.AddUser(types.User{
 		ID:        bson.NewObjectId(),
+		Email:     "test@abc.com",
 		Username:  "test",
 		FullName:  "Test User",
 		Institute: "IIT Roorkee",
