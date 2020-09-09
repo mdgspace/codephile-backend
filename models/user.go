@@ -360,6 +360,12 @@ func UserExists(username string) (bool, error) {
 	return false, nil
 }
 
+func PasswordResetEmail(email string) bool {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	return true
+}
+
 func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 	pq := elastic.NewQueryStringQuery("*" + query + "*").
 		Field("username").Field("fullname").

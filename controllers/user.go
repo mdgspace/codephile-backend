@@ -2,6 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -17,9 +21,6 @@ import (
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/mdg-iitr/Codephile/services/worker"
-	"log"
-	"net/http"
-	"os"
 )
 
 var decoder = schema.NewDecoder()
@@ -206,6 +207,23 @@ func (u *UserController) Login() {
 	u.ServeJSON()
 }
 
+// @Title Password-Reset
+// @Description Resets the password of the user
+// @Param	email		formData 	string	true		"The email for of the user"
+// @Success 200 {string} email sent
+// @Failure 403 user not exist
+// @router /password-reset [post]
+func (u *UserController) PasswordReset() {
+	email := u.Ctx.Request.FormValue("email")
+	if isValid := models.PasswordResetEmail(email); isValid {
+		u.Data["json"] = map[string]string{"email": "sent"}
+	} else {
+		u.Data["json"] = map[string]string{"error": "invalid email"}
+		u.Ctx.ResponseWriter.WriteHeader(403)
+	}
+	u.ServeJSON()
+}
+
 // @Title logout
 // @Description Logs out current logged in user session
 // @Security token_auth write:user
@@ -296,7 +314,7 @@ func (u *UserController) Verify() {
 	u.ServeJSON()
 }
 
-// @Title Fetch User Info	
+// @Title Fetch User Info
 // @Description Fetches user info from different websites and store them into the database
 // @Security token_auth write:user
 // @Param	site		path 	string	true		"site name"
