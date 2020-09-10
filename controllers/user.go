@@ -33,6 +33,7 @@ type UserController struct {
 // @Title CreateUser
 // @Description create users
 // @Param	username 		formData	string	true "Username"
+// @Param	email 			formData	string	true "E-mail"
 // @Param	password		formData 	string	true "Password"
 // @Param	fullname		formData 	string	true "Full name of User"
 // @Param	institute		formData 	string	false "Name of Institute"
@@ -49,13 +50,7 @@ func (u *UserController) CreateUser() {
 	user, err := u.parseRequestBody()
 	if err != nil {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
-		u.Data["json"] = BadInputError("Bad request body")
-		u.ServeJSON()
-		return
-	}
-	if user.Username == "" || user.Password == "" || user.FullName == "" {
-		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
-		u.Data["json"] = BadInputError("username/password/full name cannot be empty")
+		u.Data["json"] = BadInputError(err.Error())
 		u.ServeJSON()
 		return
 	}

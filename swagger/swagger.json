@@ -1056,6 +1056,13 @@
                     },
                     {
                         "in": "formData",
+                        "name": "email",
+                        "description": "E-mail",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
                         "name": "password",
                         "description": "Password",
                         "required": true,
@@ -1589,6 +1596,9 @@
             "title": "User",
             "type": "object",
             "properties": {
+                "email": {
+                    "type": "string"
+                },
                 "fullname": {
                     "type": "string"
                 },

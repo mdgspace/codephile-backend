@@ -96,6 +96,7 @@ var (
 
 func AddUser(u types.User) (string, error) {
 	u.ID = bson.NewObjectId()
+	u.Verified = false
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	//hashing the password
@@ -137,7 +138,7 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.FindId(uid).Select(bson.M{"_id": 1, "username": 1,
+	err := collection.Collection.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "email": 1,
 		"handle": 1, "lastfetched": 1, "profiles": 1,
 		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).One(&user)
 	//fmt.Println(err.Error())
@@ -145,12 +146,12 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 		return nil, err
 	}
 	pipe := collection.Collection.Pipe([]bson.M{
-		bson.M{
+		{
 			"$match": bson.M{
 				"_id": uid,
 			},
 		},
-		bson.M{
+		{
 			"$project": bson.M{
 				"_id":              0,
 				"following":        getFollowingCountQuery,
@@ -179,14 +180,14 @@ func GetAllUsers() ([]types.User, error) {
 	var users []types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.Find(nil).Select(bson.M{"_id": 1, "username": 1,
+	err := collection.Collection.Find(nil).Select(bson.M{"_id": 1, "username": 1, "email": 1,
 		"handle": 1, "lastfetched": 1, "profiles": 1,
 		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).All(&users)
 	if err != nil {
 		return nil, err
 	}
 	pipe := collection.Collection.Pipe([]bson.M{
-		bson.M{
+		{
 			"$project": bson.M{
 				"_id":              0,
 				"following":        getFollowingCountQuery,
@@ -306,7 +307,7 @@ func AuthenticateUser(username string, password string) (*types.User, bool) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.Find(bson.M{"username": username}).One(&user)
+	err := collection.Collection.Find(bson.M{"username": username}).Select(bson.M{"password": 1, "verified": 1}).One(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		//log.Println(err)
@@ -419,7 +420,7 @@ func FilterUsers(instituteName string) ([]types.SearchDoc, error) {
 	defer sess.Close()
 	coll := sess.Collection
 	var result []types.SearchDoc
-	err := coll.Find(bson.M{"institute": instituteName}).Select(bson.M{"_id": 1, "username": 1,
+	err := coll.Find(bson.M{"institute": instituteName}).Select(bson.M{"_id": 1, "username": 1, "email": 1,
 		"handle": 1, "picture": 1, "fullname": 1, "institute": 1}).All(&result)
 	return result, err
 }

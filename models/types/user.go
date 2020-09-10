@@ -3,16 +3,19 @@ package types
 import (
 	"encoding/json"
 	"github.com/globalsign/mgo/bson"
+	. "github.com/mdg-iitr/Codephile/errors"
 	"time"
 )
 
 type User struct {
 	ID                  bson.ObjectId         `bson:"_id" json:"id" schema:"-"`
 	Username            string                `bson:"username" json:"username" schema:"username"`
+	Email               string                `bson:"email" json:"email" schema:"email"`
 	FullName            string                `bson:"fullname" json:"fullname" schema:"fullname"`
 	Institute           string                `bson:"institute" json:"institute" schema:"institute"`
 	Password            string                `bson:"password" json:"-" schema:"password"`
 	Picture             string                `bson:"picture" json:"picture"`
+	Verified            bool                  `bson:"verified" schema:"-" json:"-"`
 	Handle              Handle                `bson:"handle" json:"handle" schema:"handle"`
 	Submissions         []Submission          `bson:"submissions" json:"recent_submissions" schema:"-"`
 	Profiles            AllProfiles           `json:"profiles" bson:"profiles" schema:"-"`
@@ -40,15 +43,24 @@ func (u *User) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &m)
 	if val, ok := m["password"]; ok {
 		u.Password = val.(string)
+	} else {
+		return FieldEmptyError
 	}
 	if val, ok := m["username"]; ok {
 		u.Username = val.(string)
+	} else {
+		return FieldEmptyError
 	}
 	if val, ok := m["fullname"]; ok {
 		u.FullName = val.(string)
 	}
 	if val, ok := m["institute"]; ok {
 		u.Institute = val.(string)
+	}
+	if val, ok := m["email"]; ok {
+		u.Email = val.(string)
+	} else {
+		return FieldEmptyError
 	}
 	if val, ok := m["handle"]; ok {
 		d, _ := json.Marshal(val)
