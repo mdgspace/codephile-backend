@@ -224,9 +224,45 @@ func (u *UserController) PasswordResetEmail() {
 // @Description Resets the password of the user
 // @Success 200 {string} Password reset form received
 // @Failure 403 Password reset initiated
-// @router /password-reset/:uuid/:token [get]
+// @router /password-reset/:uuid/:uid [get]
+// @router /password-reset/:uuid/:uid [post]
 func (u *UserController) PasswordResetForm() {
-	u.TplName = "password-submission.html"
+	uid := u.GetString(":uid")
+	uuid := u.GetString(":uuid")
+	client := redis.GetRedisClient()
+	if uuid == "" || uid == "" || client.Get(uid).Val() != uuid || !bson.IsObjectIdHex(uid) {
+		u.TplName = "link_expired.html"
+		u.Render()
+		return
+	}
+	if u.Ctx.Request.Method == http.MethodGet {
+		u.TplName = "password-submission.html"
+		u.Render()
+		return
+	} else {
+		newPassword := u.GetString("reset_password")
+		confirmPassword := u.GetString("confirm_password")
+		if newPassword == "" || confirmPassword != newPassword {
+			u.TplName = "password-submission.html"
+			u.Data["status"] = "both password should match"
+			u.Render()
+		}
+		u.TplName = "reset_successful.html"
+		err := models.ResetPassword(bson.ObjectIdHex(uid), newPassword)
+		if err != nil {
+			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+			hub.CaptureException(err)
+			u.Data["json"] = InternalServerError("Unexpected Error... Report to admin")
+			u.ServeJSON()
+			return
+		}
+		_, err = client.Del(uid).Result()
+		if err != nil {
+			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+			hub.CaptureException(err)
+		}
+		u.Render()
+	}
 }
 
 // @Title logout

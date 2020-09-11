@@ -3,19 +3,20 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/astaxie/beego"
+	"github.com/mdg-iitr/Codephile/services/mail"
 	"log"
 
 	"github.com/globalsign/mgo"
-	"github.com/google/uuid"
-	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/globalsign/mgo/bson"
+	"github.com/google/uuid"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
-	"github.com/mdg-iitr/Codephile/services/mail"
-	"github.com/mdg-iitr/Codephile/services/auth"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -375,14 +376,15 @@ func PasswordResetEmail(email string) bool {
 	}
 	client := redis.GetRedisClient()
 	uniq_id := uuid.New().String()
-	_, err = client.Set(uniq_id, user.ID, 0).Result()
+	_, err = client.Set(user.ID.Hex(), uniq_id, 0).Result()
 	if err != nil {
+		fmt.Println(err.Error())
 		return false
 	}
-	token := auth.GenerateToken(user.ID.Hex())
-	link := "https://codephile.mdg.iitr.ac.in/" + uniq_id + "/" + token
+	fmt.Println(beego.BConfig.ServerName)
+	link := "http://localhost:8080/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
 	body := "Please reset your password by clicking on the following link: \n" + link
-	mail.SendMail(email, "Codephile Password Reset", body)
+	go mail.SendMail(email, "Codephile Password Reset", body)
 	return true
 }
 
@@ -411,6 +413,17 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 		results = append(results, result)
 	}
 	return results, nil
+}
+
+func ResetPassword(id bson.ObjectId, newPassword string) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return coll.UpdateId(id, bson.M{"$set": bson.M{"password": string(hash)}})
 }
 
 // Updates the password of a given uid
