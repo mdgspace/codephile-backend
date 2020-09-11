@@ -628,6 +628,34 @@ paths:
       security:
       - token_auth:
         - write:user
+  /user/password-reset-email:
+    post:
+      tags:
+      - user
+      description: Sends the Resets the password of the user
+      operationId: UserController.Password-Reset-Email
+      parameters:
+      - in: formData
+        name: email
+        description: The email for of the user
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} email sent'
+        "403":
+          description: user not exist
+  /user/password-reset/{uuid}/{uid}:
+    post:
+      tags:
+      - user
+      description: Resets the password of the user
+      operationId: UserController.Password-Reset-Form
+      responses:
+        "200":
+          description: '{string} Password reset form received'
+        "403":
+          description: Password reset initiated
   /user/picture:
     put:
       tags:
