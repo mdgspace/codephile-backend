@@ -308,7 +308,7 @@ func init() {
         beego.ControllerComments{
             Method: "PasswordResetForm",
             Router: `/password-reset/:uuid/:uid`,
-            AllowHTTPMethods: []string{"post"},
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -317,7 +317,7 @@ func init() {
         beego.ControllerComments{
             Method: "PasswordResetForm",
             Router: `/password-reset/:uuid/:uid`,
-            AllowHTTPMethods: []string{"get"},
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

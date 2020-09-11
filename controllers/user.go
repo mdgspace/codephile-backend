@@ -17,7 +17,6 @@ import (
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers"
-	// "github.com/mdg-iitr/Codephile/forms"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
@@ -204,10 +203,10 @@ func (u *UserController) Login() {
 }
 
 // @Title Password-Reset-Email
-// @Description Sends the Resets the password of the user
-// @Param	email		formData 	string	true		"The email for of the user"
+// @Description Sends an email to the user to reset the password
+// @Param	email		formData 	string	true		"The email of the user"
 // @Success 200 {string} email sent
-// @Failure 403 user not exist
+// @Failure 403 user doesn't exist
 // @router /password-reset-email [post]
 func (u *UserController) PasswordResetEmail() {
 	email := u.Ctx.Request.FormValue("email")

@@ -632,19 +632,19 @@ paths:
     post:
       tags:
       - user
-      description: Sends the Resets the password of the user
+      description: Sends an email to the user to reset the password
       operationId: UserController.Password-Reset-Email
       parameters:
       - in: formData
         name: email
-        description: The email for of the user
+        description: The email of the user
         required: true
         type: string
       responses:
         "200":
           description: '{string} email sent'
         "403":
-          description: user not exist
+          description: user doesn't exist
   /user/password-reset/{uuid}/{uid}:
     post:
       tags:
