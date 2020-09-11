@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/mdg-iitr/Codephile/services/mail"
 	"log"
+
+	"github.com/mdg-iitr/Codephile/services/mail"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -381,7 +381,6 @@ func PasswordResetEmail(email string) bool {
 		fmt.Println(err.Error())
 		return false
 	}
-	fmt.Println(beego.BConfig.ServerName)
 	link := "http://localhost:8080/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
 	body := "Please reset your password by clicking on the following link: \n" + link
 	go mail.SendMail(email, "Codephile Password Reset", body)
