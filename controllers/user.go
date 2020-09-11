@@ -17,6 +17,7 @@ import (
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers"
+	// "github.com/mdg-iitr/Codephile/forms"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
@@ -202,13 +203,13 @@ func (u *UserController) Login() {
 	u.ServeJSON()
 }
 
-// @Title Password-Reset
-// @Description Resets the password of the user
+// @Title Password-Reset-Email
+// @Description Sends the Resets the password of the user
 // @Param	email		formData 	string	true		"The email for of the user"
 // @Success 200 {string} email sent
 // @Failure 403 user not exist
-// @router /password-reset [post]
-func (u *UserController) PasswordReset() {
+// @router /password-reset-email [post]
+func (u *UserController) PasswordResetEmail() {
 	email := u.Ctx.Request.FormValue("email")
 	if isValid := models.PasswordResetEmail(email); isValid {
 		u.Data["json"] = map[string]string{"email": "sent"}
@@ -217,6 +218,15 @@ func (u *UserController) PasswordReset() {
 		u.Ctx.ResponseWriter.WriteHeader(403)
 	}
 	u.ServeJSON()
+}
+
+// @Title Password-Reset-Form
+// @Description Resets the password of the user
+// @Success 200 {string} Password reset form received
+// @Failure 403 Password reset initiated
+// @router /password-reset/:uuid/:token [get]
+func (u *UserController) PasswordResetForm() {
+	u.TplName = "password-submission.html"
 }
 
 // @Title logout

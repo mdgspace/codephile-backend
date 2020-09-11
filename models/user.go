@@ -6,12 +6,16 @@ import (
 	"log"
 
 	"github.com/globalsign/mgo"
+	"github.com/google/uuid"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
+	"github.com/mdg-iitr/Codephile/services/mail"
+	"github.com/mdg-iitr/Codephile/services/auth"
 	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -364,6 +368,21 @@ func UserExists(username string) (bool, error) {
 func PasswordResetEmail(email string) bool {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
+	var user types.User
+	err := collection.Collection.Find(bson.M{"email": email}).One(&user)
+	if err != nil {
+		return false
+	}
+	client := redis.GetRedisClient()
+	uniq_id := uuid.New().String()
+	_, err = client.Set(uniq_id, user.ID, 0).Result()
+	if err != nil {
+		return false
+	}
+	token := auth.GenerateToken(user.ID.Hex())
+	link := "https://codephile.mdg.iitr.ac.in/" + uniq_id + "/" + token
+	body := "Please reset your password by clicking on the following link: \n" + link
+	mail.SendMail(email, "Codephile Password Reset", body)
 	return true
 }
 
