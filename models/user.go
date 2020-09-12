@@ -375,7 +375,7 @@ func PasswordResetEmail(email string, hostName string) bool {
 	}
 	client := redis.GetRedisClient()
 	uniq_id := uuid.New().String()
-	_, err = client.Set(user.ID.Hex(), uniq_id, 0).Result()
+	_, err = client.Set(user.ID.Hex(), uniq_id, 3600000).Result()
 	if err != nil {
 		log.Println(err.Error())
 		return false
