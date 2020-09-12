@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/mdg-iitr/Codephile/services/mail"
@@ -366,7 +365,7 @@ func UserExists(username string) (bool, error) {
 	return false, nil
 }
 
-func PasswordResetEmail(email string) bool {
+func PasswordResetEmail(email string, hostName string) bool {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	var user types.User
@@ -378,11 +377,12 @@ func PasswordResetEmail(email string) bool {
 	uniq_id := uuid.New().String()
 	_, err = client.Set(user.ID.Hex(), uniq_id, 0).Result()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return false
 	}
-	link := "http://localhost:8080/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
+	link := hostName + "/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
 	body := "Please reset your password by clicking on the following link: \n" + link
+	body += "\nThis link will expire in 1 hr"
 	go mail.SendMail(email, "Codephile Password Reset", body)
 	return true
 }

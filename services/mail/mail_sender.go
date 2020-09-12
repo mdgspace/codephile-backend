@@ -1,7 +1,7 @@
 package mail
 
 import (
-	"fmt"
+	"log"
 	"net/smtp"
 	"os"
 )
@@ -22,8 +22,7 @@ func SendMail(to string, subject string, body string) {
 	// Sending email.
 	err := smtp.SendMail(smtpHost + ":" + smtpPort, auth, from, []string{to}, []byte(msg))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
-	fmt.Println("Email Sent Successfully!")
 }

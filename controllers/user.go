@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -210,7 +211,14 @@ func (u *UserController) Login() {
 // @router /password-reset-email [post]
 func (u *UserController) PasswordResetEmail() {
 	email := u.Ctx.Request.FormValue("email")
-	if isValid := models.PasswordResetEmail(email); isValid {
+	var hostName string
+	if u.Ctx.Request.TLS == nil {
+		hostName = "http://" + u.Ctx.Request.Host
+	}else{
+		hostName = "https://" + u.Ctx.Request.Host
+	}
+	fmt.Println(hostName)
+	if isValid := models.PasswordResetEmail(email, hostName); isValid {
 		u.Data["json"] = map[string]string{"email": "sent"}
 	} else {
 		u.Data["json"] = map[string]string{"error": "invalid email"}
@@ -231,12 +239,12 @@ func (u *UserController) PasswordResetForm() {
 	client := redis.GetRedisClient()
 	if uuid == "" || uid == "" || client.Get(uid).Val() != uuid || !bson.IsObjectIdHex(uid) {
 		u.TplName = "link_expired.html"
-		u.Render()
+		_ = u.Render()
 		return
 	}
 	if u.Ctx.Request.Method == http.MethodGet {
 		u.TplName = "password-submission.html"
-		u.Render()
+		_ = u.Render()
 		return
 	} else {
 		newPassword := u.GetString("reset_password")
@@ -244,7 +252,8 @@ func (u *UserController) PasswordResetForm() {
 		if newPassword == "" || confirmPassword != newPassword {
 			u.TplName = "password-submission.html"
 			u.Data["status"] = "both password should match"
-			u.Render()
+			_ = u.Render()
+			return
 		}
 		u.TplName = "reset_successful.html"
 		err := models.ResetPassword(bson.ObjectIdHex(uid), newPassword)
@@ -260,7 +269,7 @@ func (u *UserController) PasswordResetForm() {
 			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 			hub.CaptureException(err)
 		}
-		u.Render()
+		_ = u.Render()
 	}
 }
 

@@ -21,6 +21,10 @@ FIREBASE_CONFIG = <Firebase config including bucket name(json)>
 FIREBASE_CREDENTIALS = <Firebase admin SDK credentials(json)>
 ELASTICURL = <connection string of elasticsearch cloud>
 SENTRY_DSN = <Data source name of sentry server: optional>
+EMAIL_SMTP_HOST = <host of smtp server>
+EMAIL_SMTP_PORT = <port of smtp server>
+EMAIL_SERVER_USER = <username of email account>
+EMAIL_SERVER_PASS = <password of email account>
 ```
 NOTE: Before proceeding further, ensure that your local .env file is present with above configuration variables.
 
