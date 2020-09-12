@@ -20,7 +20,7 @@ var UserBlacklisted = "blacklisted"
 
 func GenerateToken(uid string) string {
 	currentTimestamp := time.Now().UTC().Unix()
-	var ttl = beego.AppConfig.DefaultInt64("TOKENDURATION", 3600)
+	var ttl = beego.AppConfig.DefaultInt64("TOKENDURATION", 3600000)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: currentTimestamp + ttl,
 		IssuedAt:  currentTimestamp,

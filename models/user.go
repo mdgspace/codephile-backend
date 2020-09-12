@@ -5,13 +5,17 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/mdg-iitr/Codephile/services/mail"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/google/uuid"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
+	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -361,6 +365,28 @@ func UserExists(username string) (bool, error) {
 	return false, nil
 }
 
+func PasswordResetEmail(email string, hostName string) bool {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	var user types.User
+	err := collection.Collection.Find(bson.M{"email": email}).One(&user)
+	if err != nil {
+		return false
+	}
+	client := redis.GetRedisClient()
+	uniq_id := uuid.New().String()
+	_, err = client.Set(user.ID.Hex(), uniq_id, 3600000).Result()
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+	link := hostName + "/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
+	body := "Please reset your password by clicking on the following link: \n" + link
+	body += "\nThis link will expire in 1 hr"
+	go mail.SendMail(email, "Codephile Password Reset", body)
+	return true
+}
+
 func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 	pq := elastic.NewQueryStringQuery("*" + query + "*").
 		Field("username").Field("fullname").
@@ -386,6 +412,17 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 		results = append(results, result)
 	}
 	return results, nil
+}
+
+func ResetPassword(id bson.ObjectId, newPassword string) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return coll.UpdateId(id, bson.M{"$set": bson.M{"password": string(hash)}})
 }
 
 // Updates the password of a given uid

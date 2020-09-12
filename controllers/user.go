@@ -2,6 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -17,9 +21,6 @@ import (
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/mdg-iitr/Codephile/services/worker"
-	"log"
-	"net/http"
-	"os"
 )
 
 var decoder = schema.NewDecoder()
@@ -201,6 +202,75 @@ func (u *UserController) Login() {
 	u.ServeJSON()
 }
 
+// @Title Password-Reset-Email
+// @Description Sends an email to the user to reset the password
+// @Param	email		formData 	string	true		"The email of the user"
+// @Success 200 {string} email sent
+// @Failure 403 user doesn't exist
+// @router /password-reset-email [post]
+func (u *UserController) PasswordResetEmail() {
+	email := u.Ctx.Request.FormValue("email")
+	var hostName string
+	if u.Ctx.Request.TLS == nil {
+		hostName = "http://" + u.Ctx.Request.Host
+	}else{
+		hostName = "https://" + u.Ctx.Request.Host
+	}
+	if isValid := models.PasswordResetEmail(email, hostName); isValid {
+		u.Data["json"] = map[string]string{"email": "sent"}
+	} else {
+		u.Data["json"] = map[string]string{"error": "invalid email"}
+		u.Ctx.ResponseWriter.WriteHeader(403)
+	}
+	u.ServeJSON()
+}
+
+// @Title Password-Reset-Form
+// @Description Resets the password of the user
+// @Success 200 {string} Password reset form received
+// @Failure 403 Password reset initiated
+// @router /password-reset/:uuid/:uid [get]
+// @router /password-reset/:uuid/:uid [post]
+func (u *UserController) PasswordResetForm() {
+	uid := u.GetString(":uid")
+	uuid := u.GetString(":uuid")
+	client := redis.GetRedisClient()
+	if uuid == "" || uid == "" || client.Get(uid).Val() != uuid || !bson.IsObjectIdHex(uid) {
+		u.TplName = "link_expired.html"
+		_ = u.Render()
+		return
+	}
+	if u.Ctx.Request.Method == http.MethodGet {
+		u.TplName = "password-submission.html"
+		_ = u.Render()
+		return
+	} else {
+		newPassword := u.GetString("reset_password")
+		confirmPassword := u.GetString("confirm_password")
+		if newPassword == "" || confirmPassword != newPassword {
+			u.TplName = "password-submission.html"
+			u.Data["status"] = "both password should match"
+			_ = u.Render()
+			return
+		}
+		u.TplName = "reset_successful.html"
+		err := models.ResetPassword(bson.ObjectIdHex(uid), newPassword)
+		if err != nil {
+			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+			hub.CaptureException(err)
+			u.Data["json"] = InternalServerError("Unexpected Error... Report to admin")
+			u.ServeJSON()
+			return
+		}
+		_, err = client.Del(uid).Result()
+		if err != nil {
+			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+			hub.CaptureException(err)
+		}
+		_ = u.Render()
+	}
+}
+
 // @Title logout
 // @Description Logs out current logged in user session
 // @Security token_auth write:user
@@ -291,7 +361,7 @@ func (u *UserController) Verify() {
 	u.ServeJSON()
 }
 
-// @Title Fetch User Info	
+// @Title Fetch User Info
 // @Description Fetches user info from different websites and store them into the database
 // @Security token_auth write:user
 // @Param	site		path 	string	true		"site name"

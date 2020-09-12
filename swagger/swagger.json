@@ -955,6 +955,49 @@
                 ]
             }
         },
+        "/user/password-reset-email": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Sends an email to the user to reset the password",
+                "operationId": "UserController.Password-Reset-Email",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "email",
+                        "description": "The email of the user",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} email sent"
+                    },
+                    "403": {
+                        "description": "user doesn't exist"
+                    }
+                }
+            }
+        },
+        "/user/password-reset/{uuid}/{uid}": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Resets the password of the user",
+                "operationId": "UserController.Password-Reset-Form",
+                "responses": {
+                    "200": {
+                        "description": "{string} Password reset form received"
+                    },
+                    "403": {
+                        "description": "Password reset initiated"
+                    }
+                }
+            }
+        },
         "/user/picture": {
             "put": {
                 "tags": [
