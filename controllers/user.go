@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -217,7 +216,6 @@ func (u *UserController) PasswordResetEmail() {
 	}else{
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	fmt.Println(hostName)
 	if isValid := models.PasswordResetEmail(email, hostName); isValid {
 		u.Data["json"] = map[string]string{"email": "sent"}
 	} else {
