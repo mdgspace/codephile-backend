@@ -4,3 +4,6 @@ services:
     build: .
     ports:
       - "127.0.0.1:9999:8080"
+    env_file:
+      - conf/.env
+    restart: always

@@ -1,7 +1,8 @@
-.env
-
-node_modules
-npm-debug.log
+/conf/.env
+.circleci
+.idea
+Codephile
+lastupdate.tmp
 
 **/*.log
 **/*.md
@@ -12,3 +13,4 @@ npm-debug.log
 **/.gitkeep
 **/.gitmodules
 **/Dockerfile
+**/docker-compose.yml
