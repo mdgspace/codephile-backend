@@ -1,0 +1,16 @@
+/conf/.env
+.circleci
+.idea
+Codephile
+lastupdate.tmp
+
+**/*.log
+**/*.md
+**/.dockerignore
+**/.git/
+**/.gitattributes
+**/.gitignore
+**/.gitkeep
+**/.gitmodules
+**/Dockerfile
+**/docker-compose.yml
