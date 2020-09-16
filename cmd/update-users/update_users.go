@@ -19,6 +19,9 @@ func main() {
 	iter := coll.Find(nil).Select(bson.M{"_id": 1}).Iter()
 	var user types.User
 	for iter.Next(&user) {
+		if !user.Verified {
+			continue
+		}
 		for _, site := range conf.ValidSites {
 			err := models.AddSubmissions(user.ID, site)
 			if err != nil {

@@ -128,14 +128,6 @@ func AddUser(u types.User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	go func() {
-		for _, value := range ValidSites {
-			_ = AddSubmissions(u.ID, value)
-			_ = AddOrUpdateProfile(u.ID, value)
-		}
-	}()
-
 	return u.ID.Hex(), nil
 }
 
@@ -308,7 +300,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	return u, err
 }
 
-func AuthenticateUser(username string, password string) (*types.User, bool) {
+func AuthenticateUser(username string, password string) (*types.User, error) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
@@ -316,17 +308,18 @@ func AuthenticateUser(username string, password string) (*types.User, bool) {
 	//fmt.Println(err.Error())
 	if err != nil {
 		//log.Println(err)
-		return nil, false
+		return nil, UserNotFoundError
 	}
 
 	err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err2 != nil {
 		//log.Println(err2)
-		return nil, false
-	} else {
-		return &user, true
+		return nil, UserNotFoundError
 	}
-
+	if !user.Verified {
+		return nil, UserUnverifiedError
+	}
+	return &user, nil
 }
 
 func UpdatePicture(uid bson.ObjectId, url string) error {
@@ -338,6 +331,25 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	return coll.Collection.UpdateId(uid, bson.M{"$set": bson.M{"picture": url}})
+}
+
+func VerifyEmail(uid bson.ObjectId) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	err := coll.UpdateId(uid, bson.M{"$set": bson.M{"verified": true}})
+	if err == mgo.ErrNotFound {
+		return UserNotFoundError
+	} else if err != nil {
+		return err
+	}
+	go func() {
+		for _, value := range ValidSites {
+			_ = AddSubmissions(uid, value)
+			_ = AddOrUpdateProfile(uid, value)
+		}
+	}()
+	return nil
 }
 
 func GetPicture(uid bson.ObjectId) string {
@@ -364,6 +376,19 @@ func UserExists(username string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+//checks if the user is verified, returns error if user doesn't exists
+func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	var user types.User
+	err := coll.FindId(uid).Select(bson.M{"email": 1, "verified": 1}).One(&user)
+	if err != nil {
+		return false, UserNotFoundError, ""
+	}
+	return user.Verified, nil, user.Email
 }
 
 func PasswordResetEmail(email string, hostName string) bool {

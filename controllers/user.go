@@ -2,9 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/mdg-iitr/Codephile/services/mail"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
@@ -76,9 +80,31 @@ func (u *UserController) CreateUser() {
 		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 		hub.CaptureException(err)
 	}
+	var hostName string
+	if u.Ctx.Request.TLS == nil {
+		hostName = "http://" + u.Ctx.Request.Host
+	} else {
+		hostName = "https://" + u.Ctx.Request.Host
+	}
+	sendConfirmationEmail(bson.ObjectIdHex(id), hostName)
 	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
 	u.Data["json"] = map[string]string{"id": id}
 	u.ServeJSON()
+}
+func sendConfirmationEmail(uid bson.ObjectId, hostName string) {
+	verified, err, email := models.IsUserVerified(uid)
+	if verified || err != nil {
+		return
+	}
+	client := redis.GetRedisClient()
+	uniq_id := uuid.New().String()
+	_, err = client.Set("confirm_"+uniq_id, uid.Hex(), time.Hour).Result()
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	body := fmt.Sprintf("%s/v1/user/confirm/%s", hostName, uniq_id)
+	go mail.SendMail(email, "Verify your email", body)
 }
 
 // @Title GetAll
@@ -188,17 +214,33 @@ func (u *UserController) Put() {
 // @Param	username		formData 	string	true		"The username for login"
 // @Param	password		formData 	string	true		"The password for login"
 // @Success 200 {string} login success
-// @Failure 403 user not exist
+// @Failure 401 wrong credentials
+// @Failure 403 email not verified
 // @router /login [post]
 func (u *UserController) Login() {
 	username := u.Ctx.Request.FormValue("username")
 	password := u.Ctx.Request.FormValue("password")
-	if user, isValid := models.AuthenticateUser(username, password); isValid {
-		u.Data["json"] = map[string]string{"token": auth.GenerateToken(user.ID.Hex())}
-	} else {
+	user, err := models.AuthenticateUser(username, password)
+	if err == UserNotFoundError {
 		u.Data["json"] = map[string]string{"error": "invalid user credential"}
+		u.Ctx.ResponseWriter.WriteHeader(401)
+		u.ServeJSON()
+		return
+	} else if err == UserUnverifiedError {
+		u.Data["json"] = map[string]string{"error": "email not verified"}
 		u.Ctx.ResponseWriter.WriteHeader(403)
+		u.ServeJSON()
+		return
+	} else if err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("Internal server error")
+		u.ServeJSON()
+		return
 	}
+	u.Data["json"] = map[string]string{"token": auth.GenerateToken(user.ID.Hex())}
 	u.ServeJSON()
 }
 
@@ -213,7 +255,7 @@ func (u *UserController) PasswordResetEmail() {
 	var hostName string
 	if u.Ctx.Request.TLS == nil {
 		hostName = "http://" + u.Ctx.Request.Host
-	}else{
+	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
 	if isValid := models.PasswordResetEmail(email, hostName); isValid {
@@ -569,4 +611,45 @@ func (u *UserController) FilterUsers() {
 	}
 	u.Data["json"] = res
 	u.ServeJSON()
+}
+
+// @router /confirm/:uuid [get]
+func (u *UserController) ConfirmEmail() {
+	uuid := u.GetString(":uuid")
+	client := redis.GetRedisClient()
+	uid := client.Get("confirm_" + uuid).Val()
+	fmt.Println(uid)
+	if uid == "" || !bson.IsObjectIdHex(uid) {
+		u.Redirect("/", http.StatusTemporaryRedirect)
+		return
+	}
+	if err := models.VerifyEmail(bson.ObjectIdHex(uid)); err != nil {
+		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		u.Data["json"] = InternalServerError("server error.. report to admin")
+		u.ServeJSON()
+		return
+	}
+	u.TplName = "email_verified.html"
+	_ = u.Render()
+}
+
+// @router /send-verify-email/:uid [post]
+func (u *UserController) SendVerifyEmail() {
+	uid := u.GetString(":uid")
+	if uid == "" || !bson.IsObjectIdHex(uid) {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
+		u.Data["json"] = BadInputError("Invalid UID")
+		u.ServeJSON()
+		return
+	}
+	var hostName string
+	if u.Ctx.Request.TLS == nil {
+		hostName = "http://" + u.Ctx.Request.Host
+	} else {
+		hostName = "https://" + u.Ctx.Request.Host
+	}
+	sendConfirmationEmail(bson.ObjectIdHex(uid), hostName)
 }

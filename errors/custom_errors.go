@@ -15,3 +15,5 @@ var HandleNotFoundError = errors.New("handle not available")
 var ErrJobQueueFull = errors.New("Job queue completely full")
 
 var FieldEmptyError = errors.New("empty field forbidden")
+
+var UserUnverifiedError = errors.New("E-mail not verified")
