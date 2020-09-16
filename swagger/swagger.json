@@ -729,6 +729,13 @@
                 }
             }
         },
+        "/user/confirm/{uuid}": {
+            "get": {
+                "tags": [
+                    "user"
+                ]
+            }
+        },
         "/user/fetch/{site}": {
             "post": {
                 "tags": [
@@ -878,8 +885,11 @@
                     "200": {
                         "description": "{string} login success"
                     },
+                    "401": {
+                        "description": "wrong credentials"
+                    },
                     "403": {
-                        "description": "user not exist"
+                        "description": "email not verified"
                     }
                 }
             }
@@ -1079,6 +1089,13 @@
                             "read:user"
                         ]
                     }
+                ]
+            }
+        },
+        "/user/send-verify-email/{uid}": {
+            "post": {
+                "tags": [
+                    "user"
                 ]
             }
         },
