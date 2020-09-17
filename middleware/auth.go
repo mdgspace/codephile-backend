@@ -17,6 +17,8 @@ func Authenticate(ctx *context.Context) {
 	// signup and login endpoints
 	if (strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/login") && ctx.Request.Method == "POST") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/signup") && ctx.Request.Method == "POST") ||
+		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/send-verify-email/") && ctx.Request.Method == "POST") ||
+		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/confirm/") && ctx.Request.Method == "GET") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset-email") && ctx.Request.Method == "POST") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/available") && ctx.Request.Method == "GET") ||
 		strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset") ||
