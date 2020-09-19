@@ -377,6 +377,19 @@ func UserExists(username string) (bool, error) {
 	}
 	return false, nil
 }
+func UidExists(uid bson.ObjectId) (bool, error) {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	c, err := collection.Collection.FindId(uid).Count()
+	if err != nil {
+		log.Println(err.Error())
+		return false, err
+	}
+	if c > 0 {
+		return true, nil
+	}
+	return false, nil
+}
 
 //checks if the user is verified, returns error if user doesn't exists
 func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
