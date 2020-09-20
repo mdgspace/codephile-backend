@@ -3,7 +3,10 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"github.com/astaxie/beego"
+	"github.com/mdg-iitr/Codephile/services/firebase"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/mdg-iitr/Codephile/services/mail"
@@ -102,6 +105,10 @@ var (
 func AddUser(u types.User) (string, error) {
 	u.ID = bson.NewObjectId()
 	u.Verified = false
+	defaultPic := beego.AppConfig.Strings("DEFAULT_PICS")
+	if len(defaultPic) > 0 {
+		u.Picture = firebase.URLFromName(defaultPic[rand.Intn(len(defaultPic))])
+	}
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	//hashing the password
