@@ -7,6 +7,7 @@ import (
 	"errors"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/storage"
+	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"google.golang.org/api/option"
@@ -40,6 +41,10 @@ func init() {
 	}
 }
 
+func URLFromName(name string) string {
+	return "https://storage.googleapis.com/" + conf["storageBucket"] + "/profile/" + name
+}
+
 func AddFile(f multipart.File, fh *multipart.FileHeader, oldPic string) (string, error) {
 	if client == nil {
 		return "", errors.New("firebase conf not available")
@@ -51,8 +56,17 @@ func AddFile(f multipart.File, fh *multipart.FileHeader, oldPic string) (string,
 		log.Println(err)
 		return "", err
 	}
-	if oldPic != "" {
-		err := bucket.Object(strings.Split(oldPic, publicURL)[1]).Delete(context.Background())
+	oldPicName := strings.Split(oldPic, publicURL)[1]
+	isSpecialPic := false
+	specialPics := beego.AppConfig.DefaultStrings("DEFAULT_PICS", []string{})
+	for _, pic := range specialPics {
+		if oldPicName == "profile/"+pic {
+			isSpecialPic = true
+			break
+		}
+	}
+	if oldPic != "" && !isSpecialPic {
+		err := bucket.Object(oldPicName).Delete(context.Background())
 		if err != nil {
 			log.Println(err)
 		}
