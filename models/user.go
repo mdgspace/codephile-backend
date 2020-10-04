@@ -130,7 +130,7 @@ func AddUser(u types.User) (string, error) {
 		Institute: u.Institute,
 		Picture:   u.Picture,
 		Handle:    u.Handle,
-	}).Id(u.ID.Hex()).Refresh("true").Do(context.Background())
+	}).Id(u.ID.Hex()).Refresh("false").Do(context.Background())
 
 	if err != nil {
 		return "", err
