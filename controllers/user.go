@@ -519,27 +519,9 @@ func (u *UserController) ProfilePic() {
 // @Failure 403 unavailable
 // @router /available [get]
 func (u *UserController) IsAvailable() {
-	username := u.GetString("username")
-	if username == "" {
-		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	exists, err := models.UserExists(username)
-	if err != nil {
-		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
-		hub.CaptureException(err)
-		log.Println(err.Error())
-		u.Ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
-		u.Data["json"] = InternalServerError("Internal server error")
-		u.ServeJSON()
-		return
-	}
-	if !exists {
-		u.Data["json"] = map[string]string{"status": "available"}
-		u.ServeJSON()
-		return
-	}
-	u.Ctx.ResponseWriter.WriteHeader(403)
+	_ = u.GetString("username")
+	s, _ := scrappers.NewScrapper("codechef", "prateek1947")
+	s.GetProfileInfo()
 	u.Data["json"] = "unavailable"
 	u.ServeJSON()
 }

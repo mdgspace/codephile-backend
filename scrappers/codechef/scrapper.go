@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gocolly/colly"
 	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"github.com/mdg-iitr/Codephile/scrappers/common"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,6 +20,31 @@ import (
 
 type Scrapper struct {
 	Handle string
+}
+
+func GetBearerToken() string {
+	tokenURL := "https://api.codechef.com/oauth/token"
+	resp, err := http.PostForm(tokenURL, map[string][]string{
+		"client_id": {os.Getenv("CLIENT_ID")},
+		"client_secret": {os.Getenv("CLIENT_SECRET")},
+		"grant_type":    {"client_credentials"},
+		"scope":         {"public"},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+	byteValue, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+	var respStruct map[string]interface{}
+	_ = json.Unmarshal(byteValue, &respStruct)
+	result := respStruct["result"].(map[string]interface{})
+	accessToken := result["data"].(map[string]interface{})["access_token"].(string)
+	fmt.Println(accessToken)
+	return accessToken
 }
 
 func (s Scrapper) CheckHandle() bool {
@@ -41,69 +68,24 @@ func (s Scrapper) CheckHandle() bool {
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {
-
-	/* path := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=1&itemsPerPage=40", handle)
-		byteValue := GetRequest(path)
-		var JsonInterFace interface{}
-		// var Profile map[string]interface{}
-		json.Unmarshal(byteValue, &JsonInterFace)
-		pagesToTraverse := int(JsonInterFace.(map[string]interface{})["availablePages"].(float64))
-		Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
-	    for i:=1 ; i <= pagesToTraverse ; i++ {
-			newPath := fmt.Sprintf("https://www.codechef.com/api/ratings/all?sortBy=global_rank&order=asc&search=%s&page=%d&itemsPerPage=40", handle , i)
-			newbyteValue := GetRequest(newPath)
-			var newJsonInterFace interface{}
-			json.Unmarshal(newbyteValue , &newJsonInterFace)
-			log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[0])
-			for j:=0 ; j<=39 ; j++ {
-				log.Println(newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j])//.(map[string]interface{})["username"].(string))
-				if newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})["username"].(string) == handle {
-				  Profile = newJsonInterFace.(map[string]interface{})["list"].([]interface{})[j].(map[string]interface{})
-				  break
-				}
-			}
-		}
-		// Profile := JsonInterFace.(map[string]interface{})["list"].([]interface{})[0].(map[string]interface{})
-
-		// all_rating := Profile["all_rating"]
-		// country := Profile["country"]
-		// country_code := Profile["country_code"]
-		// country_rank := Profile["country_rank"]
-		// diff := Profile["diff"]
-		global_rank := Profile["global_rank"].(float64)
-		global_rank_string := strconv.FormatFloat(global_rank,'f',0,64)
-		Institution := Profile["institution"].(string)
-		// institution_type := Profile["institution_type"]
-		Name := Profile["name"].(string)
-		// rating := Profile["rating"]
-		UserName := Profile["username"].(string)
-		return profile.ProfileInfo{Name, UserName, Institution,global_rank_string} */
-
-	//scrapping the profile
-	c := colly.NewCollector()
-	var Profile types.ProfileInfo
-	var School string
-	c.OnHTML(".user-profile-container", func(e *colly.HTMLElement) {
-		Name := e.ChildText("h2")
-		UserName := s.Handle
-		for i := 2; i <= 10; i++ {
-			if e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) label", i)) == "Institution:" {
-				School = e.ChildText(fmt.Sprintf(".user-details .side-nav li:nth-child(%d) span", i))
-			}
-		}
-		WorldRank := e.ChildText(".rating-ranks .inline-list li:nth-child(1) a")
-		Profile = types.ProfileInfo{Name: Name, UserName: UserName, School: School, WorldRank: WorldRank}
-	})
-
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong:", err)
-	})
-
-	err := c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", s.Handle))
-	if err != nil {
-		log.Println(err.Error())
+	fields := "username,fullname,organization,rankings"
+	profileURL := fmt.Sprintf("https://api.codechef.com/users/%s?fields=%s",
+		s.Handle, url.QueryEscape(fields))
+	client := &http.Client{}
+	req, _ := http.NewRequest(http.MethodGet, profileURL, nil)
+	token := GetBearerToken()
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	resp, _ := client.Do(req)
+	data, _ := ioutil.ReadAll(resp.Body)
+	var profileInfo types.CodechefProfileInfo
+	_ = json.Unmarshal(data, &profileInfo)
+	resultData := profileInfo.Result["data"].Content
+	return types.ProfileInfo{
+		Name:      resultData.Fullname,
+		UserName:  resultData.Username,
+		School:    resultData.Organization,
+		WorldRank: fmt.Sprint(resultData.Rankings["allContestRanking"].(map[string]interface{})["global"].(float64)),
 	}
-	return Profile
 }
 
 func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {

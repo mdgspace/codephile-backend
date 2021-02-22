@@ -47,3 +47,20 @@ type SolvedProblemsCount struct {
 	Hackerrank int `json:"hackerrank"`
 	Spoj       int `json:"spoj"`
 }
+
+type CodechefProfileInfo struct {
+	Status string                 `json:"status"`
+	Result map[string]ProfileData `json:"result"`
+}
+
+type ProfileData struct {
+	Content ProfileInfoContent `json:"content"`
+	Code    int64              `json:"code"`
+	Message string             `json:"message"`
+}
+type ProfileInfoContent struct {
+	Username     string                 `json:"username"`
+	Fullname     string                 `json:"fullname"`
+	Rankings     map[string]interface{} `json:"rankings"`
+	Organization string                 `json:"organization"`
+}
