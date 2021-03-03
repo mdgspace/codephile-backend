@@ -22,3 +22,24 @@ type CodeforcesSubmissions struct {
 	Status string                   `json:"status"`
 	Result []map[string]interface{} `json:"result"`
 }
+
+type CodechefSubmissions struct {
+	Status string `json:"status"`
+	Result Result2 `json:"result"`
+}
+type Content struct {
+	ID          int    `json:"id"`
+	ProblemCode string `json:"problemCode"`
+	Language    string `json:"language"`
+	Result      string `json:"result"`
+	Username    string `json:"username"`
+	Date        string `json:"date"`
+}
+type Data struct {
+	Content []Content `json:"content"`
+	Code    int       `json:"code"`
+	Message string    `json:"message"`
+}
+type Result2 struct {
+	Data Data `json:"data"`
+}
