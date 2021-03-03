@@ -22,10 +22,12 @@ type Scrapper struct {
 	Handle string
 }
 
+var token string
+
 func GetBearerToken() string {
 	tokenURL := "https://api.codechef.com/oauth/token"
 	resp, err := http.PostForm(tokenURL, map[string][]string{
-		"client_id": {os.Getenv("CLIENT_ID")},
+		"client_id":     {os.Getenv("CLIENT_ID")},
 		"client_secret": {os.Getenv("CLIENT_SECRET")},
 		"grant_type":    {"client_credentials"},
 		"scope":         {"public"},
@@ -43,42 +45,65 @@ func GetBearerToken() string {
 	_ = json.Unmarshal(byteValue, &respStruct)
 	result := respStruct["result"].(map[string]interface{})
 	accessToken := result["data"].(map[string]interface{})["access_token"].(string)
-	fmt.Println(accessToken)
 	return accessToken
 }
 
+func fetchAndParseProfileData(handle string, fields string) (types.CodechefProfileInfo, int) {
+	profileURL := fmt.Sprintf("https://api.codechef.com/users/%s?fields=%s",
+		handle, url.QueryEscape(fields))
+	client := &http.Client{}
+	req, _ := http.NewRequest(http.MethodGet, profileURL, nil)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	resp, _ := client.Do(req)
+	if resp.StatusCode != http.StatusOK {
+		return types.CodechefProfileInfo{}, resp.StatusCode
+	}
+	data, _ := ioutil.ReadAll(resp.Body)
+	var profileInfo types.CodechefProfileInfo
+	_ = json.Unmarshal(data, &profileInfo)
+	return profileInfo, resp.StatusCode
+}
+
 func (s Scrapper) CheckHandle() bool {
-	path := fmt.Sprintf("https://www.codechef.com/users/%s", s.Handle)
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+	fields := "username"
+	var (
+		profileInfo types.CodechefProfileInfo
+		status      int
+	)
+	for attempt := 0; attempt < 5; attempt++ {
+		time.Sleep(time.Second * time.Duration(attempt))
+		profileInfo, status = fetchAndParseProfileData(s.Handle, fields)
+		if status == http.StatusUnauthorized {
+			token = GetBearerToken()
+			profileInfo, status = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
+		}
+		// 9002 implies rate limit exceeded
+		if profileInfo.Result["data"].Code != 9002 {
+			break
+		}
 	}
-	resp, err := client.Get(path)
-	if err != nil {
-		log.Fatal(err)
-		return false
-	}
-
-	if resp.StatusCode == 200 {
-		return true
-	}
-
-	return false
+	code := profileInfo.Result["data"].Code
+	return code == 9001
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 	fields := "username,fullname,organization,rankings"
-	profileURL := fmt.Sprintf("https://api.codechef.com/users/%s?fields=%s",
-		s.Handle, url.QueryEscape(fields))
-	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, profileURL, nil)
-	token := GetBearerToken()
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-	resp, _ := client.Do(req)
-	data, _ := ioutil.ReadAll(resp.Body)
-	var profileInfo types.CodechefProfileInfo
-	_ = json.Unmarshal(data, &profileInfo)
+	var (
+		profileInfo types.CodechefProfileInfo
+		status      int
+	)
+	for attempt := 0; attempt < 5; attempt++ {
+		time.Sleep(time.Second * time.Duration(attempt))
+		profileInfo, status = fetchAndParseProfileData(s.Handle, fields)
+		if status == http.StatusUnauthorized {
+			token = GetBearerToken()
+			profileInfo, status = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
+		}
+		// 9002 implies rate limit exceeded
+		if profileInfo.Result["data"].Code != 9002 {
+			break
+		}
+	}
 	resultData := profileInfo.Result["data"].Content
 	return types.ProfileInfo{
 		Name:      resultData.Fullname,
@@ -94,9 +119,13 @@ func callCodechefAPI(handle string, afterIndex int) (types.CodechefSubmissions, 
 		handle, afterIndex, url.QueryEscape(fields))
 	client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodGet, submissionURL, nil)
-	token := GetBearerToken()
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	resp, _ := client.Do(req)
+	if resp.StatusCode == http.StatusUnauthorized {
+		token = GetBearerToken()
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		resp, _ = client.Do(req)
+	}
 	data, _ := ioutil.ReadAll(resp.Body)
 	if data == nil {
 		return types.CodechefSubmissions{}, errors.New("GetRequest failed. Please check connection status")
@@ -160,7 +189,6 @@ func getCodechefSubmissionParts(handle string, afterIndex int) ([]types.Submissi
 }
 
 func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
-	log.Println("Hello")
 	oldestSubIndex := 0
 	var lastID int
 	var oldestSubFound = false
