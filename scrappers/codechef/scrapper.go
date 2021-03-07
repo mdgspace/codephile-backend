@@ -75,7 +75,7 @@ func (s Scrapper) CheckHandle() bool {
 		profileInfo, status = fetchAndParseProfileData(s.Handle, fields)
 		if status == http.StatusUnauthorized {
 			token = GetBearerToken()
-			profileInfo, status = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
+			profileInfo, _ = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
 		}
 		// 9002 implies rate limit exceeded
 		if profileInfo.Result["data"].Code != 9002 {
@@ -97,7 +97,7 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 		profileInfo, status = fetchAndParseProfileData(s.Handle, fields)
 		if status == http.StatusUnauthorized {
 			token = GetBearerToken()
-			profileInfo, status = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
+			profileInfo, _ = fetchAndParseProfileData(s.Handle, fields) // nolint: ineffassign
 		}
 		// 9002 implies rate limit exceeded
 		if profileInfo.Result["data"].Code != 9002 {

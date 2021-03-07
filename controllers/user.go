@@ -114,6 +114,11 @@ func sendConfirmationEmail(uid bson.ObjectId, hostName string) {
 // @Failure 500 server_error
 // @router /all [get]
 func (u *UserController) GetAll() {
+	if beego.BConfig.RunMode == "prod" {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusUnauthorized)
+		u.ServeJSON()
+		return
+	}
 	users, err := models.GetAllUsers()
 	if err != nil {
 		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
