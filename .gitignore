@@ -11,3 +11,6 @@ todo/todo
 build/
 # Intellij
 .idea/*
+
+# Dev Docker db
+data/

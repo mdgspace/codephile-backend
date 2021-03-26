@@ -13,20 +13,26 @@ Environment variable is a way to store/pass some sensitive/config information th
 
 To setup environment variables, create a `.env` file at conf directory of project containing following information:
 ```
-PORT = <The port to be used: optional>
-DBPath = <Connection string of local database>
-HMACKEY = <HMAC Encryption key>
-REDISURL = <connection string of redis server>
-FIREBASE_CONFIG = <Firebase config including bucket name(json)>
-FIREBASE_CREDENTIALS = <Firebase admin SDK credentials(json)>
-ELASTICURL = <connection string of elasticsearch cloud>
-SENTRY_DSN = <Data source name of sentry server: optional>
-EMAIL_SMTP_HOST = <host of smtp server>
-EMAIL_SMTP_PORT = <port of smtp server>
-EMAIL_SERVER_USER = <username of email account>
-EMAIL_SERVER_PASS = <password of email account>
+PORT=<The port to be used: optional>
+DBPath=<Connection string of local database>
+HMACKEY=<HMAC Encryption key>
+REDISURL=<connection string of redis server>
+FIREBASE_CONFIG=<Firebase config including bucket name(json)>
+FIREBASE_CREDENTIALS=<Firebase admin SDK credentials(json)>
+ELASTICURL=<connection string of elasticsearch cloud>
+SENTRY_DSN=<Data source name of sentry server: optional>
+EMAIL_SMTP_HOST=<host of smtp server>
+EMAIL_SMTP_PORT=<port of smtp server>
+EMAIL_SERVER_USER=<username of email account>
+EMAIL_SERVER_PASS=<password of email account>
 ```
 NOTE: Before proceeding further, ensure that your local .env file is present with above configuration variables.
+
+Ask for codechef creds from the maintainer
+```
+CLIENT_ID=<codechef id>
+CLIENT_SECRET=<codechef secret>
+```
 
 ## Setup Instructions
 
@@ -60,6 +66,19 @@ $ go run cmd/<path to main package go file>
 E.g.
 ```shell script
  $ go run cmd/blacklist-user/blacklist_user.go
+```
+## Setup using docker
+You can use the `dev_docker-compose.yml` file to spin up containers with Mongo, Redis & Elastic Search services easily.
+Use these env variables
+```
+REDISURL=redis://redis:6379
+ELASTICURL=http://elastic:secret@elasticsearch:9200/codephile/?sniff=false
+DBPath=mongodb://mongoadmin:secret@mongo:27017/admin
+```
+And run these commands
+```shell script
+$ mkdir -m 777 -p data/elasticsearch
+$ docker-compose -f dev_docker-compose.yml up
 ```
 
 ## Tests
