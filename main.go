@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/astaxie/beego"
@@ -11,14 +10,7 @@ import (
 )
 
 func main() {
-	env := os.Getenv("PORT")
-	if env == "8080" {
-		log.Println("dev mode")
-		beego.BConfig.RunMode = "dev"
-	} else {
-		log.Println("prod mode")
-		beego.BConfig.RunMode = "prod"
-	}
+	beego.BConfig.RunMode = os.Getenv("ENVIRONMENT")
 
 	if beego.BConfig.RunMode == "dev" {
 		beego.BConfig.WebConfig.DirectoryIndex = true
