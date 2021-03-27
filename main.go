@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/astaxie/beego"
@@ -11,11 +11,12 @@ import (
 )
 
 func main() {
-	if os.Getenv("PORT") == "8080" {
-		fmt.Println("dev mode")
+	env := os.Getenv("PORT")
+	if env == "8080" {
+		log.Println("dev mode")
 		beego.BConfig.RunMode = "dev"
 	} else {
-		fmt.Println("prod mode")
+		log.Println("prod mode")
 		beego.BConfig.RunMode = "prod"
 	}
 
