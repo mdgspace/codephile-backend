@@ -1,4 +1,5 @@
 module github.com/mdg-iitr/Codephile
+
 // +heroku install ./cmd/... .
 
 go 1.12
@@ -18,16 +19,15 @@ require (
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
-	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/schema v1.1.0
 	github.com/joho/godotenv v1.3.0
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/olivere/elastic/v7 v7.0.6
+	github.com/pkg/errors v0.8.1
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	google.golang.org/api v0.11.0
