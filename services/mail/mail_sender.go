@@ -13,6 +13,9 @@ import (
 	"google.golang.org/api/option"
 )
 
+//EMAIL_SECRET=C65v5DEIHlDdEU1shHYrlnns
+//EMAIL_CLIENT=918242223374-k6ihlaib00kvt65j82gnqnrukms6ocrg.apps.googleusercontent.com
+
 //send a text mail to the receiver's email id
 func SendMail(to string, subject string, body string) {
 	var GmailService *gmail.Service
@@ -44,7 +47,7 @@ func SendMail(to string, subject string, body string) {
 
 	GmailService = srv
 	if GmailService != nil {
-		log.Println("Email service is initialized \n")
+		log.Println("Email service is initialized")
 	}
 
 	var message gmail.Message
@@ -59,8 +62,6 @@ func SendMail(to string, subject string, body string) {
 	_, err = GmailService.Users.Messages.Send("me", &message).Do()
 	if err != nil {
 		log.Fatalf(err.Error())
+		return
 	}
 }
-
-//EMAIL_SECRET=C65v5DEIHlDdEU1shHYrlnns
-//EMAIL_CLIENT=918242223374-k6ihlaib00kvt65j82gnqnrukms6ocrg.apps.googleusercontent.com
