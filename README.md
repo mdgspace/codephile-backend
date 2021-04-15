@@ -14,6 +14,7 @@ Environment variable is a way to store/pass some sensitive/config information th
 To setup environment variables, create a `.env` file at conf directory of project containing following information:
 ```
 PORT = <The port to be used: optional>
+ENIRONMENT = <dev : prod>
 DBPath = <Connection string of local database>
 HMACKEY = <HMAC Encryption key>
 REDISURL = <connection string of redis server>
@@ -25,6 +26,10 @@ EMAIL_SMTP_HOST = <host of smtp server>
 EMAIL_SMTP_PORT = <port of smtp server>
 EMAIL_SERVER_USER = <username of email account>
 EMAIL_SERVER_PASS = <password of email account>
+EMAIL_ACCESS_TOKEN= <access token gor gmail api>
+EMAIL_REFRESH_TOKEN= <refresh token for gmail api>
+EMAIL_CLIENT= <client id>
+EMAIL_SECRET= <client secret>
 ```
 NOTE: Before proceeding further, ensure that your local .env file is present with above configuration variables.
 
