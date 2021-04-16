@@ -30,6 +30,7 @@ EMAIL_ACCESS_TOKEN= <access token gor gmail api>
 EMAIL_REFRESH_TOKEN= <refresh token for gmail api>
 EMAIL_CLIENT= <client id>
 EMAIL_SECRET= <client secret>
+REDIRECT_URL = <redirect url>
 ```
 NOTE: Before proceeding further, ensure that your local .env file is present with above configuration variables.
 

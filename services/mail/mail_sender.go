@@ -24,7 +24,7 @@ func SendMail(to string, subject string, body string) {
 		ClientID:     os.Getenv("EMAIL_CLIENT"),
 		ClientSecret: os.Getenv("EMAIL_SECRET"),
 		Endpoint:     google.Endpoint,
-		RedirectURL:  "http://localhost:8080",
+		RedirectURL:  os.Getenv("REDIRECT_URL"),
 	}
 
 	token := oauth2.Token{
@@ -34,11 +34,19 @@ func SendMail(to string, subject string, body string) {
 		Expiry:       time.Now(),
 	}
 
-	//need to write the part for token refresh ..
+	//refreshing token
+	var tokenSource = config.TokenSource(context.TODO(), &token)
 
-	// ..
+	updatedToken, Error := tokenSource.Token()
+	if Error != nil {
+		log.Fatalf(Error.Error())
+	} else if (*updatedToken).AccessToken != token.AccessToken {
+		os.Setenv("EMAIL_ACCESS_TOKEN", (*updatedToken).AccessToken)
+		token = *updatedToken
+	}
 
-	var tokenSource = config.TokenSource(context.Background(), &token)
+	//sending mail
+	tokenSource = config.TokenSource(context.Background(), &token)
 
 	srv, err := gmail.NewService(context.Background(), option.WithTokenSource(tokenSource))
 	if err != nil {
@@ -59,9 +67,9 @@ func SendMail(to string, subject string, body string) {
 
 	message.Raw = base64.URLEncoding.EncodeToString(msg)
 
-	_, err = GmailService.Users.Messages.Send("me", &message).Do()
-	if err != nil {
+	_, Err := GmailService.Users.Messages.Send("me", &message).Do()
+	if Err != nil {
 		log.Fatalf(err.Error())
-		return
 	}
+
 }
