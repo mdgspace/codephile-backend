@@ -67,9 +67,11 @@ func SendMail(to string, subject string, body string) {
 
 	message.Raw = base64.URLEncoding.EncodeToString(msg)
 
-	_, Err := GmailService.Users.Messages.Send("me", &message).Do()
-	if Err != nil {
-		log.Fatalf(err.Error())
+	if GmailService != nil {
+		_, Err := GmailService.Users.Messages.Send("me", &message).Do()
+		if Err != nil {
+			log.Fatalf(err.Error())
+		}
 	}
 
 }
