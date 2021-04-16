@@ -25,9 +25,10 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/joho/godotenv v1.3.0
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/olivere/elastic/v7 v7.0.24
 	github.com/prometheus/client_golang v1.10.0 // indirect
 	github.com/prometheus/common v0.20.0 // indirect
+	github.com/olivere/elastic/v7 v7.0.6
+	github.com/pkg/errors v0.8.1
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726 // indirect
