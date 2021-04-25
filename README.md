@@ -22,15 +22,9 @@ FIREBASE_CONFIG=<Firebase config including bucket name(json)>
 FIREBASE_CREDENTIALS=<Firebase admin SDK credentials(json)>
 ELASTICURL=<connection string of elasticsearch cloud>
 SENTRY_DSN=<Data source name of sentry server: optional>
-EMAIL_SMTP_HOST=<host of smtp server>
-EMAIL_SMTP_PORT=<port of smtp server>
-EMAIL_SERVER_USER=<username of email account>
-EMAIL_SERVER_PASS=<password of email account>
-EMAIL_ACCESS_TOKEN= <access token gor gmail api>
-EMAIL_REFRESH_TOKEN= <refresh token for gmail api>
-EMAIL_CLIENT= <client id>
-EMAIL_SECRET= <client secret>
-REDIRECT_URL = <redirect url>
+EMAIL_CLIENT_SECRET=<Client secret of google client>
+EMAIL_CLIENT_ID=<Client ID of google client>
+EMAIL_REFRESH_TOKEN=<Refresh token of above client have these scopes: send, compose, mail.google.com>
 ```
 NOTE: Before proceeding further, ensure that your local .env file is present with above configuration variables.
 

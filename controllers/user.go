@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -86,12 +87,12 @@ func (u *UserController) CreateUser() {
 	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	sendConfirmationEmail(bson.ObjectIdHex(id), hostName)
+	sendConfirmationEmail(bson.ObjectIdHex(id), hostName, u.Ctx.Request.Context())
 	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
 	u.Data["json"] = map[string]string{"id": id}
 	u.ServeJSON()
 }
-func sendConfirmationEmail(uid bson.ObjectId, hostName string) {
+func sendConfirmationEmail(uid bson.ObjectId, hostName string, ctx context.Context) {
 	verified, err, email := models.IsUserVerified(uid)
 	if verified || err != nil {
 		return
@@ -104,7 +105,7 @@ func sendConfirmationEmail(uid bson.ObjectId, hostName string) {
 		return
 	}
 	body := fmt.Sprintf("%s/v1/user/confirm/%s", hostName, uniq_id)
-	go mail.SendMail(email, "Verify your email", body)
+	go mail.SendMail(email, "Verify your email", body, ctx)
 }
 
 // @Title GetAll
@@ -263,7 +264,7 @@ func (u *UserController) PasswordResetEmail() {
 	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	if isValid := models.PasswordResetEmail(email, hostName); isValid {
+	if isValid := models.PasswordResetEmail(email, hostName, u.Ctx.Request.Context()); isValid {
 		u.Data["json"] = map[string]string{"email": "sent"}
 	} else {
 		u.Data["json"] = map[string]string{"error": "invalid email"}
@@ -656,5 +657,5 @@ func (u *UserController) SendVerifyEmail() {
 	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	sendConfirmationEmail(bson.ObjectIdHex(uid), hostName)
+	sendConfirmationEmail(bson.ObjectIdHex(uid), hostName, u.Ctx.Request.Context())
 }

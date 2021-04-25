@@ -3,6 +3,7 @@ package mail
 import (
 	"context"
 	"encoding/base64"
+	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"time"
@@ -13,51 +14,43 @@ import (
 	"google.golang.org/api/option"
 )
 
-//EMAIL_SECRET=C65v5DEIHlDdEU1shHYrlnns
-//EMAIL_CLIENT=918242223374-k6ihlaib00kvt65j82gnqnrukms6ocrg.apps.googleusercontent.com
-
 //send a text mail to the receiver's email id
-func SendMail(to string, subject string, body string) {
-	var GmailService *gmail.Service
+func SendMail(to string, subject string, body string, ctx context.Context) {
+	hub := sentry.GetHubFromContext(ctx)
+	var gmailService *gmail.Service
 
 	config := oauth2.Config{
-		ClientID:     os.Getenv("EMAIL_CLIENT"),
-		ClientSecret: os.Getenv("EMAIL_SECRET"),
+		ClientID:     os.Getenv("EMAIL_CLIENT_ID"),
+		ClientSecret: os.Getenv("EMAIL_CLIENT_SECRET"),
 		Endpoint:     google.Endpoint,
-		RedirectURL:  os.Getenv("REDIRECT_URL"),
 	}
 
 	token := oauth2.Token{
-		AccessToken:  os.Getenv("EMAIL_ACCESS_TOKEN"),
 		RefreshToken: os.Getenv("EMAIL_REFRESH_TOKEN"),
 		TokenType:    "Bearer",
 		Expiry:       time.Now(),
 	}
 
-	//refreshing token
+	//refresh token
 	var tokenSource = config.TokenSource(context.TODO(), &token)
 
-	updatedToken, Error := tokenSource.Token()
-	if Error != nil {
-		log.Fatalf(Error.Error())
+	updatedToken, err := tokenSource.Token()
+	if err != nil {
+		log.Println(err.Error())
+		hub.CaptureException(err)
 	} else if (*updatedToken).AccessToken != token.AccessToken {
-		os.Setenv("EMAIL_ACCESS_TOKEN", (*updatedToken).AccessToken)
 		token = *updatedToken
 	}
 
-	//sending mail
+	//send mail
 	tokenSource = config.TokenSource(context.Background(), &token)
-
 	srv, err := gmail.NewService(context.Background(), option.WithTokenSource(tokenSource))
 	if err != nil {
 		log.Printf("Unable to retrieve Gmail client: %v", err)
+		hub.CaptureException(err)
 	}
 
-	GmailService = srv
-	if GmailService != nil {
-		log.Println("Email service is initialized")
-	}
-
+	gmailService = srv
 	var message gmail.Message
 
 	emailTo := "To: " + to + "\r\n"
@@ -67,10 +60,11 @@ func SendMail(to string, subject string, body string) {
 
 	message.Raw = base64.URLEncoding.EncodeToString(msg)
 
-	if GmailService != nil {
-		_, Err := GmailService.Users.Messages.Send("me", &message).Do()
-		if Err != nil {
-			log.Fatalf(err.Error())
+	if gmailService != nil {
+		_, err := gmailService.Users.Messages.Send("me", &message).Do()
+		if err != nil {
+			log.Println(err.Error())
+			hub.CaptureException(err)
 		}
 	}
 
