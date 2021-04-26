@@ -13,6 +13,8 @@ func main() {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/docs"] = "swagger"
 	}
-	sentryHandler := sentryhttp.New(sentryhttp.Options{})
+	sentryHandler := sentryhttp.New(sentryhttp.Options{
+		Repanic: true,
+	})
 	beego.RunWithMiddleWares("", sentryHandler.Handle)
 }
