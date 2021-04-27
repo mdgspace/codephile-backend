@@ -411,7 +411,7 @@ func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
 	return user.Verified, nil, user.Email
 }
 
-func PasswordResetEmail(email string, hostName string) bool {
+func PasswordResetEmail(email string, hostName string, ctx context.Context) bool {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	var user types.User
@@ -429,7 +429,7 @@ func PasswordResetEmail(email string, hostName string) bool {
 	link := hostName + "/v1/user/password-reset/" + uniq_id + "/" + user.ID.Hex()
 	body := "Please reset your password by clicking on the following link: \n" + link
 	body += "\nThis link will expire in 1 hr"
-	go mail.SendMail(email, "Codephile Password Reset", body)
+	go mail.SendMail(email, "Codephile Password Reset", body, ctx)
 	return true
 }
 

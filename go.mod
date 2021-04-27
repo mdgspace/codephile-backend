@@ -6,7 +6,7 @@ go 1.12
 
 require (
 	cloud.google.com/go/firestore v1.0.0 // indirect
-	cloud.google.com/go/storage v1.1.1
+	cloud.google.com/go/storage v1.10.0
 	firebase.google.com/go v3.9.0+incompatible
 	github.com/PuerkitoBio/goquery v1.5.0 // indirect
 	github.com/antchfx/htmlquery v1.1.0 // indirect
@@ -29,7 +29,7 @@ require (
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/temoto/robotstxt v1.1.1 // indirect
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	google.golang.org/api v0.11.0
-	google.golang.org/appengine v1.6.5 // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78 // indirect
+	google.golang.org/api v0.30.0
 )

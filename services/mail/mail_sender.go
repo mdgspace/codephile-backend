@@ -1,28 +1,71 @@
 package mail
 
 import (
+	"context"
+	"encoding/base64"
+	"github.com/getsentry/sentry-go"
 	"log"
-	"net/smtp"
 	"os"
+	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 )
 
 //send a text mail to the receiver's email id
-func SendMail(to string, subject string, body string) {
-	// Sender data.
-	from := os.Getenv("EMAIL_SERVER_USER")
-	password := os.Getenv("EMAIL_SERVER_PASS")
-	smtpHost := os.Getenv("EMAIL_SMTP_HOST")
-	smtpPort := os.Getenv("EMAIL_SMTP_PORT")
+func SendMail(to string, subject string, body string, ctx context.Context) {
+	hub := sentry.GetHubFromContext(ctx)
+	var gmailService *gmail.Service
 
-	// Message.
-	msg := "From: Codephile" + "\n" + "To: " + to+ "\n" + "Subject: "+ subject + "\n\n" + body
-	// Authentication.
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-
-	// Sending email.
-	err := smtp.SendMail(smtpHost + ":" + smtpPort, auth, from, []string{to}, []byte(msg))
-	if err != nil {
-		log.Println(err)
-		return
+	config := oauth2.Config{
+		ClientID:     os.Getenv("EMAIL_CLIENT_ID"),
+		ClientSecret: os.Getenv("EMAIL_CLIENT_SECRET"),
+		Endpoint:     google.Endpoint,
 	}
+
+	token := oauth2.Token{
+		RefreshToken: os.Getenv("EMAIL_REFRESH_TOKEN"),
+		TokenType:    "Bearer",
+		Expiry:       time.Now(),
+	}
+
+	//refresh token
+	var tokenSource = config.TokenSource(context.TODO(), &token)
+
+	updatedToken, err := tokenSource.Token()
+	if err != nil {
+		log.Println(err.Error())
+		hub.CaptureException(err)
+	} else if (*updatedToken).AccessToken != token.AccessToken {
+		token = *updatedToken
+	}
+
+	//send mail
+	tokenSource = config.TokenSource(context.Background(), &token)
+	srv, err := gmail.NewService(context.Background(), option.WithTokenSource(tokenSource))
+	if err != nil {
+		log.Printf("Unable to retrieve Gmail client: %v", err)
+		hub.CaptureException(err)
+	}
+
+	gmailService = srv
+	var message gmail.Message
+
+	emailTo := "To: " + to + "\r\n"
+	sub := "Subject: " + subject + "\n"
+	mime := "MIME-version: 1.0;\nContent-Type: text/plain; charset=\"UTF-8\";\n\n"
+	msg := []byte(emailTo + sub + mime + "\n" + body)
+
+	message.Raw = base64.URLEncoding.EncodeToString(msg)
+
+	if gmailService != nil {
+		_, err := gmailService.Users.Messages.Send("me", &message).Do()
+		if err != nil {
+			log.Println(err.Error())
+			hub.CaptureException(err)
+		}
+	}
+
 }
