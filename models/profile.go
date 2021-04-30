@@ -121,7 +121,7 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 func GetAccuracy(uid bson.ObjectId, website string) (string, error) {
 	switch website {
 	case CODECHEF:
-		correct, total, err := getCorrectIncorrectCount(uid, "http://www.codechef.com/", "AC")
+		correct, total, err := getCorrectIncorrectCount(uid, "https://www.codechef.com/", "AC")
 		return fmt.Sprintf("%f", float64(correct)/float64(total)), err
 	case CODEFORCES:
 		correct, total, err := getCorrectIncorrectCount(uid, "http://codeforces.com/", "OK")

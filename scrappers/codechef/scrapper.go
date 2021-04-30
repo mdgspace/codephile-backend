@@ -178,6 +178,7 @@ func getCodechefSubmissionParts(handle string, afterIndex int) ([]types.Submissi
 		default:
 			status = StatusWrongAnswer
 		}
+		submissions[i].Name = result.ProblemCode
 		submissions[i].Status = status
 		submissions[i].Language = result.Language
 		submissions[i].URL = "https://www.codechef.com/problems/" + result.ProblemCode
