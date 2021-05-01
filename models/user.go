@@ -35,7 +35,7 @@ var (
 						{
 							"$regexMatch": bson.M{
 								"input": "$$sub.url",
-								"regex": bson.RegEx{Pattern: "^" + "http://www.codechef.com"},
+								"regex": bson.RegEx{Pattern: "^" + "https://www.codechef.com"},
 							},
 						},
 						{"$eq": []string{"$$sub.status", StatusCorrect}}},
@@ -297,6 +297,7 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 		for _, value := range UpdatedSites {
 			_ = DeleteSubmissions(uid, value)
 			_ = AddSubmissions(uid, value)
+			_ = AddOrUpdateProfile(uid, value)
 		}
 	}()
 

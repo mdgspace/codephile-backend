@@ -12,7 +12,7 @@ var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
 func GetRegexSite(site string) string {
 	switch site {
 	case CODECHEF:
-		return "http://www.codechef.com"
+		return "https://www.codechef.com"
 	case CODEFORCES:
 		return "http://codeforces.com"
 	case HACKERRANK:
