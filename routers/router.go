@@ -52,7 +52,8 @@ func init() {
 			),
 		),
 	)
-
+	beego.SetStaticPath("/static", "static")
+	beego.Router("/", &controllers.HomePageController{})
 	ns2 := beego.NewNamespace("/institutes", beego.NSGet("/", func(context *context.Context) {
 		dir, _ := os.Getwd()
 		http.ServeFile(context.ResponseWriter, context.Request, path.Join(dir, "conf/institute_list.json"))
