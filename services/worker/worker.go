@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"log"
 	"sync"
 
@@ -16,7 +17,7 @@ type Job struct {
 	user        User
 	websiteName Website
 	//handler func which is called when job is performed
-	handler func(user bson.ObjectId, website string) error
+	handler func(user bson.ObjectId, website string, ctx context.Context) error
 }
 
 // Keeps track if a job corresponding to a user is already in the queue
@@ -28,7 +29,7 @@ type UserQueue struct {
 var jobQueue chan Job
 var userQueue UserQueue
 
-func NewJob(user bson.ObjectId, websiteName string, handler func(user bson.ObjectId, website string) error) Job {
+func NewJob(user bson.ObjectId, websiteName string, handler func(user bson.ObjectId, website string, ctx context.Context) error) Job {
 	return Job{user: User(user), websiteName: Website(websiteName), handler: handler}
 }
 
@@ -40,7 +41,7 @@ func init() {
 
 func work() {
 	for job := range jobQueue {
-		err := job.handler(bson.ObjectId(job.user), string(job.websiteName))
+		err := job.handler(bson.ObjectId(job.user), string(job.websiteName), context.Background())
 		if err != nil {
 			log.Println("unable to fetch submissions/profile", err.Error())
 		}

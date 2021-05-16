@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
@@ -11,7 +12,7 @@ import (
 	"github.com/mdg-iitr/Codephile/scrappers"
 )
 
-func AddOrUpdateProfile(uid bson.ObjectId, site string) error {
+func AddOrUpdateProfile(uid bson.ObjectId, site string, ctx context.Context) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -24,7 +25,7 @@ func AddOrUpdateProfile(uid bson.ObjectId, site string) error {
 	handle := result["handle"].(map[string]interface{})[site].(string)
 	var userProfile types.ProfileInfo
 	//runs code to fetch the particular script's getProfile function
-	scrapper, err := scrappers.NewScrapper(site, handle)
+	scrapper, err := scrappers.NewScrapper(site, handle, ctx)
 	if err != nil {
 		return err
 	}

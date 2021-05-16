@@ -1,7 +1,9 @@
 package spoj
 
 import (
+	"context"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"github.com/gocolly/colly"
 	. "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/types"
@@ -12,11 +14,15 @@ import (
 )
 
 type Scrapper struct {
-	Handle string
+	Handle  string
+	Context context.Context
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {
-
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	c := colly.NewCollector()
 	var Profile types.ProfileInfo
 
@@ -51,22 +57,28 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 
 	c.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("Something went wrong:", err)
+		hub.CaptureException(err)
 	})
 
 	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
 	if err != nil {
+		hub.CaptureException(err)
 		log.Println(err.Error())
 	}
 	return Profile
 }
 
 func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	var oldestSubIndex, current int
 	var oldestSubFound = false
 	subs := []types.Submission{{CreationDate: time.Now()}}
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub := getSubmissionParts(s.Handle, current)
+		newSub := getSubmissionParts(s.Handle, current, hub)
 		//Check for repetition of previous fetched submission
 		if len(newSub) != 0 && newSub[0].CreationDate.Before(subs[len(subs)-1].CreationDate) {
 			for i, sub := range newSub {
@@ -91,7 +103,7 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	return subs
 }
 
-func getSubmissionParts(handle string, afterIndex int) []types.Submission {
+func getSubmissionParts(handle string, afterIndex int, hub *sentry.Hub) []types.Submission {
 
 	c := colly.NewCollector()
 	var submissions []types.Submission
@@ -103,6 +115,7 @@ func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 			str_date := elem.ChildText(".status_sm span")
 			CreationDate, err := time.Parse("2006-01-02 15:04:05", str_date)
 			if err != nil {
+				sentry.CaptureException(err)
 				log.Println(err.Error())
 			}
 			status := elem.ChildText(".statusres")
@@ -129,6 +142,7 @@ func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 	})
 
 	c.OnError(func(_ *colly.Response, err error) {
+		hub.CaptureException(err)
 		fmt.Println("Something went wrong:", err)
 	})
 
@@ -137,6 +151,7 @@ func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 	})
 	err := c.Visit(fmt.Sprintf("https://www.spoj.com/status/%s/all/start=%d", handle, afterIndex))
 	if err != nil {
+		hub.CaptureException(err)
 		log.Println(err.Error())
 	}
 
@@ -144,14 +159,21 @@ func getSubmissionParts(handle string, afterIndex int) []types.Submission {
 }
 
 func (s Scrapper) CheckHandle() bool {
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	c := colly.NewCollector()
 	var valid = false
+	var err error
 	c.OnResponse(func(response *colly.Response) {
-		valid, _ = regexp.Match("user-profile-left", response.Body)
+		valid, err = regexp.Match("user-profile-left", response.Body)
+		hub.CaptureException(err)
 	})
-	err := c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
+	err = c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
 	if err != nil {
 		log.Println(err.Error())
+		hub.CaptureException(err)
 	}
 	return valid
 }

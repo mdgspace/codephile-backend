@@ -1,6 +1,7 @@
 package scrappers
 
 import (
+	"context"
 	"errors"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -18,19 +19,19 @@ type Scrapper interface {
 	GetProfileInfo() types.ProfileInfo
 }
 
-func NewScrapper(site string, handle string) (Scrapper, error) {
+func NewScrapper(site string, handle string, ctx context.Context) (Scrapper, error) {
 	if handle == "" {
 		return nil, HandleNotFoundError
 	}
 	switch site {
 	case CODEFORCES:
-		return codeforces.Scrapper{Handle: handle}, nil
+		return codeforces.Scrapper{Handle: handle, Context: ctx}, nil
 	case CODECHEF:
-		return codechef.Scrapper{Handle: handle}, nil
+		return codechef.Scrapper{Handle: handle, Context: ctx}, nil
 	case HACKERRANK:
-		return hackerrank.Scrapper{Handle: handle}, nil
+		return hackerrank.Scrapper{Handle: handle, Context: ctx}, nil
 	case SPOJ:
-		return spoj.Scrapper{Handle: handle}, nil
+		return spoj.Scrapper{Handle: handle, Context: ctx}, nil
 	default:
 		return nil, errors.New("site invalid")
 	}
