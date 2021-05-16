@@ -229,7 +229,7 @@ func GetHandle(uid bson.ObjectId) (types.Handle, error) {
 	return user.Handle, nil
 }
 
-func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
+func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *types.User, err error) {
 	var updateDoc = bson.M{}
 	var elasticDoc = map[string]interface{}{}
 	newHandle, err := GetHandle(uid)
@@ -296,8 +296,8 @@ func UpdateUser(uid bson.ObjectId, uu *types.User) (a *types.User, err error) {
 	go func() {
 		for _, value := range UpdatedSites {
 			_ = DeleteSubmissions(uid, value)
-			_ = AddSubmissions(uid, value)
-			_ = AddOrUpdateProfile(uid, value)
+			_ = AddSubmissions(uid, value, ctx)
+			_ = AddOrUpdateProfile(uid, value, ctx)
 		}
 	}()
 
@@ -341,7 +341,7 @@ func UpdatePicture(uid bson.ObjectId, url string) error {
 	return coll.Collection.UpdateId(uid, bson.M{"$set": bson.M{"picture": url}})
 }
 
-func VerifyEmail(uid bson.ObjectId) error {
+func VerifyEmail(uid bson.ObjectId, ctx context.Context) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -353,8 +353,8 @@ func VerifyEmail(uid bson.ObjectId) error {
 	}
 	go func() {
 		for _, value := range ValidSites {
-			_ = AddSubmissions(uid, value)
-			_ = AddOrUpdateProfile(uid, value)
+			_ = AddSubmissions(uid, value, ctx)
+			_ = AddOrUpdateProfile(uid, value, ctx)
 		}
 	}()
 	return nil

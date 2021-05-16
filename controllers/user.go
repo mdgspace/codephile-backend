@@ -195,7 +195,7 @@ func (u *UserController) Put() {
 		u.ServeJSON()
 		return
 	}
-	uu, err := models.UpdateUser(uid, &newUser)
+	uu, err := models.UpdateUser(uid, &newUser, u.Ctx.Request.Context())
 	if err == UserAlreadyExistError {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
 		u.Data["json"] = AlreadyExistsError("User already exists")
@@ -393,7 +393,7 @@ func (u *UserController) parseRequestBody() (types.User, error) {
 func (u *UserController) Verify() {
 	handle := u.GetString("handle")
 	site := u.GetString(":site")
-	scrapper, err := scrappers.NewScrapper(site, handle)
+	scrapper, err := scrappers.NewScrapper(site, handle, u.Ctx.Request.Context())
 	if err != nil {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid contest site")
@@ -629,7 +629,7 @@ func (u *UserController) ConfirmEmail() {
 		u.Redirect("/", http.StatusTemporaryRedirect)
 		return
 	}
-	if err := models.VerifyEmail(bson.ObjectIdHex(uid)); err != nil {
+	if err := models.VerifyEmail(bson.ObjectIdHex(uid), u.Ctx.Request.Context()); err != nil {
 		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 		hub.CaptureException(err)
 		log.Println(err.Error())

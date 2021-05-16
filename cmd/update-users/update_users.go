@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
@@ -23,11 +24,11 @@ func main() {
 			continue
 		}
 		for _, site := range conf.ValidSites {
-			err := models.AddSubmissions(user.ID, site)
+			err := models.AddSubmissions(user.ID, site, context.Background())
 			if err != nil {
 				log.Println(err.Error())
 			}
-			err = models.AddOrUpdateProfile(user.ID, site)
+			err = models.AddOrUpdateProfile(user.ID, site, context.Background())
 			if err != nil {
 				log.Println(err.Error())
 			}
