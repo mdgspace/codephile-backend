@@ -1,4 +1,3 @@
-/**{border: 0.5px solid red;}*/
 html, body{
     width: 100%;
     height: 100%;
@@ -363,7 +362,7 @@ html, body{
   }
   pre.note{
   position: relative;
-  top: 175px;
+  top: 168px;
   left: 0%;
   width: 100%;
   text-align: center;
@@ -506,7 +505,7 @@ html, body{
     button{
       top: 10px;
       padding: 0.7% 1%;
-      font-size: 140%;
+      font-size: 165%;
     }
     div.mob{
       top: 6%;
@@ -526,7 +525,7 @@ html, body{
       hr.aft{
       width: 6%;
       left: 15%;
-      top: -33px;
+      top: -29.9px;
       }
       
       div.f1{
@@ -601,6 +600,57 @@ html, body{
         height: 140%;
         left: 11%;
         }
+        div.gglPlay{
+          top: 0px;
+          left: 0;
+          font-size: 150%;
+        }
+        img.gglPlay{
+          top: 10px;
+          width: 180px;
+          height: 55px;
+          }
+          div.contact{
+            font-size: 150%;
+          }
+          pre.contact{
+            left: -30px;
+            }
+          img.dove{
+            width: 35px;
+            height: 35px;
+            }
+            img.fb{
+            width: 35px;
+            height: 35px;
+            }
+            img.lin{
+            width: 35px;
+            height: 35px;
+            }
+            pre.note{
+              font-size: 100%;
+              
+              }
+              img.heart{
+              position: relative;
+              top: 2.5px;
+              left: 0%;
+              width: 20px;
+              height: 20px;
+              }
+              p.line{
+                height: 135px;
+                width: 1px;
+                }
+  }
+
+  @media (max-device-width: 410px){
+    button{
+      top: 15px;
+      padding: 0.7% 1%;
+      font-size: 200%;
+    }
   }
   
   @media (max-device-width: 350px){
@@ -614,7 +664,7 @@ html, body{
       button{
         top: 15px;
         padding: 0.7% 1%;
-        font-size: 180%;
+        font-size: 190%;
       }
       div.mob{
         top: 6%;
@@ -634,7 +684,7 @@ html, body{
         hr.aft{
         width: 6%;
         left: 15%;
-        top: -45px;
+        top: -42.5px;
         }
       div.f1{
         top: 6%;
@@ -715,4 +765,4 @@ html, body{
         left: 9%;
         }
   }
-  
+    
