@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -17,7 +18,7 @@ import (
 // Fetches Submissions which are made after the lastFetched time, and
 // adds that to the database.
 //Returns HandleNotFoundError/UserNotFoundError/error
-func AddSubmissions(uid bson.ObjectId, site string) error {
+func AddSubmissions(uid bson.ObjectId, site string, ctx context.Context) error {
 	if !IsSiteValid(site) {
 		return errors.New("site invalid")
 	}
@@ -33,7 +34,7 @@ func AddSubmissions(uid bson.ObjectId, site string) error {
 	var addSubmissions []types.Submission
 	lastFetched := result["lastfetched"].(map[string]interface{})[site].(time.Time)
 	handle := result["handle"].(map[string]interface{})[site].(string)
-	scrapper, err := scrappers.NewScrapper(site, handle)
+	scrapper, err := scrappers.NewScrapper(site, handle, ctx)
 	if err != nil {
 		return err
 	}

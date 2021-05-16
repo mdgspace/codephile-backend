@@ -1,9 +1,11 @@
 package codeforces
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"log"
 	"strconv"
 	"time"
@@ -15,26 +17,33 @@ import (
 
 type Scrapper struct {
 	Handle string
+	Context context.Context
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	var profile types.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + s.Handle
 	data := common.HitGetRequest(url)
 	if data == nil {
 		log.Println(errors.New("GetRequest failed. Please check connection status"))
+		hub.CaptureException(errors.New("GetRequest failed. Please check connection status"))
 		return types.ProfileInfo{}
 	}
 	err := json.Unmarshal(data, &profile)
 	if err != nil {
 		log.Println(err.Error())
+		hub.CaptureException(err)
 		return types.ProfileInfo{}
 	}
 	return profile
 }
 
 // Calls the codeforces submission API and return the response in same format
-func callCodeforcesAPI(handle string, afterIndex int) (types.CodeforcesSubmissions, error) {
+func callCodeforcesAPI(handle string, afterIndex int, hub *sentry.Hub) (types.CodeforcesSubmissions, error) {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
 	fmt.Println(url)
 	data := common.HitGetRequest(url)
@@ -44,6 +53,7 @@ func callCodeforcesAPI(handle string, afterIndex int) (types.CodeforcesSubmissio
 	var codeforcesSubmission types.CodeforcesSubmissions
 	err := json.Unmarshal(data, &codeforcesSubmission)
 	if err != nil {
+		hub.CaptureException(err)
 		log.Println(err.Error())
 		return types.CodeforcesSubmissions{}, err
 	}
@@ -53,8 +63,8 @@ func callCodeforcesAPI(handle string, afterIndex int) (types.CodeforcesSubmissio
 //Get submissions of a user after an index.
 //Returns an error if unsuccessful
 //On receiving the error caller should return empty submission list
-func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submission, error) {
-	codeforcesSubmission, err := callCodeforcesAPI(handle, afterIndex)
+func getCodeforcesSubmissionParts(handle string, afterIndex int, hub *sentry.Hub) ([]types.Submission, error) {
+	codeforcesSubmission, err := callCodeforcesAPI(handle, afterIndex, hub)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +73,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 		var newCodeforcesSub types.CodeforcesSubmissions
 		for attempt := 1; attempt < 5; attempt++ {
 			time.Sleep(time.Second * time.Duration(attempt))
-			newCodeforcesSub, err = callCodeforcesAPI(handle, afterIndex)
+			newCodeforcesSub, err = callCodeforcesAPI(handle, afterIndex, hub)
 			if err != nil {
 				return nil, err
 			}
@@ -73,6 +83,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 			}
 		}
 		if newCodeforcesSub.Status == "FAILED" {
+			hub.CaptureException(errors.New("codeforces API repeatedly returned FAILED"))
 			return nil, errors.New("codeforces API repeatedly returned FAILED")
 		}
 	}
@@ -123,12 +134,16 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int) ([]types.Submis
 }
 
 func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	var oldestSubIndex, current int
 	var oldestSubFound = false
 	var subs []types.Submission
 	//Fetch submission until oldest submission not found
 	for !oldestSubFound {
-		newSub, err := getCodeforcesSubmissionParts(s.Handle, current+1)
+		newSub, err := getCodeforcesSubmissionParts(s.Handle, current+1, hub)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
@@ -154,10 +169,15 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 }
 
 func (s Scrapper) CheckHandle() bool {
+	hub := sentry.GetHubFromContext(s.Context)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	data := common.HitGetRequest("http://codeforces.com/api/user.info?handles=" + s.Handle)
 	var i interface{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
+		hub.CaptureException(err)
 		log.Println(err.Error())
 	}
 	return i.(map[string]interface{})["status"] != "FAILED"
