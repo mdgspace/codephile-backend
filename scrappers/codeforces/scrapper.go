@@ -27,7 +27,7 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 	}
 	var profile types.ProfileInfo
 	url := "http://codeforces.com/api/user.info?handles=" + s.Handle
-	data, statusCode := common.HitGetRequest(url)
+	data, _ := common.HitGetRequest(url)
 	if data == nil {
 		log.Println(errors.New("GetRequest failed. Please check connection status"))
 		hub.CaptureException(errors.New("GetRequest failed. Please check connection status"))
@@ -36,10 +36,12 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 	err := json.Unmarshal(data, &profile)
 	if err != nil {
 		log.Println(err.Error())
-		// Dont unnecessarily report error when API limit exceeds
-		if statusCode != 503 {
-			hub.CaptureException(err)
-		}
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category: "JSON parse error",
+			Message:  string(data),
+		}, nil)
+
+		hub.CaptureException(err)
 		return types.ProfileInfo{}
 	}
 	return profile
@@ -49,7 +51,7 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 func callCodeforcesAPI(handle string, afterIndex int, hub *sentry.Hub) (types.CodeforcesSubmissions, error) {
 	url := "http://codeforces.com/api/user.status?handle=" + handle + "&from=" + strconv.Itoa(afterIndex) + "&count=50"
 	fmt.Println(url)
-	data, _ := common.HitGetRequest(url)
+	data, statusCode := common.HitGetRequest(url)
 	if data == nil {
 		return types.CodeforcesSubmissions{}, errors.New("GetRequest failed. Please check connection status")
 	}
@@ -60,7 +62,10 @@ func callCodeforcesAPI(handle string, afterIndex int, hub *sentry.Hub) (types.Co
 			Category: "JSON parse error",
 			Message:  string(data),
 		}, nil)
-		hub.CaptureException(err)
+		// Dont unnecessarily report error when API limit exceeds
+		if statusCode != 503 {
+			hub.CaptureException(err)
+		}
 		log.Println(err.Error())
 		return types.CodeforcesSubmissions{}, err
 	}
@@ -178,6 +183,10 @@ func (s Scrapper) CheckHandle() bool {
 	var i interface{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(data),
+		}, nil)
 		hub.CaptureException(err)
 		log.Println(err.Error())
 	}

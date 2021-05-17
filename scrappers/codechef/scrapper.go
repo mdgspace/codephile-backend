@@ -49,6 +49,10 @@ func GetBearerToken(hub *sentry.Hub) string {
 	var respStruct map[string]interface{}
 	err = json.Unmarshal(byteValue, &respStruct)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(byteValue),
+		}, nil)
 		hub.CaptureException(err)
 	}
 	result := respStruct["result"].(map[string]interface{})
@@ -73,6 +77,10 @@ func fetchAndParseProfileData(handle string, fields string, hub *sentry.Hub) (ty
 	var profileInfo types.CodechefProfileInfo
 	err = json.Unmarshal(data, &profileInfo)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(data),
+		}, nil)
 		hub.CaptureException(err)
 	}
 	return profileInfo, resp.StatusCode
