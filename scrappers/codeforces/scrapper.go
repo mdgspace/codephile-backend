@@ -53,6 +53,10 @@ func callCodeforcesAPI(handle string, afterIndex int, hub *sentry.Hub) (types.Co
 	var codeforcesSubmission types.CodeforcesSubmissions
 	err := json.Unmarshal(data, &codeforcesSubmission)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(data),
+		}, nil)
 		hub.CaptureException(err)
 		log.Println(err.Error())
 		return types.CodeforcesSubmissions{}, err
@@ -64,25 +68,19 @@ func callCodeforcesAPI(handle string, afterIndex int, hub *sentry.Hub) (types.Co
 //Returns an error if unsuccessful
 //On receiving the error caller should return empty submission list
 func getCodeforcesSubmissionParts(handle string, afterIndex int, hub *sentry.Hub) ([]types.Submission, error) {
-	codeforcesSubmission, err := callCodeforcesAPI(handle, afterIndex, hub)
-	if err != nil {
-		return nil, err
-	}
+	codeforcesSubmission, _ := callCodeforcesAPI(handle, afterIndex, hub)
 	if codeforcesSubmission.Status != "OK" {
 		log.Println("Codeforces submission could not be retrieved. Retrying...")
 		var newCodeforcesSub types.CodeforcesSubmissions
 		for attempt := 1; attempt < 5; attempt++ {
 			time.Sleep(time.Second * time.Duration(attempt))
-			newCodeforcesSub, err = callCodeforcesAPI(handle, afterIndex, hub)
-			if err != nil {
-				return nil, err
-			}
+			newCodeforcesSub, _ = callCodeforcesAPI(handle, afterIndex, hub)
 			if newCodeforcesSub.Status == "OK" {
 				codeforcesSubmission = newCodeforcesSub
 				break
 			}
 		}
-		if newCodeforcesSub.Status == "FAILED" {
+		if newCodeforcesSub.Status == "" || newCodeforcesSub.Status == "FAILED" {
 			hub.CaptureException(errors.New("codeforces API repeatedly returned FAILED"))
 			return nil, errors.New("codeforces API repeatedly returned FAILED")
 		}
