@@ -387,10 +387,10 @@ func GetPicture(uid bson.ObjectId) string {
 	return user.Picture
 }
 
-func UserExists(username string) (bool, error) {
+func UserExists(email string) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	c, err := collection.Collection.Find(bson.M{"email": email}).Count()
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
