@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"log"
 	"math/rand"
@@ -295,9 +296,23 @@ func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *type
 
 	go func() {
 		for _, value := range UpdatedSites {
-			_ = DeleteSubmissions(uid, value)
-			_ = AddSubmissions(uid, value, ctx)
-			_ = AddOrUpdateProfile(uid, value, ctx)
+			hub := sentry.GetHubFromContext(ctx)
+			err = DeleteSubmissions(uid, value)
+			if err != nil {
+				hub.CaptureException(err)
+			}
+			err = ResetProfile(uid, value)
+			if err != nil {
+				hub.CaptureException(err)
+			}
+			err = AddSubmissions(uid, value, ctx)
+			if err != nil {
+				hub.CaptureException(err)
+			}
+			err = AddOrUpdateProfile(uid, value, ctx)
+			if err != nil {
+				hub.CaptureException(err)
+			}
 		}
 	}()
 
@@ -372,10 +387,10 @@ func GetPicture(uid bson.ObjectId) string {
 	return user.Picture
 }
 
-func UserExists(username string) (bool, error) {
+func UserExists(email string) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	c, err := collection.Collection.Find(bson.M{"email": email}).Count()
 	if err != nil {
 		log.Println(err.Error())
 		return false, err

@@ -24,7 +24,7 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 		hub = sentry.CurrentHub()
 	}
 	path := "https://www.hackerrank.com/rest/contests/master/hackers/" + s.Handle + "/profile";
-	byteValue := common.HitGetRequest(path)
+	byteValue, _ := common.HitGetRequest(path)
 	if byteValue == nil {
 		err := errors.New("GetRequest failed. Please check connection status")
 		log.Println(err)
@@ -52,7 +52,7 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 		hub = sentry.CurrentHub()
 	}
 	path := "https://www.hackerrank.com/rest/hackers/" + s.Handle + "/recent_challenges?limit=1000&response_version=v1"
-	byteValue := common.HitGetRequest(path)
+	byteValue, _ := common.HitGetRequest(path)
 	var data types.HackerrankSubmisson
 	err := json.Unmarshal(byteValue, &data)
 	submissions := data.Models

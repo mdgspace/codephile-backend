@@ -168,7 +168,9 @@ func (s Scrapper) CheckHandle() bool {
 	var err error
 	c.OnResponse(func(response *colly.Response) {
 		valid, err = regexp.Match("user-profile-left", response.Body)
-		hub.CaptureException(err)
+		if err != nil {
+			hub.CaptureException(err)
+		}
 	})
 	err = c.Visit(fmt.Sprintf("https://www.spoj.com/users/%s/", s.Handle))
 	if err != nil {
