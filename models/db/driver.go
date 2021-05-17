@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
 	"github.com/globalsign/mgo"
 	"github.com/mdg-iitr/Codephile/conf"
 	"log"
@@ -11,8 +12,14 @@ import (
 
 var maxPool int
 
-var index = mgo.Index{
+var usernameIndex = mgo.Index{
 	Key:        []string{"username"},
+	Unique:     true,
+	Background: true,
+}
+
+var emailIndex = mgo.Index{
+	Key:        []string{"email"},
 	Unique:     true,
 	Background: true,
 }
@@ -29,9 +36,19 @@ func init() {
 	// init method to start db
 	checkAndInitServiceConnection()
 	c := NewUserCollectionSession()
-	err = c.Collection.EnsureIndex(index)
+	err = c.Collection.EnsureIndex(usernameIndex)
+	if err != nil {
+		log.Println(err.Error())
+		sentry.CurrentHub().CaptureException(err)
+	}
+	err = c.Collection.EnsureIndex(emailIndex)
+	if err != nil {
+		log.Println(err.Error())
+		sentry.CurrentHub().CaptureException(err)
+	}
 	defer c.Close()
 	if err != nil {
+		sentry.CurrentHub().CaptureException(err)
 		log.Println(err.Error())
 	}
 

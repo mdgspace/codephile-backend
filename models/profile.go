@@ -12,6 +12,15 @@ import (
 	"github.com/mdg-iitr/Codephile/scrappers"
 )
 
+func ResetProfile(uid bson.ObjectId, site string) error {
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+	coll := sess.Collection
+	newNode := "profiles." + site + "Profile"
+	userProfile := types.ProfileInfo{}
+	return coll.UpdateId(uid, bson.M{"$set": bson.M{newNode: userProfile}})
+}
+
 func AddOrUpdateProfile(uid bson.ObjectId, site string, ctx context.Context) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
@@ -101,14 +110,14 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 		match,
 		unwind,
 		match2,
-		bson.M{
+		{
 			"$facet": bson.M{
-				"total": []bson.M{bson.M{"$count": "total"}},
+				"total": []bson.M{{"$count": "total"}},
 				"correct": []bson.M{
-					bson.M{"$match": bson.M{"submissions.status": StatusCorrect}},
-					bson.M{"$count": "correct"}},
-			},
-		},
+					{"$match": bson.M{"submissions.status": StatusCorrect}},
+					{"$count": "correct"}},
+					},
+				},
 	})
 	var result []map[string][]map[string]int
 	err := pipe.All(&result)
