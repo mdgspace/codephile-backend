@@ -158,6 +158,10 @@ func callCodechefAPI(handle string, afterIndex int, hub *sentry.Hub) (types.Code
 	var codechefSubmissions types.CodechefSubmissions
 	err = json.Unmarshal(data, &codechefSubmissions)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(data),
+		}, nil)
 		hub.CaptureException(err)
 		log.Println(err.Error())
 		return types.CodechefSubmissions{}, err

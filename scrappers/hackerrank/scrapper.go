@@ -57,6 +57,10 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	err := json.Unmarshal(byteValue, &data)
 	submissions := data.Models
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(byteValue),
+		}, nil)
 		hub.CaptureException(err)
 		log.Println(err.Error())
 		return nil
