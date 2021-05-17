@@ -34,6 +34,10 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 	var JsonInterFace interface{}
 	err := json.Unmarshal(byteValue, &JsonInterFace)
 	if err != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category:  "JSON parse error",
+			Message:   string(byteValue),
+		}, nil)
 		hub.CaptureException(err)
 		log.Println(err.Error())
 		return types.ProfileInfo{}
