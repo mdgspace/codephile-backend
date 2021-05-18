@@ -517,20 +517,28 @@ func (u *UserController) ProfilePic() {
 	u.ServeJSON()
 }
 
-// @Title Email available
-// @Description checks if email is available
+// @Title Email/Username available
+// @Description checks if email/username is available(email given pref, in case both params are present)
 // @Param	email		query 	string	true		"E-mail ID"
+// @Param	username		query 	string	true		"username"
 // @Success 200  available
 // @Failure 400 empty username
 // @Failure 403 unavailable
 // @router /available [get]
 func (u *UserController) IsAvailable() {
 	email := u.GetString("email")
-	if email == "" {
+	username := u.GetString("username")
+	if email == "" && username == "" {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	exists, err := models.UserExists(email)
+	var exists bool
+	var err error
+	if email == "" {
+		exists, err = models.CheckUsernameExists(username)
+	}else {
+		exists, err = models.CheckEmailExists(email)
+	}
 	if err != nil {
 		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 		hub.CaptureException(err)

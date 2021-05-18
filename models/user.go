@@ -387,7 +387,21 @@ func GetPicture(uid bson.ObjectId) string {
 	return user.Picture
 }
 
-func UserExists(email string) (bool, error) {
+func CheckUsernameExists(username string) (bool, error) {
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	if err != nil {
+		log.Println(err.Error())
+		return false, err
+	}
+	if c > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func CheckEmailExists(email string) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	c, err := collection.Collection.Find(bson.M{"email": email}).Count()
