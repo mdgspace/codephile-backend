@@ -17,7 +17,7 @@ func main() {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	iter := coll.Find(nil).Select(bson.M{"_id": 1}).Iter()
+	iter := coll.Find(nil).Select(bson.M{"_id": 1, "verified": 1}).Iter()
 	var user types.User
 	for iter.Next(&user) {
 		if !user.Verified {
