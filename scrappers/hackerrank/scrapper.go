@@ -89,7 +89,7 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	return submissions
 }
 
-func (s Scrapper) CheckHandle() bool {
+func (s Scrapper) CheckHandle() (bool, error) {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -98,7 +98,7 @@ func (s Scrapper) CheckHandle() bool {
 	if err != nil {
 		log.Println(err.Error())
 		hub.CaptureException(err)
-		return false
+		return false, err
 	}
-	return resp.StatusCode != http.StatusNotFound
+	return resp.StatusCode != http.StatusNotFound, nil
 }

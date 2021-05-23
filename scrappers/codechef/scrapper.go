@@ -86,7 +86,7 @@ func fetchAndParseProfileData(handle string, fields string, hub *sentry.Hub) (ty
 	return profileInfo, resp.StatusCode
 }
 
-func (s Scrapper) CheckHandle() bool {
+func (s Scrapper) CheckHandle() (bool, error) {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -109,7 +109,7 @@ func (s Scrapper) CheckHandle() bool {
 		}
 	}
 	code := profileInfo.Result["data"].Code
-	return code == 9001
+	return code == 9001, nil
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {

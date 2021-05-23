@@ -14,7 +14,7 @@ import (
 )
 
 type Scrapper interface {
-	CheckHandle() bool
+	CheckHandle() (bool, error)
 	GetSubmissions(after time.Time) []types.Submission
 	GetProfileInfo() types.ProfileInfo
 }

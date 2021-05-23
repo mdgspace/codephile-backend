@@ -158,7 +158,7 @@ func getSubmissionParts(handle string, afterIndex int, hub *sentry.Hub) []types.
 	return submissions
 }
 
-func (s Scrapper) CheckHandle() bool {
+func (s Scrapper) CheckHandle() (bool, error) {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -177,7 +177,7 @@ func (s Scrapper) CheckHandle() bool {
 		log.Println(err.Error())
 		hub.CaptureException(err)
 	}
-	return valid
+	return valid, nil
 }
 
 func getProbTags(url string) []string {
