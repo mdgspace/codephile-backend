@@ -80,7 +80,7 @@ func getCodeforcesSubmissionParts(handle string, afterIndex int, hub *sentry.Hub
 	if codeforcesSubmission.Status != "OK" {
 		log.Println("Codeforces submission could not be retrieved. Retrying...")
 		var newCodeforcesSub types.CodeforcesSubmissions
-		for attempt := 1; attempt < 5; attempt++ {
+		for attempt := 1; attempt < 10; attempt++ {
 			time.Sleep(time.Second * time.Duration(attempt))
 			newCodeforcesSub, _ = callCodeforcesAPI(handle, afterIndex, hub)
 			if newCodeforcesSub.Status == "OK" {
