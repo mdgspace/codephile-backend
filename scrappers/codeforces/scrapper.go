@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"log"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -174,21 +175,33 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	return subs
 }
 
-func (s Scrapper) CheckHandle() bool {
+func (s Scrapper) CheckHandle() (bool, error) {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
 	}
-	data, _ := common.HitGetRequest("http://codeforces.com/api/user.info?handles=" + s.Handle)
+	data, _ := common.HitGetRequest("http://codeforces.com/api/user.info?handles=" + url.PathEscape(s.Handle))
 	var i interface{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
-		hub.AddBreadcrumb(&sentry.Breadcrumb{
-			Category:  "JSON parse error",
-			Message:   string(data),
-		}, nil)
-		hub.CaptureException(err)
-		log.Println(err.Error())
+		for attempt := 1; attempt < 5; attempt++ {
+			time.Sleep(time.Millisecond * time.Duration(attempt) * 100)
+			data, _ := common.HitGetRequest("http://codeforces.com/api/user.info?handles=" + s.Handle)
+			var i interface{}
+			err = json.Unmarshal(data, &i)
+			if err == nil {
+				break
+			}
+			hub.AddBreadcrumb(&sentry.Breadcrumb{
+				Category: "JSON parse error",
+				Message:  string(data),
+			}, nil)
+			log.Println(err.Error())
+		}
 	}
-	return i.(map[string]interface{})["status"] != "FAILED"
+	if err != nil{
+		hub.CaptureException(err)
+		return false, err
+	}
+	return i.(map[string]interface{})["status"] != "FAILED", nil
 }

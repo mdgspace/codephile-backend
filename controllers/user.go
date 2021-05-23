@@ -400,7 +400,12 @@ func (u *UserController) Verify() {
 		u.ServeJSON()
 		return
 	}
-	valid := scrapper.CheckHandle()
+	valid, err := scrapper.CheckHandle()
+	if err != nil {
+		u.Ctx.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
+		u.ServeJSON()
+		return
+	}
 	if valid {
 		u.Data["json"] = map[string]string{"status": "Handle valid"}
 	} else {
@@ -536,7 +541,7 @@ func (u *UserController) IsAvailable() {
 	var err error
 	if email == "" {
 		exists, err = models.CheckUsernameExists(username)
-	}else {
+	} else {
 		exists, err = models.CheckEmailExists(email)
 	}
 	if err != nil {
