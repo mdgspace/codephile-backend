@@ -28,27 +28,27 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 		hub = sentry.CurrentHub()
 	}
 	var profile types.ProfileInfo
-	url := "http://codeforces.com/api/user.info?handles=" + s.Handle
+	requestUrl := "http://codeforces.com/api/user.info?handles=" + s.Handle
+	var err error
 	for attempt := 1; attempt < 10; attempt++ {
 		time.Sleep(time.Second * time.Duration(attempt))
-		log.Println(attempt)
-		data, _ := common.HitGetRequest(url)
+		data, _ := common.HitGetRequest(requestUrl)
 		if data == nil {
 			log.Println(errors.New("GetRequest failed. Please check connection status"))
 			hub.CaptureException(errors.New("GetRequest failed. Please check connection status"))
-			return types.ProfileInfo{}
 		}
-		err := json.Unmarshal(data, &profile)
+		err = json.Unmarshal(data, &profile)
 		if err == nil {
 			break
 		}
+		log.Println(err.Error())
 		hub.AddBreadcrumb(&sentry.Breadcrumb{
 			Category: "JSON parse error",
 			Message:  string(data),
 		}, nil)
-		log.Println(err.Error())
+	}
+	if err != nil {
 		hub.CaptureException(err)
-		return types.ProfileInfo{}
 	}
 	return profile
 }
