@@ -3,14 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/globalsign/mgo/bson"
 	_ "github.com/mdg-iitr/Codephile/conf"
+
+	"os"
 
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/db"
 	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"github.com/mdg-iitr/Codephile/services/firebase"
-	"os"
 
 	"github.com/mdg-iitr/Codephile/services/auth"
 )
@@ -26,7 +29,8 @@ func main() {
 	}
 	if user.Picture != "" {
 		// Delete profile pic
-		err = firebase.DeleteObject(user.Picture)
+		pic_name := strings.Split(user.Picture, "/profile/")[1]
+		err = firebase.DeleteObject("profile/" + pic_name)
 		if err != nil {
 			panic(err)
 		}
