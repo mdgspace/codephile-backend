@@ -467,20 +467,12 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 		log.Println(err1.Error())
 		return false
 	}
-	// data := struct {
-	// 	link string
-	// }{
-	// 	link: link,
-	// }
-
 	var tpl bytes.Buffer
 	if err2 := t.Execute(&tpl, map[string]string{"link": link}); err2 != nil {
 		log.Println(err2.Error())
 		return false
 	}
-
 	body := tpl.String()
-	// body += "\nThis link will expire in 1 hr"
 	go mail.SendMail(email, "Codephile Password Reset", body, ctx)
 	return true
 }
