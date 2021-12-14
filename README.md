@@ -49,7 +49,14 @@ Now clone the repo in the appropriate directory.
 $ mkdir -p $GOPATH/src/github.com/mdg-iitr/Codephile && cd $_ 
 $ git clone https://github.com/mdg-iitr/Codephile.git
 ```
-We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.me/quickstart).
+Now install the following services - [redis](https://redis.io/topics/quickstart) , [elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html), and [mongodb](https://docs.mongodb.com/guides/server/install/) to run the project locally. Use these env variables in the .env file:
+```
+REDISURL=redis://redis:6379
+ELASTICURL=http://elastic:secret@elasticsearch:9200/codephile/?sniff=false
+DBPath=mongodb://mongoadmin:secret@mongo:27017/admin
+```
+
+We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.vip/docs/quickstart/).
 
 In order to generate documentation from comments, run:
 ```shell script
@@ -80,6 +87,29 @@ And run these commands
 $ mkdir -m 777 -p data/elasticsearch
 $ docker-compose -f dev_docker-compose.yml up
 ```
+## Accessing the APIs
+- Navigate to https://localhost/docs to access and test all the Codephile APIs. - Before testing, create a new user using the signup API, login and unlock the other APIs.
+
+- In order to test the gmail APIs: 
+   - Navigate to https://console.cloud.google.com and select APIs and Services -> Credentials.
+   - Click on Create Credentials -> OAuth Client IDs and fill in the following details - 
+     - Application Type: Web Application
+     - Application Name: Codephile
+     - Authorized JavaScript origins: 
+        - https://codephile-dummy.firebaseapp.com
+        - http://localhost
+        - http://localhost:5000
+        - https://codephile.mdg.iitr.ac.in
+     - Authorized redirect URIs:
+        - https://developers.google.com/oauthplayground
+   - Click on `Create Credentials` button and copy the client ID and Client Secret generated. Add them to your .env file.
+   - Navigate to [Google OAuth Playground](https://developers.google.com/oauthplayground) and select the  [mail.google.com](https://mail.google.com/), [send](https://www.googleapis.com/auth/gmail.send), [modify](https://www.googleapis.com/auth/gmail.modify) APIs under Gmail API.
+   - Click `Authorize APIs` and after getting an Authorization code select `Exchange authorization code for tokens` Copy the refresh token and add it to your .env file.
+   - Now you may test sending and recieving mails with the API!
+
+
+
+ 
 
 ## Tests
 
@@ -126,3 +156,16 @@ When a pull request is submitted, continuous integration jobs are run automatica
 At present, the build, tests and linters are run on CI.
 
 We use [golang-ci](https://github.com/golangci/golangci-lint) lint for linting jobs. Download and run the linter locally before submitting a PR.
+
+## 💬 For commit messages
+
+Please start your commits with these prefixes for better understanding among collaborators, based on the type of commit:
+
+    feat: (addition of a new feature)
+    rfac: (refactoring the code: optimization/ different logic of existing code - output doesn't change, just the way of execution changes)
+    docs: (documenting the code, be it readme, or extra comments)
+    bfix: (bug fixing)
+    chor: (chore - beautifying code, indents, spaces, camelcasing, changing variable names to have an appropriate meaning)
+    ptch: (patches - small changes in code, mainly UI, for example color of a button, increasing size of tet, etc etc)
+    conf: (configurational settings - changing directory structure, updating gitignore, add libraries, changing manifest etc)
+
