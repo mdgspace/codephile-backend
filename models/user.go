@@ -446,10 +446,15 @@ func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
 
 func PasswordResetEmail(email string, hostName string, ctx context.Context) bool {
 	collection := db.NewUserCollectionSession()
+	hub := sentry.GetHubFromContext(ctx)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
 	defer collection.Close()
 	var user types.User
 	err := collection.Collection.Find(bson.M{"email": email}).One(&user)
 	if err != nil {
+		hub.CaptureException(err)
 		return false
 	}
 	client := redis.GetRedisClient()
@@ -464,11 +469,13 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 	var err1 error
 	t, err1 = t.ParseFiles("views/reset_email.html")
 	if err1 != nil {
+		hub.CaptureException(err1)
 		log.Println(err1.Error())
 		return false
 	}
 	var tpl bytes.Buffer
 	if err2 := t.Execute(&tpl, map[string]string{"link": link}); err2 != nil {
+		hub.CaptureException(err2)
 		log.Println(err2.Error())
 		return false
 	}
