@@ -18,7 +18,7 @@ COPY . .
 COPY supervisord.conf /etc/supervisor/conf.d/
 
 # Compile the binary and statically link
-RUN cd $APP_DIR && CGO_ENABLED=0 go build -ldflags '-d -w -s'
+RUN cd $APP_DIR && CGO_ENABLED=0 go build -mod=vendor -ldflags '-d -w -s'
 
 ENTRYPOINT ["supervisord", "-n"]
 
