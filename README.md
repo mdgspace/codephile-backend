@@ -49,7 +49,7 @@ Now clone the repo in the appropriate directory.
 $ mkdir -p $GOPATH/src/github.com/mdg-iitr/Codephile && cd $_ 
 $ git clone https://github.com/mdg-iitr/Codephile.git
 ```
-We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.me/quickstart).
+We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.vip/docs/install/bee.md).
 
 In order to generate documentation from comments, run:
 ```shell script
@@ -67,6 +67,9 @@ E.g.
 ```shell script
  $ go run cmd/blacklist-user/blacklist_user.go
 ```
+
+Note: During commiting changes, always run `go mod vendor` if there are any changes in 3rd party dependency.
+
 ## Setup using docker
 You can use the `dev_docker-compose.yml` file to spin up containers with Mongo, Redis & Elastic Search services easily.
 Use these env variables
@@ -87,7 +90,7 @@ Change the `DBPath` and `ELASTICURL` in .env file
 
 Run the tests
 ```shell script
-$ go test -v ./tests
+$ go test -mod=vendor -v ./tests
 ```
 
 ## Components
