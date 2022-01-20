@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -18,7 +19,7 @@ type Scrapper struct {
 	Context context.Context
 }
 
-func (s Scrapper) GetSubmissions(after time.Time) []types.LeetcodeSubmissions {
+func (s Scrapper) GetSubmissions() []types.LeetcodeSubmissions {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -35,15 +36,27 @@ func (s Scrapper) GetSubmissions(after time.Time) []types.LeetcodeSubmissions {
             }
         `,
 	}
-	jsonValue, _ := json.Marshal(jsonData)
+	jsonValue, err := json.Marshal(jsonData)
+	if err != nil {
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		return nil
+	}
 	request, err := http.NewRequest("POST", "https://leetcode.com/graphql", bytes.NewBuffer(jsonValue))
 	client := &http.Client{Timeout: time.Second * 10}
 	response, err := client.Do(request)
 	if err != nil {
-		fmt.Printf("The HTTP request failed with error %s\n", err)
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		return nil
 	}
 	defer response.Body.Close()
-	body, _ := ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		return nil
+	}
 	var submissions []types.LeetcodeSubmissions
 	json.Unmarshal(body, &submissions)
 	fmt.Println(submissions)

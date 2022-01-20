@@ -19,6 +19,7 @@ type AllProfiles struct {
 	CodeforcesProfile ProfileInfo `bson:"codeforcesProfile" json:"codeforcesProfile"`
 	HackerrankProfile ProfileInfo `bson:"hackerrankProfile" json:"hackerrankProfile"`
 	SpojProfile       ProfileInfo `bson:"spojProfile" json:"spojProfile"`
+	LeetcodeProfile   ProfileInfo `bson:"leetcodeProfile" json:"leetcodeProfile"`
 }
 
 //UnmarshalJSON implements the unmarshaler interface for CodeforcesProfileInfo
@@ -46,6 +47,7 @@ type SolvedProblemsCount struct {
 	Codeforces int `json:"codeforces"`
 	Hackerrank int `json:"hackerrank"`
 	Spoj       int `json:"spoj"`
+	Leetcode   int `json:"leetcode"`
 }
 
 type CodechefProfileInfo struct {
