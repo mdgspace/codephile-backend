@@ -38,17 +38,17 @@ jobs:
             command -v /go/bin/golangci-lint && exit
             download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
             wget -O- -q $download | sh -s -- -b /go/bin
-            /go/bin/golangci-lint run -v --timeout 5m0s
+            /go/bin/golangci-lint run -v --timeout 5m0s --modules-download-mode vendor
 
       - run:
           name: Build
           command: |
-            go build -o bin/Codephile .
+            go build -mod=vendor -o bin/Codephile .
 
       - run:
           name: Test
           command: |
-            go test -v ./tests
+            go test -mod=vendor -v ./tests
 
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}

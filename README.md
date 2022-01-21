@@ -4,7 +4,7 @@ We use the following services in our server,
 
 * MongoDB: Main database of the server, stores user info, submission, profile,etc. Install from [here](https://docs.mongodb.com/manual/installation/)
 * Redis: Used to logout and blacklist users. Serves as cache for contests API. Download from [here](https://redis.io/download) 
-* Elastic Search: Some of user data is indexed to elasticsearch db, in order to use the search API. Download it from [here](elastic.co/downloads/)
+* Elastic Search: Some of user data is indexed to elasticsearch db, in order to use the search API. Download it from [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html)
 * Firebase storage: The profile pictures are stored in firebase storage. Create a firebase account.
 
 ## Environment Variables
@@ -58,6 +58,7 @@ DBPath=mongodb://mongoadmin:secret@mongo:27017/admin
 
 We used beego framework to bootstrap the project. Download and setup bee command line program from [here](https://beego.vip/docs/quickstart/).
 
+
 In order to generate documentation from comments, run:
 ```shell script
 $ bee run -downdoc=true -gendoc=true
@@ -74,6 +75,9 @@ E.g.
 ```shell script
  $ go run cmd/blacklist-user/blacklist_user.go
 ```
+
+Note: During commiting changes, always run `go mod vendor` if there are any changes in 3rd party dependency.
+
 ## Setup using docker
 You can use the `dev_docker-compose.yml` file to spin up containers with Mongo, Redis & Elastic Search services easily.
 Use these env variables
@@ -117,7 +121,7 @@ Change the `DBPath` and `ELASTICURL` in .env file
 
 Run the tests
 ```shell script
-$ go test -v ./tests
+$ go test -mod=vendor -v ./tests
 ```
 
 ## Components
