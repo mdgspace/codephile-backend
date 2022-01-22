@@ -1,14 +1,15 @@
 package conf
 
 import (
-	"github.com/getsentry/sentry-go"
-	"github.com/joho/godotenv"
-	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/getsentry/sentry-go"
+	"github.com/joho/godotenv"
+	search "github.com/mdg-iitr/Codephile/services/elastic"
 )
 
 var AppRootDir string
@@ -18,7 +19,7 @@ func init() {
 	AppRootDir = filepath.Dir(filepath.Dir(file))
 	err := godotenv.Load(filepath.Join(filepath.Dir(file), ".env"))
 	if err != nil {
-		log.Println("No .env file found")
+		log.Println(err.Error())
 	}
 	search.GetElasticClient()
 	err = sentry.Init(sentry.ClientOptions{

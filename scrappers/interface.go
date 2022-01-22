@@ -33,8 +33,6 @@ func NewScrapper(site string, handle string, ctx context.Context) (Scrapper, err
 		return hackerrank.Scrapper{Handle: handle, Context: ctx}, nil
 	case SPOJ:
 		return spoj.Scrapper{Handle: handle, Context: ctx}, nil
-	case LEETCODE:
-		return spoj.Scrapper{Handle: handle, Context: ctx}, nil
 	default:
 		return nil, errors.New("site invalid")
 	}

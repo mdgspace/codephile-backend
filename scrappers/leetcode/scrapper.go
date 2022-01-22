@@ -19,7 +19,7 @@ type Scrapper struct {
 	Context context.Context
 }
 
-func (s Scrapper) GetSubmissions() []types.LeetcodeSubmissions {
+func (s Scrapper) GetLeetcodesubmissions() []types.Submission {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -31,10 +31,8 @@ func (s Scrapper) GetSubmissions() []types.LeetcodeSubmissions {
 					title
 					titleSlug
 				    timestamp
-				}
-				
-            }
-        `,
+				}	
+            }`,
 	}
 	jsonValue, err := json.Marshal(jsonData)
 	if err != nil {
@@ -43,6 +41,11 @@ func (s Scrapper) GetSubmissions() []types.LeetcodeSubmissions {
 		return nil
 	}
 	request, err := http.NewRequest("POST", "https://leetcode.com/graphql", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		hub.CaptureException(err)
+		log.Println(err.Error())
+		return nil
+	}
 	client := &http.Client{Timeout: time.Second * 10}
 	response, err := client.Do(request)
 	if err != nil {
@@ -57,11 +60,25 @@ func (s Scrapper) GetSubmissions() []types.LeetcodeSubmissions {
 		log.Println(err.Error())
 		return nil
 	}
-	var submissions []types.LeetcodeSubmissions
-	json.Unmarshal(body, &submissions)
-	fmt.Println(submissions)
-	for i := 0; i < len(submissions); i++ {
-		submissions[i].URL = "https://leetcode.com/problems/" + submissions[i].URL
+	var Leetcodesubmissions []types.LeetcodeSubmissions
+	err1 := json.Unmarshal(body, &Leetcodesubmissions)
+	if err1 != nil {
+		hub.CaptureException(err1)
+		log.Println(err1.Error())
+		return nil
+	}
+	fmt.Println(Leetcodesubmissions)
+
+	submissions := make([]types.Submission, len(Leetcodesubmissions))
+	for i, result := range Leetcodesubmissions {
+		submissions[i].Name = result.Title
+		submissions[i].URL = "https://leetcode.com/problems/" + result.URL
+		t, err := time.Parse("2006-01-02 15:04:05", result.TimeSTamp)
+		if err != nil {
+			hub.CaptureException(err)
+		}
+		submissions[i].CreationDate = t
+
 	}
 	return submissions
 }

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/mdg-iitr/Codephile/services/mail"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/mdg-iitr/Codephile/services/mail"
 
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
@@ -37,15 +38,16 @@ type UserController struct {
 
 // @Title CreateUser
 // @Description create users
-// @Param	username 		formData	string	true "Username"
-// @Param	email 			formData	string	true "E-mail"
-// @Param	password		formData 	string	true "Password"
-// @Param	fullname		formData 	string	true "Full name of User"
-// @Param	institute		formData 	string	false "Name of Institute"
-// @Param	handle.codechef	formData	string 	false "Codechef Handle"
+// @Param	username 			formData	string	true "Username"
+// @Param	email 				formData	string	true "E-mail"
+// @Param	password			formData 	string	true "Password"
+// @Param	fullname			formData 	string	true "Full name of User"
+// @Param	institute			formData 	string	false "Name of Institute"
+// @Param	handle.codechef		formData	string 	false "Codechef Handle"
 // @Param	handle.codeforces	formData	string 	false "Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "Hackerrank Handle"
-// @Param	handle.spoj		formData	string 	false "Spoj Handle"
+// @Param	handle.spoj			formData	string 	false "Spoj Handle"
+// @Param	handle.leetcode		formData	string 	false "Leetcode Handle"
 // @Success 201 {int} types.User.Id
 // @Failure 409 username already exists
 // @Failure 400 bad request body or blank username/password/full name
