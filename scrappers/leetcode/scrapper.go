@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
@@ -18,7 +19,7 @@ type Scrapper struct {
 	Context context.Context
 }
 
-func leetcodeGraphQLRequest(query string) (map[string]interface{}, error) {
+func leetcodeGraphQLRequest(query string) ([]byte, error) {
 	jsonData := map[string]string{
 		"query": query,
 	}
@@ -35,13 +36,7 @@ func leetcodeGraphQLRequest(query string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	var responseData map[string]interface{}
-	err = json.Unmarshal(responseValue, &responseData)
-	if err != nil {
-		return nil, err
-	}
-	data := responseData["data"].(map[string]interface{})
-	return data, err
+	return responseValue, err
 }
 
 func (s Scrapper) GetProfileInfo() types.ProfileInfo {
@@ -76,27 +71,24 @@ func (s Scrapper) GetProfileInfo() types.ProfileInfo {
 		hub.CaptureException(err)
 		return types.ProfileInfo{}
 	}
-	matchedUser := responseData["matchedUser"].(map[string]interface{})
-	UserName := matchedUser["username"].(string)
-	profile := matchedUser["profile"].(map[string]interface{})
-	Name := profile["realName"].(string)
-	var School string
-	if profile["school"] != nil {
-		School = profile["school"].(string)
-	} else {
-		School = ""
+	var responseValue types.GraphQLResponse
+	err = json.Unmarshal(responseData, &responseValue)
+	if err != nil {
+		log.Println(err.Error())
+		hub.CaptureException(err)
+		return types.ProfileInfo{}
 	}
-	WorldRank := profile["ranking"].(float64)
-	submitStats := matchedUser["submitStats"].(map[string]interface{})
-	acSubmissionNumAll := submitStats["acSubmissionNum"].([]interface{})[0].(map[string]interface{})["submissions"].(float64)
-	totalSubmissionNumAll := submitStats["totalSubmissionNum"].([]interface{})[0].(map[string]interface{})["submissions"].(float64)
-	var Accuracy float64
-	if totalSubmissionNumAll == 0 {
-		Accuracy = 0
-	} else {
-		Accuracy = (acSubmissionNumAll / totalSubmissionNumAll) * 100
+	matchedUser := responseValue.Data.MatchedUser
+	profile := matchedUser.Profile
+	submitStats := matchedUser.SubmitStats
+	accuracy := submitStats.AcSubmissionNum[0].Submissions / math.Max(1, submitStats.TotalSubmissionNum[0].Submissions) * 100
+	return types.ProfileInfo{
+		Name:      profile.RealName,
+		UserName:  matchedUser.Username,
+		School:    profile.School,
+		WorldRank: fmt.Sprintf("%.0f", profile.Ranking),
+		Accuracy:  fmt.Sprintf("%.2f", accuracy),
 	}
-	return types.ProfileInfo{Name: Name, UserName: UserName, School: School, WorldRank: fmt.Sprintf("%.0f", WorldRank), Accuracy: fmt.Sprintf("%.2f", Accuracy)}
 }
 
 func (s Scrapper) CheckHandle() (bool, error) {
@@ -118,6 +110,13 @@ func (s Scrapper) CheckHandle() (bool, error) {
 		hub.CaptureException(err)
 		return false, err
 	}
-	matchedUser := responseData["matchedUser"]
+	var responseValue map[string]interface{}
+	err = json.Unmarshal(responseData, &responseValue)
+	if err != nil {
+		log.Println(err.Error())
+		hub.CaptureException(err)
+		return false, err
+	}
+	matchedUser := responseValue["data"].(map[string]interface{})["matchedUser"]
 	return matchedUser != nil, err
 }
