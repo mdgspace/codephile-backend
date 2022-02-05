@@ -64,3 +64,32 @@ type ProfileInfoContent struct {
 	Rankings     map[string]interface{} `json:"rankings"`
 	Organization string                 `json:"organization"`
 }
+
+type GraphQLResponse struct {
+	Data LeetcodeData
+}
+
+type LeetcodeData struct {
+	MatchedUser LeetcodeMatchedUser
+}
+
+type LeetcodeMatchedUser struct {
+	Username    string
+	Profile     LeetcodeProfile
+	SubmitStats LeetcodeSubmitStats
+}
+
+type LeetcodeProfile struct {
+	RealName string
+	School   string
+	Ranking  float64
+}
+
+type LeetcodeSubmitStats struct {
+	AcSubmissionNum    []LeetcodeSubmission
+	TotalSubmissionNum []LeetcodeSubmission
+}
+
+type LeetcodeSubmission struct {
+	Submissions float64
+}
