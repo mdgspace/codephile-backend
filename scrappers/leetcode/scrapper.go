@@ -122,7 +122,7 @@ func (s Scrapper) CheckHandle() (bool, error) {
 	return matchedUser != nil, err
 }
 
-func (s Scrapper) GetLeetcodesubmissions() []types.Submission {
+func (s Scrapper) GetSubmissions() []types.Submission {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -150,8 +150,6 @@ func (s Scrapper) GetLeetcodesubmissions() []types.Submission {
 		log.Println(err1.Error())
 		return nil
 	}
-	fmt.Println(Leetcodesubmissions)
-
 	submissions := make([]types.Submission, len(Leetcodesubmissions))
 	for i, result := range Leetcodesubmissions {
 		submissions[i].Name = result.Title
