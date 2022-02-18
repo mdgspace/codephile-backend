@@ -122,7 +122,7 @@ func (s Scrapper) CheckHandle() (bool, error) {
 	return matchedUser != nil, err
 }
 
-func (s Scrapper) GetSubmissions() []types.Submission {
+func (s Scrapper) GetSubmissions(after time.Time) []types.Submission {
 	hub := sentry.GetHubFromContext(s.Context)
 	if hub == nil {
 		hub = sentry.CurrentHub()

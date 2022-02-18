@@ -12,6 +12,7 @@ import (
 	"github.com/mdg-iitr/Codephile/scrappers/codeforces"
 	"github.com/mdg-iitr/Codephile/scrappers/hackerrank"
 	"github.com/mdg-iitr/Codephile/scrappers/spoj"
+	"github.com/mdg-iitr/Codephile/scrappers/leetcode"
 )
 
 type Scrapper interface {
@@ -33,6 +34,8 @@ func NewScrapper(site string, handle string, ctx context.Context) (Scrapper, err
 		return hackerrank.Scrapper{Handle: handle, Context: ctx}, nil
 	case SPOJ:
 		return spoj.Scrapper{Handle: handle, Context: ctx}, nil
+	case LEETCODE:
+		return leetcode.Scrapper{Handle: handle, Context: ctx}, nil
 	default:
 		return nil, errors.New("site invalid")
 	}

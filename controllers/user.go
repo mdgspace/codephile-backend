@@ -180,7 +180,8 @@ func (u *UserController) Get() {
 // @Param	handle.codechef	formData	string 	false "New Codechef Handle"
 // @Param	handle.codeforces	formData	string 	false "New Codeforces Handle"
 // @Param	handle.hackerrank	formData	string 	false "New Hackerrank Handle"
-// @Param	handle.spoj		formData	string 	false "New Spoj Handle"
+// @Param	handle.spoj			formData	string 	false "New Spoj Handle"
+// @Param	handle.leetcode		formData	string 	false "New Leetcode Handle"
 // @Success 202 {object} types.User
 // @Failure 409 username already exists
 // @Failure 400 bad request body
