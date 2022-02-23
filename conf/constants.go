@@ -5,6 +5,7 @@ const (
 	CODEFORCES = "codeforces"
 	HACKERRANK = "hackerrank"
 	SPOJ       = "spoj"
+	LEETCODE   = "leetcode"
 )
 
 var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
@@ -19,6 +20,8 @@ func GetRegexSite(site string) string {
 		return "https://www.hackerrank.com"
 	case SPOJ:
 		return "https://www.spoj.com"
+	case LEETCODE:
+		return "https://leetcode.com/"
 	}
 	return " "
 }
