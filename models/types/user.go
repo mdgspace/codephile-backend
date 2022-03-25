@@ -30,6 +30,7 @@ type LastFetchedSubmission struct {
 	Codeforces time.Time `bson:"codeforces"`
 	Hackerrank time.Time `bson:"hackerrank"`
 	Spoj       time.Time `bson:"spoj"`
+	Leetcode   time.Time `bson:"leetcode"`
 }
 type Handle struct {
 	Codeforces  string `bson:"codeforces" json:"codeforces" schema:"codeforces"`
@@ -37,6 +38,7 @@ type Handle struct {
 	Spoj        string `bson:"spoj" json:"spoj" schema:"spoj"`
 	Hackerrank  string `bson:"hackerrank" json:"hackerrank" schema:"hackerrank"`
 	Hackerearth string `bson:"hackerearth" json:"hackerearth" schema:"hackerearth"`
+	Leetcode    string `bson:"leetcode" json:"leetcode" schema:"leetcode"`
 }
 
 func (u *User) UnmarshalJSON(b []byte) error {
