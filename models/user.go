@@ -454,30 +454,45 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 }
 
 func SearchUser(query string, c int) ([]types.SearchDoc, error) {
-	/* pq := elastic.NewQueryStringQuery("*" + query + "*").
-		Field("username").Field("fullname").
-		Field("handle.codechef").Field("handle.spoj").
-		Field("handle.codeforces").Field("handle.hackerrank").
-		Fuzziness("4")
-	client := search.GetElasticClient()
-	result, err := client.Search().Index("codephile").
-		Pretty(false).Query(pq).Size(c).
-		Do(context.Background())
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+
+	search := bson.M{
+		"$search": bson.M{
+			"index": "name_index",
+			"text": bson.M{
+				"query": query,
+				"path":  bson.M{"wildcard": "*"},
+				"fuzzy": bson.M{
+					"maxEdits":      2,
+					"maxExpansions": 50,
+				},
+			},
+		},
+	}
+	limit := bson.M{"$limit": c}
+	project := bson.M{
+		"$project": bson.M{
+			"_id":       1,
+			"username":  1,
+			"fullname":  1,
+			"institute": 1,
+			"picture":   1,
+			"handle":    1,
+		},
+	}
+	pipe := sess.Collection.Pipe([]bson.M{
+		search,
+		limit,
+		project,
+	})
+	var result []types.SearchDoc
+	err := pipe.All(&result)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	results := make([]types.SearchDoc, 0, result.TotalHits())
-	for _, hit := range result.Hits.Hits {
-		var result types.SearchDoc
-		err := json.Unmarshal(hit.Source, &result)
-		if err != nil {
-			log.Println(err.Error())
-			return nil, err
-		}
-		results = append(results, result)
-	} */
-	return []types.SearchDoc{}, nil
+	return result, nil
 }
 
 func ResetPassword(id bson.ObjectId, newPassword string) error {

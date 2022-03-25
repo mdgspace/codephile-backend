@@ -2,9 +2,10 @@ package types
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/globalsign/mgo/bson"
 	. "github.com/mdg-iitr/Codephile/errors"
-	"time"
 )
 
 type User struct {
@@ -70,7 +71,7 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 
 type SearchDoc struct {
-	ID        bson.ObjectId `json:"id"`
+	ID        bson.ObjectId `json:"id" bson:"_id"`
 	Username  string        `json:"username"`
 	FullName  string        `json:"fullname"`
 	Institute string        `json:"institute"`

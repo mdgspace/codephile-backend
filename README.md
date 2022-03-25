@@ -106,7 +106,7 @@ $ docker-compose -f dev_docker-compose.yml up
    - Click `Authorize APIs` and after getting an Authorization code select `Exchange authorization code for tokens` Copy the refresh token and add it to your .env file.
    - Now you may test sending and recieving mails with the API!
 
-
+Note: If the `DBPath` in the `.env` file is of a local database, the API `/user/search` will not work, as it uses [MongoDB Atlas Search](https://www.mongodb.com/docs/atlas/atlas-search/) which needs a [MongoDB Atlas cloud Database](https://www.mongodb.com/atlas/database).
 
  
 
