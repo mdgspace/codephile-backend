@@ -24,7 +24,7 @@ type CodeforcesSubmissions struct {
 }
 
 type CodechefSubmissions struct {
-	Status string `json:"status"`
+	Status string  `json:"status"`
 	Result Result2 `json:"result"`
 }
 type Content struct {
@@ -42,4 +42,9 @@ type Data struct {
 }
 type Result2 struct {
 	Data Data `json:"data"`
+}
+type LeetcodeSubmissions struct {
+	Title     string `json:"name" bson:"name"`
+	URL       string `json:"url" bson:"url"`
+	TimeSTamp string `json:"timestamp" bson:"timestamp"`
 }
