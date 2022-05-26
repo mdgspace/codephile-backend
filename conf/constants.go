@@ -8,7 +8,7 @@ const (
 	LEETCODE   = "leetcode"
 )
 
-var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ}
+var ValidSites = []string{HACKERRANK, CODECHEF, CODEFORCES, SPOJ, LEETCODE}
 
 func GetRegexSite(site string) string {
 	switch site {

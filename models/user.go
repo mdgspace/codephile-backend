@@ -459,7 +459,7 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 
 	search := bson.M{
 		"$search": bson.M{
-			"index": "name_index",
+			"index": "name_search",
 			"text": bson.M{
 				"query": query,
 				"path":  bson.M{"wildcard": "*"},

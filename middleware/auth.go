@@ -2,6 +2,9 @@ package middleware
 
 import (
 	"errors"
+	"os"
+	"strings"
+
 	"github.com/astaxie/beego/context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -9,8 +12,6 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/services/auth"
-	"os"
-	"strings"
 )
 
 //Checks if token is valid and put valid token in context
@@ -22,7 +23,6 @@ func Authenticate(ctx *context.Context) {
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/confirm/") && ctx.Request.Method == "GET") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset-email") && ctx.Request.Method == "POST") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/available") && ctx.Request.Method == "GET") ||
-		strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/verify") && ctx.Request.Method == "GET") {
 		return
 	}
