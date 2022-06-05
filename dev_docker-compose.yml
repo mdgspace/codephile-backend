@@ -13,14 +13,6 @@ services:
     volumes:
     - ./data/redis:/data
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
-    volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - discovery.type=single-node
-      - ELASTIC_PASSWORD=secret
-
   website:
     build: .
     ports:
@@ -30,4 +22,3 @@ services:
     depends_on:
       - mongo
       - redis
-      - elasticsearch

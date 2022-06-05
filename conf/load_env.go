@@ -9,7 +9,6 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/joho/godotenv"
-	search "github.com/mdg-iitr/Codephile/services/elastic"
 )
 
 var AppRootDir string
@@ -21,7 +20,6 @@ func init() {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	search.GetElasticClient()
 	err = sentry.Init(sentry.ClientOptions{
 		Dsn:              os.Getenv("SENTRY_DSN"),
 		AttachStacktrace: true,

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -12,7 +11,6 @@ import (
 
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/db"
-	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"github.com/mdg-iitr/Codephile/services/firebase"
 
 	"github.com/mdg-iitr/Codephile/services/auth"
@@ -34,12 +32,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-	}
-	// Delete user from elasticsearch index
-	client := search.GetElasticClient()
-	_, err = client.Delete().Index("codephile").Id(user.ID.Hex()).Do(context.TODO())
-	if err != nil {
-		panic(err)
 	}
 	// Delete user from our database
 	sess := db.NewUserCollectionSession()

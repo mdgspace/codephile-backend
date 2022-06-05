@@ -3,7 +3,6 @@ package models
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"html/template"
 	"log"
 	"math/rand"
@@ -22,9 +21,7 @@ import (
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
-	search "github.com/mdg-iitr/Codephile/services/elastic"
 	"github.com/mdg-iitr/Codephile/services/redis"
-	"github.com/olivere/elastic/v7"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -126,19 +123,6 @@ func AddUser(u types.User) (string, error) {
 	if err != nil {
 		return "", UserAlreadyExistError
 	}
-	client := search.GetElasticClient()
-	_, err = client.Index().Index("codephile").BodyJson(types.SearchDoc{
-		ID:        u.ID,
-		Username:  u.Username,
-		FullName:  u.FullName,
-		Institute: u.Institute,
-		Picture:   u.Picture,
-		Handle:    u.Handle,
-	}).Id(u.ID.Hex()).Refresh("false").Do(context.Background())
-
-	if err != nil {
-		return "", err
-	}
 	return u.ID.Hex(), nil
 }
 
@@ -235,7 +219,6 @@ func GetHandle(uid bson.ObjectId) (types.Handle, error) {
 
 func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *types.User, err error) {
 	var updateDoc = bson.M{}
-	var elasticDoc = map[string]interface{}{}
 	newHandle, err := GetHandle(uid)
 	var UpdatedSites []string
 	if err != nil {
@@ -244,15 +227,12 @@ func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *type
 	}
 	if uu.Username != "" {
 		updateDoc["username"] = uu.Username
-		elasticDoc["username"] = uu.Username
 	}
 	if uu.Institute != "" {
 		updateDoc["institute"] = uu.Institute
-		elasticDoc["institute"] = uu.Institute
 	}
 	if uu.FullName != "" {
 		updateDoc["fullname"] = uu.FullName
-		elasticDoc["fullname"] = uu.FullName
 	}
 	if uu.Handle.Codechef != "" && uu.Handle.Codechef != newHandle.Codechef {
 		updateDoc["handle.codechef"] = uu.Handle.Codechef
@@ -279,7 +259,6 @@ func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *type
 		newHandle.Spoj = uu.Handle.Spoj
 		UpdatedSites = append(UpdatedSites, SPOJ)
 	}
-	elasticDoc["handle"] = newHandle
 	if len(updateDoc) != 0 {
 		collection := db.NewUserCollectionSession()
 		defer collection.Close()
@@ -289,11 +268,6 @@ func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *type
 		} else if err != nil {
 			log.Println(err.Error())
 			return nil, UserAlreadyExistError
-		}
-		client := search.GetElasticClient()
-		_, err = client.Update().Index("codephile").Id(uid.Hex()).Doc(elasticDoc).Do(context.Background())
-		if err != nil {
-			log.Println(err.Error())
 		}
 	}
 
@@ -349,11 +323,6 @@ func AuthenticateUser(username string, password string) (*types.User, error) {
 }
 
 func UpdatePicture(uid bson.ObjectId, url string) error {
-	client := search.GetElasticClient()
-	_, err := client.Update().Index("codephile").Id(uid.Hex()).Doc(map[string]interface{}{"picture": url}).Do(context.Background())
-	if err != nil {
-		log.Println(err.Error())
-	}
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	return coll.Collection.UpdateId(uid, bson.M{"$set": bson.M{"picture": url}})
@@ -485,30 +454,45 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 }
 
 func SearchUser(query string, c int) ([]types.SearchDoc, error) {
-	pq := elastic.NewQueryStringQuery("*" + query + "*").
-		Field("username").Field("fullname").
-		Field("handle.codechef").Field("handle.spoj").
-		Field("handle.codeforces").Field("handle.hackerrank").
-		Fuzziness("4")
-	client := search.GetElasticClient()
-	result, err := client.Search().Index("codephile").
-		Pretty(false).Query(pq).Size(c).
-		Do(context.Background())
+	sess := db.NewUserCollectionSession()
+	defer sess.Close()
+
+	search := bson.M{
+		"$search": bson.M{
+			"index": "name_search",
+			"text": bson.M{
+				"query": query,
+				"path":  bson.M{"wildcard": "*"},
+				"fuzzy": bson.M{
+					"maxEdits":      2,
+					"maxExpansions": 50,
+				},
+			},
+		},
+	}
+	limit := bson.M{"$limit": c}
+	project := bson.M{
+		"$project": bson.M{
+			"_id":       1,
+			"username":  1,
+			"fullname":  1,
+			"institute": 1,
+			"picture":   1,
+			"handle":    1,
+		},
+	}
+	pipe := sess.Collection.Pipe([]bson.M{
+		search,
+		limit,
+		project,
+	})
+	var result []types.SearchDoc
+	err := pipe.All(&result)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	results := make([]types.SearchDoc, 0, result.TotalHits())
-	for _, hit := range result.Hits.Hits {
-		var result types.SearchDoc
-		err := json.Unmarshal(hit.Source, &result)
-		if err != nil {
-			log.Println(err.Error())
-			return nil, err
-		}
-		results = append(results, result)
-	}
-	return results, nil
+	return result, nil
 }
 
 func ResetPassword(id bson.ObjectId, newPassword string) error {

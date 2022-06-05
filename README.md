@@ -3,8 +3,7 @@
 We use the following services in our server,
 
 * MongoDB: Main database of the server, stores user info, submission, profile,etc. Install from [here](https://docs.mongodb.com/manual/installation/)
-* Redis: Used to logout and blacklist users. Serves as cache for contests API. Download from [here](https://redis.io/download) 
-* Elastic Search: Some of user data is indexed to elasticsearch db, in order to use the search API. Download it from [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html)
+* Redis: Used to logout and blacklist users. Serves as cache for contests API. Download from [here](https://redis.io/download)
 * Firebase storage: The profile pictures are stored in firebase storage. Create a firebase account.
 
 ## Environment Variables
@@ -20,7 +19,6 @@ HMACKEY=<HMAC Encryption key>
 REDISURL=<connection string of redis server>
 FIREBASE_CONFIG=<Firebase config including bucket name(json)>
 FIREBASE_CREDENTIALS=<Firebase admin SDK credentials(json)>
-ELASTICURL=<connection string of elasticsearch cloud>
 SENTRY_DSN=<Data source name of sentry server: optional>
 EMAIL_CLIENT_SECRET=<Client secret of google client>
 EMAIL_CLIENT_ID=<Client ID of google client>
@@ -49,10 +47,9 @@ Now clone the repo in the appropriate directory.
 $ mkdir -p $GOPATH/src/github.com/mdg-iitr/Codephile && cd $_ 
 $ git clone https://github.com/mdg-iitr/Codephile.git
 ```
-Now install the following services - [redis](https://redis.io/topics/quickstart) , [elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html), and [mongodb](https://docs.mongodb.com/guides/server/install/) to run the project locally. Use these env variables in the .env file:
+Now install the following services - [redis](https://redis.io/topics/quickstart) and [mongodb](https://docs.mongodb.com/guides/server/install/) to run the project locally. Use these env variables in the .env file:
 ```
 REDISURL=redis://redis:6379
-ELASTICURL=http://elastic:secret@elasticsearch:9200/codephile/?sniff=false
 DBPath=mongodb://mongoadmin:secret@mongo:27017/admin
 ```
 
@@ -79,16 +76,14 @@ E.g.
 Note: During commiting changes, always run `go mod vendor` if there are any changes in 3rd party dependency.
 
 ## Setup using docker
-You can use the `dev_docker-compose.yml` file to spin up containers with Mongo, Redis & Elastic Search services easily.
+You can use the `dev_docker-compose.yml` file to spin up containers with Mongo & Redis services easily.
 Use these env variables
 ```
 REDISURL=redis://redis:6379
-ELASTICURL=http://elastic:secret@elasticsearch:9200/codephile/?sniff=false
 DBPath=mongodb://mongoadmin:secret@mongo:27017/admin
 ```
-And run these commands
+And run this command
 ```shell script
-$ mkdir -m 777 -p data/elasticsearch
 $ docker-compose -f dev_docker-compose.yml up
 ```
 ## Accessing the APIs
@@ -111,13 +106,13 @@ $ docker-compose -f dev_docker-compose.yml up
    - Click `Authorize APIs` and after getting an Authorization code select `Exchange authorization code for tokens` Copy the refresh token and add it to your .env file.
    - Now you may test sending and recieving mails with the API!
 
-
+Note: If the `DBPath` in the `.env` file is of a local database, the API `/user/search` will not work, as it uses [MongoDB Atlas Search](https://www.mongodb.com/docs/atlas/atlas-search/) which needs a [MongoDB Atlas cloud Database](https://www.mongodb.com/atlas/database).
 
  
 
 ## Tests
 
-Change the `DBPath` and `ELASTICURL` in .env file 
+Change the `DBPath` in .env file 
 
 Run the tests
 ```shell script
@@ -128,7 +123,7 @@ $ go test -mod=vendor -v ./tests
 
 * `cmd`: Contains standalone programs for specific tasks like updating user submissions, deleting, blacklist users.
 
-* `conf`: Contains global app level constants and configuration files. This package has to be imported first in the main package, as it loads various global variables and inits various clients(sentry, elasticsearch).
+* `conf`: Contains global app level constants and configuration files. This package has to be imported first in the main package, as it loads various global variables and inits various clients(sentry).
 
 * `controller`:  Responsible for handling the requests corresponding to various endpoints. Contains separate files for separate namespaces.
 
@@ -145,7 +140,7 @@ $ go test -mod=vendor -v ./tests
 
 * `scrappers`: Contains the main logic for scrapping user data(submission, profile) from platforms. Each platform's logic is contained in packages with the platform name and a simple interface to scrappers is exposed through `interface.go` 
 
-* `services`: Creates and exposes the clients for various services like redis, elasticsearch. Also contains code for worker routines that are activated on request to POST `/user/submission`
+* `services`: Creates and exposes the clients for various services like redis. Also contains code for worker routines that are activated on request to POST `/user/submission`
 
 * `swagger`: Contains the static files and `swagger.json` and `swagger.yml` for API documentation. Documentation could be generated using bee command line tool `bee run -downdoc=true -gendoc=true`
 
