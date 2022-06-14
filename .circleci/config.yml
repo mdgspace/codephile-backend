@@ -9,7 +9,6 @@ jobs:
           DBPath: mongodb://127.0.0.1:27017/test_db
           HMACKEY: my_secret_key
           REDISURL: redis://127.0.0.1:6379
-          ELASTICURL: http://127.0.0.1:9200
           TEST_RESULTS: /tmp/test-results # path to where test results will be saved
 
       - image: circleci/mongo:latest
