@@ -23,6 +23,7 @@ func Authenticate(ctx *context.Context) {
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/confirm/") && ctx.Request.Method == "GET") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset-email") && ctx.Request.Method == "POST") ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/available") && ctx.Request.Method == "GET") ||
+		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/password-reset") && strings.Compare(ctx.Request.RequestURI, "/v1/user/password-reset") != 0) ||
 		(strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/verify") && ctx.Request.Method == "GET") {
 		return
 	}
