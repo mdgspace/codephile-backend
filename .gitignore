@@ -14,3 +14,6 @@ build/
 
 # Dev Docker db
 data/
+
+.env
+yashmagic.txt
