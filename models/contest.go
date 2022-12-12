@@ -2,9 +2,12 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -61,9 +64,13 @@ func contestsFromCache() (types.Result, error) {
 }
 
 func updateCache() (types.Result, error) {
-	data := fetchFromWeb()
+	data, err := fetchFromWeb()
+	if err != nil {
+		//error in accessing api
+		return types.Result{}, err
+	}
 	var s map[string]types.Result
-	err := json.Unmarshal(data, &s)
+	err = json.Unmarshal(data, &s)
 	if err != nil {
 		//error in unmarshalling
 		return types.Result{}, err
@@ -89,11 +96,24 @@ func updateCache() (types.Result, error) {
 	return result, nil
 }
 
-func fetchFromWeb() (data []byte) {
-	resp, err := http.Get("https://contesttrackerapi.herokuapp.com/")
+func fetchFromWeb() ([]byte, error) {
 
+	clistURL, _ := url.Parse("https://clist.by/api/v2/contest/")
+
+	values := clistURL.Query()
+	values.Set("host__regex", "codeforces.com|codechef.com|spoj.com|hackerrank.com|leetcode.com")
+	values.Set("end__gte", time.Now().Format(time.RFC3339))
+	values.Set("order_by", "start")
+	values.Set("total_count", "true")
+	clistURL.RawQuery = values.Encode()
+	req, err := http.NewRequest(http.MethodGet, clistURL.String(), nil)
 	if err != nil {
-		log.Println("Error")
+		log.Fatal(err)
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", os.Getenv("CLIST_KEY")))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
@@ -101,7 +121,6 @@ func fetchFromWeb() (data []byte) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
-	return body
+	return body, nil
 }
