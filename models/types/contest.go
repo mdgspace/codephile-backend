@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -63,8 +64,41 @@ func (c *ContestTime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	ts = strings.Trim(ts, "\"")
-	ts += "Z"
 	timeToAssign, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		ts += "Z"
+		timeToAssign, err = time.Parse(time.RFC3339, ts)
+	}
 	*c = ContestTime{timeToAssign}
 	return err
+}
+
+func (clistRes CListResult) ToResult() Result {
+	var result Result
+	currTime := time.Now()
+	result.Timestamp = currTime.Format(time.RFC3339)
+	for _, c := range clistRes.Contests {
+		if diff := c.Start.Time.Sub(currTime).Seconds(); diff > 0.0 {
+			upcoming := Upcoming{
+				Duration:      fmt.Sprint(c.Duration),
+				EndTime:       c.End,
+				StartTime:     c.Start,
+				Name:          c.Event,
+				Platform:      c.Host,
+				URL:           c.Href,
+				ChallengeType: "",
+			}
+			result.Upcoming = append(result.Upcoming, upcoming)
+		} else {
+			ongoing := Ongoing{
+				EndTime:       c.End,
+				Name:          c.Event,
+				Platform:      c.Host,
+				URL:           c.Href,
+				ChallengeType: "",
+			}
+			result.Ongoing = append(result.Ongoing, ongoing)
+		}
+	}
+	return result
 }
