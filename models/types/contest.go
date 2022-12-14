@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/mdg-iitr/Codephile/conf"
 )
 
 type Contest struct {
@@ -84,7 +86,7 @@ func (clistRes CListResult) ToResult() Result {
 				EndTime:       c.End,
 				StartTime:     c.Start,
 				Name:          c.Event,
-				Platform:      c.Host,
+				Platform:      conf.GetSiteFromURL(c.Host),
 				URL:           c.Href,
 				ChallengeType: "",
 			}
@@ -93,7 +95,7 @@ func (clistRes CListResult) ToResult() Result {
 			ongoing := Ongoing{
 				EndTime:       c.End,
 				Name:          c.Event,
-				Platform:      c.Host,
+				Platform:      conf.GetSiteFromURL(c.Host),
 				URL:           c.Href,
 				ChallengeType: "",
 			}

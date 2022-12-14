@@ -1,5 +1,10 @@
 package conf
 
+import (
+	"log"
+	"strings"
+)
+
 const (
 	CODECHEF   = "codechef"
 	CODEFORCES = "codeforces"
@@ -33,6 +38,16 @@ func IsSiteValid(s string) bool {
 		}
 	}
 	return false
+}
+
+func GetSiteFromURL(url string) string {
+	for _, vs := range ValidSites {
+		if strings.Contains(url, vs) {
+			return vs
+		}
+	}
+	log.Panic("Unrecognised platform URL")
+	return url
 }
 
 const (
