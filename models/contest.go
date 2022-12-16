@@ -106,6 +106,9 @@ func fetchFromWeb() (types.Result, error) {
 	if err != nil {
 		return types.Result{}, err
 	}
-	result := clistResult.ToResult()
+	result, err := clistResult.ToResult()
+	if err != nil {
+		return types.Result{}, err
+	}
 	return result, nil
 }

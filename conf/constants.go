@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"log"
+	"fmt"
 	"strings"
 )
 
@@ -40,14 +40,13 @@ func IsSiteValid(s string) bool {
 	return false
 }
 
-func GetSiteFromURL(url string) string {
+func GetSiteFromURL(url string) (string, error) {
 	for _, vs := range ValidSites {
 		if strings.Contains(url, vs) {
-			return vs
+			return vs, nil
 		}
 	}
-	log.Panic("Unrecognised platform URL")
-	return url
+	return url, fmt.Errorf("unrecognised platform URL: %s", url)
 }
 
 const (

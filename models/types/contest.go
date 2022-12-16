@@ -75,18 +75,22 @@ func (c *ContestTime) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-func (clistRes CListResult) ToResult() Result {
+func (clistRes CListResult) ToResult() (Result, error) {
 	var result Result
 	currTime := time.Now()
 	result.Timestamp = currTime.Format(time.RFC3339)
 	for _, c := range clistRes.Contests {
+		site, err := conf.GetSiteFromURL(c.Host)
+		if err != nil {
+			return Result{}, err
+		}
 		if diff := c.Start.Time.Sub(currTime).Seconds(); diff > 0.0 {
 			upcoming := Upcoming{
 				Duration:      fmt.Sprint(c.Duration),
 				EndTime:       c.End,
 				StartTime:     c.Start,
 				Name:          c.Event,
-				Platform:      conf.GetSiteFromURL(c.Host),
+				Platform:      site,
 				URL:           c.Href,
 				ChallengeType: "",
 			}
@@ -95,12 +99,12 @@ func (clistRes CListResult) ToResult() Result {
 			ongoing := Ongoing{
 				EndTime:       c.End,
 				Name:          c.Event,
-				Platform:      conf.GetSiteFromURL(c.Host),
+				Platform:      site,
 				URL:           c.Href,
 				ChallengeType: "",
 			}
 			result.Ongoing = append(result.Ongoing, ongoing)
 		}
 	}
-	return result
+	return result, nil
 }
