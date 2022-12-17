@@ -2,8 +2,27 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
+
+	"github.com/mdg-iitr/Codephile/conf"
 )
+
+type Contest struct {
+	ID       int         `json:"id" bson:"id"`
+	Host     string      `json:"host" bson:"host"`
+	Event    string      `json:"event" bson:"event"`
+	Href     string      `json:"href" bson:"href"`
+	Duration int         `json:"duration" bson:"duration"`
+	Start    ContestTime `json:"start" bson:"start"`
+	End      ContestTime `json:"end" bson:"end"`
+}
+
+type CListResult struct {
+	Meta     map[string]interface{} `json:"meta" bson:"meta"`
+	Contests []Contest              `json:"objects" bson:"objects"`
+}
 
 type Ongoing struct {
 	EndTime       ContestTime `json:"EndTime" bson:"EndTime"`
@@ -42,19 +61,50 @@ type ContestTime struct {
 }
 
 func (c *ContestTime) UnmarshalJSON(b []byte) error {
-	timeLayout := "\"Mon, 2 Jan 2006 15:04\""
-	timeLayout2 := "\"Mon Jan 2 2006 00:00\""
 	ts := string(b)
 	if ts == "null" {
 		return nil
 	}
-	timeToAssign, err := time.Parse(`"`+time.RFC3339+`"`, ts)
+	ts = strings.Trim(ts, "\"")
+	timeToAssign, err := time.Parse(time.RFC3339, ts)
 	if err != nil {
-		timeToAssign, err = time.Parse(timeLayout, ts)
-		if err != nil {
-			timeToAssign, err = time.Parse(timeLayout2, ts)
-		}
+		ts += "Z"
+		timeToAssign, err = time.Parse(time.RFC3339, ts)
 	}
 	*c = ContestTime{timeToAssign}
 	return err
+}
+
+func (clistRes CListResult) ToResult() (Result, error) {
+	var result Result
+	currTime := time.Now()
+	result.Timestamp = currTime.Format(time.RFC3339)
+	for _, c := range clistRes.Contests {
+		site, err := conf.GetSiteFromURL(c.Host)
+		if err != nil {
+			return Result{}, err
+		}
+		if diff := c.Start.Time.Sub(currTime).Seconds(); diff > 0.0 {
+			upcoming := Upcoming{
+				Duration:      fmt.Sprint(c.Duration),
+				EndTime:       c.End,
+				StartTime:     c.Start,
+				Name:          c.Event,
+				Platform:      site,
+				URL:           c.Href,
+				ChallengeType: "",
+			}
+			result.Upcoming = append(result.Upcoming, upcoming)
+		} else {
+			ongoing := Ongoing{
+				EndTime:       c.End,
+				Name:          c.Event,
+				Platform:      site,
+				URL:           c.Href,
+				ChallengeType: "",
+			}
+			result.Ongoing = append(result.Ongoing, ongoing)
+		}
+	}
+	return result, nil
 }
