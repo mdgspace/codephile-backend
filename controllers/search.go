@@ -35,8 +35,16 @@ func (u *UserController) Search() {
 		c = 500
 	}
 	path := u.GetString("path")
-	//TODO (nano): check for path to be one of the only pausible paths
-	if path == "" {
+	//Checking for possible fields, default is "username"
+	var possible_path []string
+	var good_path bool = false
+	possible_path = []string{"username", "fullname", "handle.codechef", "handle.codeforces", "handle.hackerearth", "handle.hackerrank", "handle.spoj"}
+	for _, itr := range possible_path {
+		if itr == path {
+			good_path = true
+		}
+	}
+	if good_path == false {
 		path = "username"
 	}
 	results, err := models.SearchUser(query, c, path)
