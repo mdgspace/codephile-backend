@@ -1,8 +1,6 @@
 package test
 
 import (
-	"fmt"
-
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
@@ -51,20 +49,4 @@ func TestGetAllUsers(t *testing.T) {
 			So(w.Body.Len(), ShouldBeGreaterThan, 0)
 		})
 	})
-}
-
-// A sample query to check if database is connected
-func TestFind(t *testing.T) {
-	var user types.User
-	collection := db.NewUserCollectionSession()
-	defer collection.Close()
-	err := collection.Collection.Find(bson.M{"username": "nano_nish"}).Select(bson.M{"_id": 1, "username": 1, "email": 1,
-		"handle": 1, "lastfetched": 1, "profiles": 1,
-		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).One(&user)
-	// fmt.Println(err.Error())
-	fmt.Print(user)
-	if err != nil {
-		// return nil, err
-		t.Error(err)
-	}
 }
