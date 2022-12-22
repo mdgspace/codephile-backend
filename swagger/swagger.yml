@@ -1,7 +1,8 @@
 swagger: "2.0"
 info:
   title: Codephile Official API
-  description: Documentation for Codephile API
+  description: |
+    Documentation for Codephile API
   version: 1.0.0
   contact:
     email: mdg@iitr.ac.in
@@ -12,7 +13,9 @@ paths:
     get:
       tags:
       - contests
-      description: displays all contests
+      description: |-
+        displays all contests
+        <br>
       operationId: ContestController.GetContests
       responses:
         "200":
@@ -28,7 +31,9 @@ paths:
     get:
       tags:
       - contests
-      description: Returns the contests of a specific website
+      description: |-
+        Returns the contests of a specific website
+        <br>
       operationId: ContestController.Get Particular Site's Contests
       parameters:
       - in: path
@@ -52,7 +57,9 @@ paths:
     get:
       tags:
       - feed
-      description: Provides Data for contests in the Feed
+      description: |-
+        Provides Data for contests in the Feed
+        <br>
       operationId: FeedController.ContestsFeed
       responses:
         "200":
@@ -68,8 +75,9 @@ paths:
     get:
       tags:
       - feed
-      description: Gives submission feed in paginated manner giving 100 submissions
-        at a time
+      description: |-
+        Gives submission feed in paginated manner giving 100 submissions at a time
+        <br>
       operationId: FeedController.FriendFeed
       parameters:
       - in: query
@@ -96,7 +104,9 @@ paths:
     get:
       tags:
       - feed
-      description: Gives all submission feed of the user
+      description: |-
+        Gives all submission feed of the user
+        <br>
       operationId: FeedController.All Feed
       responses:
         "200":
@@ -114,7 +124,9 @@ paths:
     get:
       tags:
       - friends
-      description: Compares the data of two users
+      description: |-
+        Compares the data of two users
+        <br>
       operationId: FriendsController.CompareUser
       parameters:
       - in: query
@@ -138,7 +150,9 @@ paths:
     post:
       tags:
       - friends
-      description: Adds the Following user's uid to the database
+      description: |-
+        Adds the Following user's uid to the database
+        <br>
       operationId: FriendsController.FollowUser
       parameters:
       - in: query
@@ -160,7 +174,9 @@ paths:
     get:
       tags:
       - friends
-      description: Fetches the users the user is following
+      description: |-
+        Fetches the users the user is following
+        <br>
       operationId: FriendsController.GetFollowing
       responses:
         "200":
@@ -178,7 +194,9 @@ paths:
     post:
       tags:
       - friends
-      description: Un-follows the user with the given uid
+      description: |-
+        Un-follows the user with the given uid
+        <br>
       operationId: FriendsController.Un-follow User
       parameters:
       - in: query
@@ -200,8 +218,9 @@ paths:
     get:
       tags:
       - graph
-      description: Gives the activity graph for a user with given uid, (Logged-in
-        user if uid is empty)
+      description: |-
+        Gives the activity graph for a user with given uid, (Logged-in user if uid is empty)
+        <br>
       operationId: GraphController.Activity Graph
       parameters:
       - in: path
@@ -228,8 +247,9 @@ paths:
     get:
       tags:
       - graph
-      description: Gives the count of the various different submissions of the user
-        with a uid (Logged-in user if uid is empty)
+      description: |-
+        Gives the count of the various different submissions of the user with a uid (Logged-in user if uid is empty)
+        <br>
       operationId: GraphController.Submissions Status
       parameters:
       - in: path
@@ -256,8 +276,9 @@ paths:
     post:
       tags:
       - submission
-      description: Triggers saving of user's submissions across a particular platform
-        into database
+      description: |-
+        Triggers saving of user's submissions across a particular platform into database
+        <br>
       operationId: SubmissionController.Post
       parameters:
       - in: path
@@ -279,7 +300,9 @@ paths:
     get:
       tags:
       - submission
-      description: Filter submissions of user on the basis of status, site and tags
+      description: |-
+        Filter submissions of user on the basis of status, site and tags
+        <br>
       operationId: SubmissionController.Filter
       parameters:
       - in: path
@@ -315,8 +338,9 @@ paths:
     get:
       tags:
       - submission
-      description: Get paginated submissions(100 per page) of user(logged-in if uid
-        is empty) across various platforms
+      description: |-
+        Get paginated submissions(100 per page) of user(logged-in if uid is empty) across various platforms
+        <br>
       operationId: SubmissionController.Get Submissions
       parameters:
       - in: path
@@ -347,8 +371,9 @@ paths:
     get:
       tags:
       - submission
-      description: Get all submissions of a user(logged-in if uid is empty) across
-        various platforms
+      description: |-
+        Get all submissions of a user(logged-in if uid is empty) across various platforms
+        <br>
       operationId: SubmissionController.All submissions
       parameters:
       - in: path
@@ -373,7 +398,9 @@ paths:
     put:
       tags:
       - user
-      description: update the logged in user
+      description: |-
+        update the logged in user
+        <br>
       operationId: UserController.Update
       parameters:
       - in: formData
@@ -404,6 +431,10 @@ paths:
         name: handle.spoj
         description: New Spoj Handle
         type: string
+      - in: formData
+        name: handle.leetcode
+        description: New Leetcode Handle
+        type: string
       responses:
         "202":
           description: ""
@@ -426,7 +457,9 @@ paths:
     get:
       tags:
       - user
-      description: Get user by uid. Returns logged in user if uid is empty
+      description: |-
+        Get user by uid. Returns logged in user if uid is empty
+        <br>
       operationId: UserController.Get
       parameters:
       - in: path
@@ -453,7 +486,9 @@ paths:
     get:
       tags:
       - user
-      description: get all Users
+      description: |-
+        get all Users
+        <br>
       operationId: UserController.GetAll
       responses:
         "200":
@@ -471,12 +506,19 @@ paths:
     get:
       tags:
       - user
-      description: checks if username is available
-      operationId: UserController.username available
+      description: |-
+        checks if email/username is available(email given pref, in case both params are present)
+        <br>
+      operationId: UserController.Email/Username available
       parameters:
       - in: query
+        name: email
+        description: E-mail ID
+        required: true
+        type: string
+      - in: query
         name: username
-        description: Username
+        description: username
         required: true
         type: string
       responses:
@@ -494,8 +536,9 @@ paths:
     post:
       tags:
       - user
-      description: Fetches user info from different websites and store them into the
-        database
+      description: |-
+        Fetches user info from different websites and store them into the database
+        <br>
       operationId: UserController.Fetch User Info
       parameters:
       - in: path
@@ -519,8 +562,9 @@ paths:
     get:
       tags:
       - user
-      description: Returns info of user(logged in user if uid is empty) from different
-        websites
+      description: |-
+        Returns info of user(logged in user if uid is empty) from different websites
+        <br>
       operationId: UserController.Fetch All User Profiles And returns them
       parameters:
       - in: path
@@ -545,7 +589,9 @@ paths:
     get:
       tags:
       - user
-      description: Filter users on basis of institute name
+      description: |-
+        Filter users on basis of institute name
+        <br>
       operationId: UserController.Filter
       parameters:
       - in: query
@@ -571,7 +617,9 @@ paths:
     post:
       tags:
       - user
-      description: Logs user into the system
+      description: |-
+        Logs user into the system
+        <br>
       operationId: UserController.Login
       parameters:
       - in: formData
@@ -595,7 +643,9 @@ paths:
     post:
       tags:
       - user
-      description: Logs out current logged in user session
+      description: |-
+        Logs out current logged in user session
+        <br>
       operationId: UserController.logout
       responses:
         "200":
@@ -611,7 +661,9 @@ paths:
     post:
       tags:
       - user
-      description: Changes password of the user
+      description: |-
+        Changes password of the user
+        <br>
       operationId: UserController.Password Change
       parameters:
       - in: body
@@ -638,7 +690,9 @@ paths:
     post:
       tags:
       - user
-      description: Sends an email to the user to reset the password
+      description: |-
+        Sends an email to the user to reset the password
+        <br>
       operationId: UserController.Password-Reset-Email
       parameters:
       - in: formData
@@ -655,7 +709,9 @@ paths:
     post:
       tags:
       - user
-      description: Resets the password of the user
+      description: |-
+        Resets the password of the user
+        <br>
       operationId: UserController.Password-Reset-Form
       responses:
         "200":
@@ -666,7 +722,9 @@ paths:
     put:
       tags:
       - user
-      description: update the profile picture of logged in user
+      description: |-
+        update the profile picture of logged in user
+        <br>
       operationId: UserController.Update Profile Pic
       parameters:
       - in: formData
@@ -688,7 +746,9 @@ paths:
     get:
       tags:
       - user
-      description: Endpoint to search users
+      description: |-
+        Endpoint to search users
+        <br>
       operationId: UserController.Search
       parameters:
       - in: query
@@ -699,6 +759,10 @@ paths:
         name: query
         description: Search query
         required: true
+        type: string
+      - in: query
+        name: path
+        description: Field to search in
         type: string
       responses:
         "200":
@@ -722,7 +786,9 @@ paths:
     post:
       tags:
       - user
-      description: create users
+      description: |-
+        create users
+        <br>
       operationId: UserController.CreateUser
       parameters:
       - in: formData
@@ -765,6 +831,10 @@ paths:
         name: handle.spoj
         description: Spoj Handle
         type: string
+      - in: formData
+        name: handle.leetcode
+        description: Leetcode Handle
+        type: string
       responses:
         "201":
           description: '{int} types.User.Id'
@@ -778,7 +848,9 @@ paths:
     get:
       tags:
       - user
-      description: verify user handles across different websites
+      description: |-
+        verify user handles across different websites
+        <br>
       operationId: UserController.Verify site handles
       parameters:
       - in: path
@@ -804,7 +876,7 @@ paths:
 definitions:
   bson.ObjectId:
     title: ObjectId
-    type: object
+    type: string
   types.ActivityGraph:
     title: ActivityGraph
     type: array
@@ -819,6 +891,8 @@ definitions:
       codeforcesProfile:
         $ref: '#/definitions/types.ProfileInfo'
       hackerrankProfile:
+        $ref: '#/definitions/types.ProfileInfo'
+      leetcodeProfile:
         $ref: '#/definitions/types.ProfileInfo'
       spojProfile:
         $ref: '#/definitions/types.ProfileInfo'
@@ -884,6 +958,8 @@ definitions:
         type: string
       hackerrank:
         type: string
+      leetcode:
+        type: string
       spoj:
         type: string
   types.LastFetchedSubmission:
@@ -897,6 +973,9 @@ definitions:
         type: string
         format: datetime
       Hackerrank:
+        type: string
+        format: datetime
+      Leetcode:
         type: string
         format: datetime
       Spoj:
@@ -971,6 +1050,9 @@ definitions:
         type: integer
         format: int64
       hackerrank:
+        type: integer
+        format: int64
+      leetcode:
         type: integer
         format: int64
       spoj:

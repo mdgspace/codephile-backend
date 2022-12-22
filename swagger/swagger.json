@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "title": "Codephile Official API",
-        "description": "Documentation for Codephile API",
+        "description": "Documentation for Codephile API\n",
         "version": "1.0.0",
         "contact": {
             "email": "mdg@iitr.ac.in"
@@ -16,7 +16,7 @@
                 "tags": [
                     "contests"
                 ],
-                "description": "displays all contests",
+                "description": "displays all contests\n\u003cbr\u003e",
                 "operationId": "ContestController.GetContests",
                 "responses": {
                     "200": {
@@ -43,7 +43,7 @@
                 "tags": [
                     "contests"
                 ],
-                "description": "Returns the contests of a specific website",
+                "description": "Returns the contests of a specific website\n\u003cbr\u003e",
                 "operationId": "ContestController.Get Particular Site's Contests",
                 "parameters": [
                     {
@@ -82,7 +82,7 @@
                 "tags": [
                     "feed"
                 ],
-                "description": "Provides Data for contests in the Feed",
+                "description": "Provides Data for contests in the Feed\n\u003cbr\u003e",
                 "operationId": "FeedController.ContestsFeed",
                 "responses": {
                     "200": {
@@ -109,7 +109,7 @@
                 "tags": [
                     "feed"
                 ],
-                "description": "Gives submission feed in paginated manner giving 100 submissions at a time",
+                "description": "Gives submission feed in paginated manner giving 100 submissions at a time\n\u003cbr\u003e",
                 "operationId": "FeedController.FriendFeed",
                 "parameters": [
                     {
@@ -151,7 +151,7 @@
                 "tags": [
                     "feed"
                 ],
-                "description": "Gives all submission feed of the user",
+                "description": "Gives all submission feed of the user\n\u003cbr\u003e",
                 "operationId": "FeedController.All Feed",
                 "responses": {
                     "200": {
@@ -181,7 +181,7 @@
                 "tags": [
                     "friends"
                 ],
-                "description": "Compares the data of two users",
+                "description": "Compares the data of two users\n\u003cbr\u003e",
                 "operationId": "FriendsController.CompareUser",
                 "parameters": [
                     {
@@ -220,7 +220,7 @@
                 "tags": [
                     "friends"
                 ],
-                "description": "Adds the Following user's uid to the database",
+                "description": "Adds the Following user's uid to the database\n\u003cbr\u003e",
                 "operationId": "FriendsController.FollowUser",
                 "parameters": [
                     {
@@ -256,7 +256,7 @@
                 "tags": [
                     "friends"
                 ],
-                "description": "Fetches the users the user is following",
+                "description": "Fetches the users the user is following\n\u003cbr\u003e",
                 "operationId": "FriendsController.GetFollowing",
                 "responses": {
                     "200": {
@@ -286,7 +286,7 @@
                 "tags": [
                     "friends"
                 ],
-                "description": "Un-follows the user with the given uid",
+                "description": "Un-follows the user with the given uid\n\u003cbr\u003e",
                 "operationId": "FriendsController.Un-follow User",
                 "parameters": [
                     {
@@ -322,7 +322,7 @@
                 "tags": [
                     "graph"
                 ],
-                "description": "Gives the activity graph for a user with given uid, (Logged-in user if uid is empty)",
+                "description": "Gives the activity graph for a user with given uid, (Logged-in user if uid is empty)\n\u003cbr\u003e",
                 "operationId": "GraphController.Activity Graph",
                 "parameters": [
                     {
@@ -366,7 +366,7 @@
                 "tags": [
                     "graph"
                 ],
-                "description": "Gives the count of the various different submissions of the user with a uid (Logged-in user if uid is empty)",
+                "description": "Gives the count of the various different submissions of the user with a uid (Logged-in user if uid is empty)\n\u003cbr\u003e",
                 "operationId": "GraphController.Submissions Status",
                 "parameters": [
                     {
@@ -410,7 +410,7 @@
                 "tags": [
                     "submission"
                 ],
-                "description": "Get all submissions of a user(logged-in if uid is empty) across various platforms",
+                "description": "Get all submissions of a user(logged-in if uid is empty) across various platforms\n\u003cbr\u003e",
                 "operationId": "SubmissionController.All submissions",
                 "parameters": [
                     {
@@ -451,7 +451,7 @@
                 "tags": [
                     "submission"
                 ],
-                "description": "Triggers saving of user's submissions across a particular platform into database",
+                "description": "Triggers saving of user's submissions across a particular platform into database\n\u003cbr\u003e",
                 "operationId": "SubmissionController.Post",
                 "parameters": [
                     {
@@ -487,7 +487,7 @@
                 "tags": [
                     "submission"
                 ],
-                "description": "Filter submissions of user on the basis of status, site and tags",
+                "description": "Filter submissions of user on the basis of status, site and tags\n\u003cbr\u003e",
                 "operationId": "SubmissionController.Filter",
                 "parameters": [
                     {
@@ -544,7 +544,7 @@
                 "tags": [
                     "submission"
                 ],
-                "description": "Get paginated submissions(100 per page) of user(logged-in if uid is empty) across various platforms",
+                "description": "Get paginated submissions(100 per page) of user(logged-in if uid is empty) across various platforms\n\u003cbr\u003e",
                 "operationId": "SubmissionController.Get Submissions",
                 "parameters": [
                     {
@@ -592,7 +592,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "update the logged in user",
+                "description": "update the logged in user\n\u003cbr\u003e",
                 "operationId": "UserController.Update",
                 "parameters": [
                     {
@@ -636,6 +636,12 @@
                         "name": "handle.spoj",
                         "description": "New Spoj Handle",
                         "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "handle.leetcode",
+                        "description": "New Leetcode Handle",
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -675,7 +681,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "get all Users",
+                "description": "get all Users\n\u003cbr\u003e",
                 "operationId": "UserController.GetAll",
                 "responses": {
                     "200": {
@@ -705,13 +711,20 @@
                 "tags": [
                     "user"
                 ],
-                "description": "checks if username is available",
-                "operationId": "UserController.username available",
+                "description": "checks if email/username is available(email given pref, in case both params are present)\n\u003cbr\u003e",
+                "operationId": "UserController.Email/Username available",
                 "parameters": [
                     {
                         "in": "query",
+                        "name": "email",
+                        "description": "E-mail ID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
                         "name": "username",
-                        "description": "Username",
+                        "description": "username",
                         "required": true,
                         "type": "string"
                     }
@@ -741,7 +754,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Fetches user info from different websites and store them into the database",
+                "description": "Fetches user info from different websites and store them into the database\n\u003cbr\u003e",
                 "operationId": "UserController.Fetch User Info",
                 "parameters": [
                     {
@@ -780,7 +793,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Returns info of user(logged in user if uid is empty) from different websites",
+                "description": "Returns info of user(logged in user if uid is empty) from different websites\n\u003cbr\u003e",
                 "operationId": "UserController.Fetch All User Profiles And returns them",
                 "parameters": [
                     {
@@ -821,7 +834,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Filter users on basis of institute name",
+                "description": "Filter users on basis of institute name\n\u003cbr\u003e",
                 "operationId": "UserController.Filter",
                 "parameters": [
                     {
@@ -863,7 +876,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Logs user into the system",
+                "description": "Logs user into the system\n\u003cbr\u003e",
                 "operationId": "UserController.Login",
                 "parameters": [
                     {
@@ -899,7 +912,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Logs out current logged in user session",
+                "description": "Logs out current logged in user session\n\u003cbr\u003e",
                 "operationId": "UserController.logout",
                 "responses": {
                     "200": {
@@ -926,7 +939,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Changes password of the user",
+                "description": "Changes password of the user\n\u003cbr\u003e",
                 "operationId": "UserController.Password Change",
                 "parameters": [
                     {
@@ -970,7 +983,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Sends an email to the user to reset the password",
+                "description": "Sends an email to the user to reset the password\n\u003cbr\u003e",
                 "operationId": "UserController.Password-Reset-Email",
                 "parameters": [
                     {
@@ -996,7 +1009,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Resets the password of the user",
+                "description": "Resets the password of the user\n\u003cbr\u003e",
                 "operationId": "UserController.Password-Reset-Form",
                 "responses": {
                     "200": {
@@ -1013,7 +1026,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "update the profile picture of logged in user",
+                "description": "update the profile picture of logged in user\n\u003cbr\u003e",
                 "operationId": "UserController.Update Profile Pic",
                 "parameters": [
                     {
@@ -1049,7 +1062,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Endpoint to search users",
+                "description": "Endpoint to search users\n\u003cbr\u003e",
                 "operationId": "UserController.Search",
                 "parameters": [
                     {
@@ -1063,6 +1076,12 @@
                         "name": "query",
                         "description": "Search query",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "path",
+                        "description": "Field to search in",
                         "type": "string"
                     }
                 ],
@@ -1104,7 +1123,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "create users",
+                "description": "create users\n\u003cbr\u003e",
                 "operationId": "UserController.CreateUser",
                 "parameters": [
                     {
@@ -1164,6 +1183,12 @@
                         "name": "handle.spoj",
                         "description": "Spoj Handle",
                         "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "handle.leetcode",
+                        "description": "Leetcode Handle",
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -1187,7 +1212,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "verify user handles across different websites",
+                "description": "verify user handles across different websites\n\u003cbr\u003e",
                 "operationId": "UserController.Verify site handles",
                 "parameters": [
                     {
@@ -1230,7 +1255,7 @@
                 "tags": [
                     "user"
                 ],
-                "description": "Get user by uid. Returns logged in user if uid is empty",
+                "description": "Get user by uid. Returns logged in user if uid is empty\n\u003cbr\u003e",
                 "operationId": "UserController.Get",
                 "parameters": [
                     {
@@ -1273,7 +1298,7 @@
     "definitions": {
         "bson.ObjectId": {
             "title": "ObjectId",
-            "type": "object"
+            "type": "string"
         },
         "types.ActivityGraph": {
             "title": "ActivityGraph",
@@ -1293,6 +1318,9 @@
                     "$ref": "#/definitions/types.ProfileInfo"
                 },
                 "hackerrankProfile": {
+                    "$ref": "#/definitions/types.ProfileInfo"
+                },
+                "leetcodeProfile": {
                     "$ref": "#/definitions/types.ProfileInfo"
                 },
                 "spojProfile": {
@@ -1390,6 +1418,9 @@
                 "hackerrank": {
                     "type": "string"
                 },
+                "leetcode": {
+                    "type": "string"
+                },
                 "spoj": {
                     "type": "string"
                 }
@@ -1408,6 +1439,10 @@
                     "format": "datetime"
                 },
                 "Hackerrank": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "Leetcode": {
                     "type": "string",
                     "format": "datetime"
                 },
@@ -1517,6 +1552,10 @@
                     "format": "int64"
                 },
                 "hackerrank": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "leetcode": {
                     "type": "integer",
                     "format": "int64"
                 },

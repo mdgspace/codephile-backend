@@ -1,20 +1,24 @@
 package test
 
 import (
+	"fmt"
+
 	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
 
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/astaxie/beego"
 	_ "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
+	_ "github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/types"
 	_ "github.com/mdg-iitr/Codephile/routers"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	. "github.com/smartystreets/goconvey/convey"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func init() {
@@ -47,4 +51,25 @@ func TestGetAllUsers(t *testing.T) {
 			So(w.Body.Len(), ShouldBeGreaterThan, 0)
 		})
 	})
+}
+
+// A sample query to check if database is connected
+func TestFind(t *testing.T) {
+	var user types.User
+	collection := db.NewUserCollectionSession()
+	defer collection.Close()
+	err := collection.Collection.Find(bson.M{"username": "nano_nish"}).Select(bson.M{"_id": 1, "username": 1, "email": 1,
+		"handle": 1, "lastfetched": 1, "profiles": 1,
+		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).One(&user)
+	// fmt.Println(err.Error())
+	fmt.Print(user)
+	if err != nil {
+		// return nil, err
+		t.Error(err)
+	}
+}
+
+// Test for Search
+func TestSearch(t *testing.T) {
+	models.SearchUser("nishk", 10, "fullname")
 }
