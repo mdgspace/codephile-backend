@@ -71,5 +71,9 @@ func TestFind(t *testing.T) {
 
 // Test for Search
 func TestSearch(t *testing.T) {
-	models.SearchUser("nishk", 10, "fullname")
+	_, err := models.SearchUser("nishk", 10, "fullname")
+	if err != nil {
+		// return nil, err
+		t.Error(err)
+	}
 }

@@ -44,7 +44,7 @@ func (u *UserController) Search() {
 			good_path = true
 		}
 	}
-	if good_path == false {
+	if !good_path {
 		path = "username"
 	}
 	results, err := models.SearchUser(query, c, path)
