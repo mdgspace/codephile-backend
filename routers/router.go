@@ -9,13 +9,14 @@
 package routers
 
 import (
+	"net/http"
+	"os"
+	"path"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/mdg-iitr/Codephile/controllers"
 	"github.com/mdg-iitr/Codephile/middleware"
-	"net/http"
-	"os"
-	"path"
 )
 
 func init() {
