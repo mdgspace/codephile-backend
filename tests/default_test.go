@@ -5,16 +5,18 @@ import (
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
 
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/astaxie/beego"
 	_ "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
+	_ "github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/types"
 	_ "github.com/mdg-iitr/Codephile/routers"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	. "github.com/smartystreets/goconvey/convey"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func init() {

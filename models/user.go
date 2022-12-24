@@ -400,7 +400,7 @@ func UidExists(uid bson.ObjectId) (bool, error) {
 	return false, nil
 }
 
-//checks if the user is verified, returns error if user doesn't exists
+// checks if the user is verified, returns error if user doesn't exists
 func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
@@ -453,20 +453,16 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 	return true
 }
 
-func SearchUser(query string, c int) ([]types.SearchDoc, error) {
+func SearchUser(query string, c int, path string) ([]types.SearchDoc, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 
 	search := bson.M{
 		"$search": bson.M{
-			"index": "name_search",
-			"text": bson.M{
+			"index": "names",
+			"autocomplete": bson.M{
 				"query": query,
-				"path":  bson.M{"wildcard": "*"},
-				"fuzzy": bson.M{
-					"maxEdits":      2,
-					"maxExpansions": 50,
-				},
+				"path":  path,
 			},
 		},
 	}
