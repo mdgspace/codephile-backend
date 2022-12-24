@@ -58,14 +58,3 @@ const (
 	StatusMemoryLimitExceeded = "MLE"
 	StatusPartial             = "PTL"
 )
-
-var ValidPaths = []string{"username", "fullname", "handle.codechef", "handle.codeforces", "handle.hackerearth", "handle.hackerrank", "handle.spoj"}
-
-func IsPathValid(s string) bool {
-	for _, path := range ValidPaths {
-		if path == s {
-			return true
-		}
-	}
-	return false
-}
