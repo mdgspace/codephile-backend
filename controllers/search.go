@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/getsentry/sentry-go"
+	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 )
@@ -36,15 +37,7 @@ func (u *UserController) Search() {
 	}
 	path := u.GetString("path")
 	//Checking for possible fields, default is "username"
-	var possible_path []string
-	var good_path bool = false
-	possible_path = []string{"username", "fullname", "handle.codechef", "handle.codeforces", "handle.hackerearth", "handle.hackerrank", "handle.spoj"}
-	for _, itr := range possible_path {
-		if itr == path {
-			good_path = true
-		}
-	}
-	if !good_path {
+	if !IsPathValid(path) {
 		path = "username"
 	}
 	results, err := models.SearchUser(query, c, path)
