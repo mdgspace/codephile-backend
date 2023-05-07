@@ -1,11 +1,10 @@
 package main
 
 import (
-	_ "github.com/mdg-iitr/Codephile/conf"
 	"github.com/astaxie/beego"
-	_ "github.com/mdg-iitr/Codephile/routers"
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	
+	_ "github.com/mdg-iitr/Codephile/conf"
+	_ "github.com/mdg-iitr/Codephile/routers"
 )
 
 func main() {

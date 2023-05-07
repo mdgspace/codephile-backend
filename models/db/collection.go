@@ -1,22 +1,23 @@
 package db
 
 import (
-	"github.com/globalsign/mgo"
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 )
 
 type Collection struct {
-	s          *mgo.Session
-	db         *mgo.Database
+	s          *mongo.Client
+	db         *mongo.Database
 	name       string
-	Collection *mgo.Collection
+	Collection *mongo.Collection
 }
 
 func (c *Collection) Connect() {
-	c.s = service.Session()
-	database := *c.s.DB("")
+	c.s = service.Client()
+	database := *c.s.Database("")
 	c.db = &database
-	collection := *c.db.C(c.name)
+	collection := *c.db.Collection(c.name)
 	c.Collection = &collection
 }
 
@@ -38,7 +39,7 @@ func (c *Collection) Close() {
 
 func (c *Collection) DropDatabase() {
 	log.Println("Dropping database ...")
-	err := c.db.DropDatabase()
+	err := c.db.Drop(context.TODO())
 	if err != nil {
 		panic(err)
 	}
