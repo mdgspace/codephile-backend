@@ -2,20 +2,20 @@ package types
 
 import (
 	// "errors"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	// "github.com/mdg-iitr/Codephile/models/db"
 	// "github.com/mdg-iitr/Codephile/models"
 )
 
 type Following struct {
-	ID bson.ObjectId `bson:"f_id" json:"f_id"`
+	ID primitive.ObjectID `bson:"f_id" json:"f_id"`
 }
 
 type FollowingUser struct {
-	ID       bson.ObjectId `bson:"_id" json:"_id"`
-	Username string        `bson:"username" json:"username" schema:"username"`
-	FullName string        `bson:"fullname" json:"fullname" schema:"fullname"`
-	Picture  string        `bson:"picture" json:"picture"`
+	ID       primitive.ObjectID 	`bson:"_id" json:"_id"`
+	Username string        			`bson:"username" json:"username" schema:"username"`
+	FullName string        			`bson:"fullname" json:"fullname" schema:"fullname"`
+	Picture  string        			`bson:"picture" json:"picture"`
 }
 
 type WorldRankComparison struct {

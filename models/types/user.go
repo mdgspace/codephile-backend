@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	. "github.com/mdg-iitr/Codephile/errors"
 )
 
 type User struct {
-	ID                  bson.ObjectId         `bson:"_id" json:"id" schema:"-"`
+	ID                  primitive.ObjectID    `bson:"_id" json:"id" schema:"-"`
 	Username            string                `bson:"username" json:"username" schema:"username"`
 	Email               string                `bson:"email" json:"email" schema:"email"`
 	FullName            string                `bson:"fullname" json:"fullname" schema:"fullname"`
@@ -73,12 +73,12 @@ func (u *User) UnmarshalJSON(b []byte) error {
 }
 
 type SearchDoc struct {
-	ID        bson.ObjectId `json:"id" bson:"_id"`
-	Username  string        `json:"username"`
-	FullName  string        `json:"fullname"`
-	Institute string        `json:"institute"`
-	Picture   string        `json:"picture"`
-	Handle    Handle        `json:"handle"`
+	ID        primitive.ObjectID 	`json:"id" bson:"_id"`
+	Username  string        	 	`json:"username"`
+	FullName  string        		`json:"fullname"`
+	Institute string        		`json:"institute"`
+	Picture   string        		`json:"picture"`
+	Handle    Handle        		`json:"handle"`
 }
 
 type UpdatePassword struct {
