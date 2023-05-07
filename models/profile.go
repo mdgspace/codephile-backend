@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
+	// "github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
@@ -12,21 +15,22 @@ import (
 	"github.com/mdg-iitr/Codephile/scrappers"
 )
 
-func ResetProfile(uid bson.ObjectId, site string) error {
+func ResetProfile(uid primitive.ObjectID, site string) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	newNode := "profiles." + site + "Profile"
 	userProfile := types.ProfileInfo{}
-	return coll.UpdateId(uid, bson.M{"$set": bson.M{newNode: userProfile}})
+	_, err := coll.UpdateByID(context.TODO(), uid, bson.M{"$set": bson.M{newNode: userProfile}})
+	return err
 }
 
-func AddOrUpdateProfile(uid bson.ObjectId, site string, ctx context.Context) error {
+func AddOrUpdateProfile(uid primitive.ObjectID, site string, ctx context.Context) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	var result map[string]interface{}
-	err := coll.FindId(uid).Select(bson.M{"handle": 1}).One(&result)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"handle": 1})).Decode(&result)
 	if err != nil {
 		//handle the error (Invalid user)
 		return UserNotFoundError
@@ -48,18 +52,19 @@ func AddOrUpdateProfile(uid bson.ObjectId, site string, ctx context.Context) err
 
 	//Profile fetched. Store in database
 	newNode := "profiles." + site + "Profile"
-	return coll.UpdateId(uid, bson.M{"$set": bson.M{newNode: userProfile}})
+	_, err = coll.UpdateByID(context.TODO(), uid, bson.M{"$set": bson.M{newNode: userProfile}})
+	return err
 }
 
-func GetProfiles(ID bson.ObjectId) (types.AllProfiles, error) {
+func GetProfiles(ID primitive.ObjectID) (types.AllProfiles, error) {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	user := types.User{}
-	err := coll.Collection.FindId(ID).Select(bson.M{"profiles": 1}).One(&user)
+	err := coll.Collection.FindOne(context.TODO(), bson.M{"_id": ID}, options.FindOne().SetProjection(bson.M{"profiles": 1})).Decode(&user)
 	return user.Profiles, err
 }
 
-func CompareUser(uid1 bson.ObjectId, uid2 bson.ObjectId) (types.AllWorldRanks, error) {
+func CompareUser(uid1 primitive.ObjectID, uid2 primitive.ObjectID) (types.AllWorldRanks, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
 	//gets the different profiles to fetch world ranks
@@ -91,7 +96,7 @@ func CompareUser(uid1 bson.ObjectId, uid2 bson.ObjectId) (types.AllWorldRanks, e
 
 }
 
-func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmissionIdentifier string) (int, int, error) {
+func getCorrectIncorrectCount(uid primitive.ObjectID, websiteUrl string, correctSubmissionIdentifier string) (int, int, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -102,11 +107,11 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 		"$unwind": "$submissions",
 	}
 	match2 := bson.M{"$match": bson.M{
-		"submissions.url": bson.M{"$regex": bson.RegEx{
+		"submissions.url": bson.M{"$regex": primitive.Regex{
 			Pattern: "^" + websiteUrl,
 		}},
 	}}
-	pipe := coll.Pipe([]bson.M{
+	pipe, _ := coll.Aggregate(context.TODO(), []bson.M{
 		match,
 		unwind,
 		match2,
@@ -120,7 +125,7 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 				},
 	})
 	var result []map[string][]map[string]int
-	err := pipe.All(&result)
+	err := pipe.All(context.TODO(), &result)
 	if err != nil || len(result) == 0 || len(result[0]["total"]) == 0 || len(result[0]["correct"]) == 0 {
 		return 0, 1, errors.New("could not get accuracy")
 	}
@@ -128,7 +133,7 @@ func getCorrectIncorrectCount(uid bson.ObjectId, websiteUrl string, correctSubmi
 }
 
 // GetAccuracy function calculates the accuracy of a particular site and returns it
-func GetAccuracy(uid bson.ObjectId, website string) (string, error) {
+func GetAccuracy(uid primitive.ObjectID, website string) (string, error) {
 	switch website {
 	case CODECHEF:
 		correct, total, err := getCorrectIncorrectCount(uid, "https://www.codechef.com/", "AC")

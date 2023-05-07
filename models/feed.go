@@ -1,11 +1,14 @@
 package models
 
 import (
+	"context"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetContestsFeed() (types.Result, error) {
@@ -13,16 +16,16 @@ func GetContestsFeed() (types.Result, error) {
 	return contestsFromCache()
 }
 
-func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
+func GetAllFeed(uid primitive.ObjectID) ([]types.FeedObject, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	var u types.User
-	err := coll.FindId(uid).Select(bson.M{"followingUsers.f_id": 1}).One(&u)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"followingUsers.f_id": 1})).Decode(&u)
 	if err != nil {
 		return nil, err
 	}
-	followingUID := make([]bson.ObjectId, 0, len(u.FollowingUsers))
+	followingUID := make([]primitive.ObjectID, 0, len(u.FollowingUsers))
 	for _, f := range u.FollowingUsers {
 		followingUID = append(followingUID, f.ID)
 	}
@@ -50,27 +53,27 @@ func GetAllFeed(uid bson.ObjectId) ([]types.FeedObject, error) {
 			"submission.created_at": -1,
 		},
 	}
-	pipe := coll.Pipe([]bson.M{
+	pipe, err := coll.Aggregate(context.TODO(), []bson.M{
 		filter,
 		project,
 		unwind,
 		sort,
 	}, )
 	var res []types.FeedObject
-	err = pipe.All(&res)
+	err = pipe.All(context.TODO(), &res)
 	return res, err
 }
 
-func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
+func GetFeed(uid primitive.ObjectID, before time.Time) ([]types.FeedObject, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	var u types.User
-	err := coll.FindId(uid).Select(bson.M{"followingUsers.f_id": 1}).One(&u)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"followingUsers.f_id": 1})).Decode(&u)
 	if err != nil {
 		return nil, err
 	}
-	followingUID := make([]bson.ObjectId, 0, len(u.FollowingUsers))
+	followingUID := make([]primitive.ObjectID, 0, len(u.FollowingUsers))
 	for _, f := range u.FollowingUsers {
 		followingUID = append(followingUID, f.ID)
 	}
@@ -105,7 +108,7 @@ func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
 		"$limit": 100,
 	}
 
-	pipe := coll.Pipe([]bson.M{
+	pipe, err := coll.Aggregate(context.TODO(), []bson.M{
 		filter,
 		project,
 		unwind,
@@ -114,7 +117,7 @@ func GetFeed(uid bson.ObjectId, before time.Time) ([]types.FeedObject, error) {
 	}, )
 
 	var res []types.FeedObject
-	err = pipe.All(&res)
+	err = pipe.All(context.TODO(), &res)
 	//fmt.Println(res)
 	return res, err
 }

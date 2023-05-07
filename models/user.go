@@ -14,8 +14,12 @@ import (
 
 	"github.com/mdg-iitr/Codephile/services/mail"
 
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	// "github.com/globalsign/mgo"
+	// "github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/google/uuid"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -36,7 +40,7 @@ var (
 						{
 							"$regexMatch": bson.M{
 								"input": "$$sub.url",
-								"regex": bson.RegEx{Pattern: "^" + "https://www.codechef.com"},
+								"regex": primitive.Regex{Pattern: "^" + "https://www.codechef.com"},
 							},
 						},
 						{"$eq": []string{"$$sub.status", StatusCorrect}}},
@@ -54,7 +58,7 @@ var (
 						{
 							"$regexMatch": bson.M{
 								"input": "$$sub.url",
-								"regex": bson.RegEx{Pattern: "^" + "http://codeforces.com"},
+								"regex": primitive.Regex{Pattern: "^" + "http://codeforces.com"},
 							},
 						},
 						{"$eq": []string{"$$sub.status", StatusCorrect}}},
@@ -72,7 +76,7 @@ var (
 						{
 							"$regexMatch": bson.M{
 								"input": "$$sub.url",
-								"regex": bson.RegEx{Pattern: "^" + "https://www.hackerrank.com"},
+								"regex": primitive.Regex{Pattern: "^" + "https://www.hackerrank.com"},
 							},
 						},
 						{"$eq": []string{"$$sub.status", StatusCorrect}}},
@@ -90,7 +94,7 @@ var (
 						{
 							"$regexMatch": bson.M{
 								"input": "$$sub.url",
-								"regex": bson.RegEx{Pattern: "^" + "https://www.spoj.com"},
+								"regex": primitive.Regex{Pattern: "^" + "https://www.spoj.com"},
 							},
 						},
 						{"$eq": []string{"$$sub.status", StatusCorrect}}},
@@ -104,7 +108,7 @@ var (
 )
 
 func AddUser(u types.User) (string, error) {
-	u.ID = bson.NewObjectId()
+	u.ID = primitive.NewObjectID()
 	u.Verified = false
 	defaultPic := beego.AppConfig.Strings("DEFAULT_PICS")
 	if len(defaultPic) > 0 {
@@ -119,25 +123,26 @@ func AddUser(u types.User) (string, error) {
 		return "", err
 	}
 	u.Password = string(hash)
-	err = collection.Collection.Insert(u)
+	_, err = collection.Collection.InsertOne(context.TODO(), u)
 	if err != nil {
 		return "", UserAlreadyExistError
 	}
 	return u.ID.Hex(), nil
 }
 
-func GetUser(uid bson.ObjectId) (*types.User, error) {
+func GetUser(uid primitive.ObjectID) (*types.User, error) {
 	var user types.User
+	var err error
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.FindId(uid).Select(bson.M{"_id": 1, "username": 1, "email": 1,
-		"handle": 1, "lastfetched": 1, "profiles": 1,
-		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).One(&user)
+	err = collection.Collection.FindOne(context.TODO(), bson.M{"_id":uid}, options.FindOne().SetProjection(bson.M{
+		"_id": 1, "username": 1, "email": 1, "handle": 1, "lastfetched": 1, "profiles": 1,
+		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}})).Decode(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		return nil, err
 	}
-	pipe := collection.Collection.Pipe([]bson.M{
+	pipe, err := collection.Collection.Aggregate(context.TODO(), []bson.M{
 		{
 			"$match": bson.M{
 				"_id": uid,
@@ -152,9 +157,9 @@ func GetUser(uid bson.ObjectId) (*types.User, error) {
 				"hackerrankSolves": getHackerrankSolvesQuery,
 				"spojSolves":       getSpojSolvesQuery,
 			}},
-	})
+	}, options.Aggregate().SetBatchSize(1))
 	var res map[string]int
-	err = pipe.One(&res)
+	err = pipe.Decode(&res)
 	if err != nil {
 		return nil, err
 	}
@@ -172,13 +177,14 @@ func GetAllUsers() ([]types.User, error) {
 	var users []types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.Find(nil).Select(bson.M{"_id": 1, "username": 1, "email": 1,
+	cursor, err := collection.Collection.Find(context.TODO(), bson.M{}, options.Find().SetProjection(bson.M{"_id": 1, "username": 1, "email": 1,
 		"handle": 1, "lastfetched": 1, "profiles": 1,
-		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}).All(&users)
+		"picture": 1, "fullname": 1, "institute": 1, "submissions": bson.M{"$slice": 5}}))
+	cursor.All(context.TODO(), &users)
 	if err != nil {
 		return nil, err
 	}
-	pipe := collection.Collection.Pipe([]bson.M{
+	pipe, err := collection.Collection.Aggregate(context.TODO(), []bson.M{
 		{
 			"$project": bson.M{
 				"_id":              0,
@@ -190,7 +196,7 @@ func GetAllUsers() ([]types.User, error) {
 			}},
 	})
 	var res []map[string]int
-	err = pipe.All(&res)
+	err = pipe.All(context.TODO(), &res)
 	if err != nil {
 		return nil, err
 	}
@@ -206,18 +212,18 @@ func GetAllUsers() ([]types.User, error) {
 	return users, nil
 }
 
-func GetHandle(uid bson.ObjectId) (types.Handle, error) {
+func GetHandle(uid primitive.ObjectID) (types.Handle, error) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.FindId(uid).Select(bson.M{"handle": 1}).One(&user)
+	err := collection.Collection.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"handle": 1})).Decode(&user)
 	if err != nil {
 		return types.Handle{}, err
 	}
 	return user.Handle, nil
 }
 
-func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *types.User, err error) {
+func UpdateUser(uid primitive.ObjectID, uu *types.User, ctx context.Context) (a *types.User, err error) {
 	var updateDoc = bson.M{}
 	newHandle, err := GetHandle(uid)
 	var UpdatedSites []string
@@ -262,8 +268,8 @@ func UpdateUser(uid bson.ObjectId, uu *types.User, ctx context.Context) (a *type
 	if len(updateDoc) != 0 {
 		collection := db.NewUserCollectionSession()
 		defer collection.Close()
-		err = collection.Collection.UpdateId(uid, bson.M{"$set": updateDoc})
-		if err == mgo.ErrNotFound {
+		_, err = collection.Collection.UpdateOne(context.TODO(), bson.M{"_id": uid}, bson.M{"$set": updateDoc})
+		if err == mongo.ErrNoDocuments {
 			return nil, UserNotFoundError
 		} else if err != nil {
 			log.Println(err.Error())
@@ -304,7 +310,7 @@ func AuthenticateUser(username string, password string) (*types.User, error) {
 	var user types.User
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	err := collection.Collection.Find(bson.M{"username": username}).Select(bson.M{"password": 1, "verified": 1}).One(&user)
+	err := collection.Collection.FindOne(context.TODO(), bson.M{"username": username}, options.FindOne().SetProjection(bson.M{"password": 1, "verified": 1})).Decode(&user)
 	//fmt.Println(err.Error())
 	if err != nil {
 		//log.Println(err)
@@ -322,18 +328,19 @@ func AuthenticateUser(username string, password string) (*types.User, error) {
 	return &user, nil
 }
 
-func UpdatePicture(uid bson.ObjectId, url string) error {
+func UpdatePicture(uid primitive.ObjectID, url string) error {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
-	return coll.Collection.UpdateId(uid, bson.M{"$set": bson.M{"picture": url}})
+	_, err := coll.Collection.UpdateOne(context.TODO(), bson.M{"_id": uid}, bson.M{"$set": bson.M{"picture": url}})
+	return err
 }
 
-func VerifyEmail(uid bson.ObjectId, ctx context.Context) error {
+func VerifyEmail(uid primitive.ObjectID, ctx context.Context) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	err := coll.UpdateId(uid, bson.M{"$set": bson.M{"verified": true}})
-	if err == mgo.ErrNotFound {
+	_, err := coll.UpdateOne(context.TODO(), bson.M{"_id": uid}, bson.M{"$set": bson.M{"verified": true}})
+	if err == mongo.ErrNoDocuments {
 		return UserNotFoundError
 	} else if err != nil {
 		return err
@@ -347,11 +354,11 @@ func VerifyEmail(uid bson.ObjectId, ctx context.Context) error {
 	return nil
 }
 
-func GetPicture(uid bson.ObjectId) string {
+func GetPicture(uid primitive.ObjectID) string {
 	var user types.User
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
-	err := coll.Collection.FindId(uid).Select(bson.M{"picture": 1}).One(&user)
+	err := coll.Collection.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"picture": 1})).Decode(&user)
 	if err != nil {
 		log.Println(err.Error())
 		return ""
@@ -362,7 +369,7 @@ func GetPicture(uid bson.ObjectId) string {
 func CheckUsernameExists(username string) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	c, err := collection.Collection.Find(bson.M{"username": username}).Count()
+	c, err := collection.Collection.CountDocuments(context.TODO(), bson.M{"username": username})
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
@@ -376,7 +383,7 @@ func CheckUsernameExists(username string) (bool, error) {
 func CheckEmailExists(email string) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	c, err := collection.Collection.Find(bson.M{"email": email}).Count()
+	c, err := collection.Collection.CountDocuments(context.TODO(), bson.M{"email": email})
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
@@ -386,10 +393,10 @@ func CheckEmailExists(email string) (bool, error) {
 	}
 	return false, nil
 }
-func UidExists(uid bson.ObjectId) (bool, error) {
+func UidExists(uid primitive.ObjectID) (bool, error) {
 	collection := db.NewUserCollectionSession()
 	defer collection.Close()
-	c, err := collection.Collection.FindId(uid).Count()
+	c, err := collection.Collection.CountDocuments(context.TODO(), bson.M{"_id": uid})
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
@@ -401,12 +408,12 @@ func UidExists(uid bson.ObjectId) (bool, error) {
 }
 
 //checks if the user is verified, returns error if user doesn't exists
-func IsUserVerified(uid bson.ObjectId) (bool, error, string) {
+func IsUserVerified(uid primitive.ObjectID) (bool, error, string) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	var user types.User
-	err := coll.FindId(uid).Select(bson.M{"email": 1, "verified": 1}).One(&user)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"email": 1, "verified": 1})).Decode(&user)
 	if err != nil {
 		return false, UserNotFoundError, ""
 	}
@@ -421,7 +428,7 @@ func PasswordResetEmail(email string, hostName string, ctx context.Context) bool
 	}
 	defer collection.Close()
 	var user types.User
-	err := collection.Collection.Find(bson.M{"email": email}).One(&user)
+	err := collection.Collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		hub.CaptureException(err)
 		return false
@@ -481,13 +488,13 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 			"handle":    1,
 		},
 	}
-	pipe := sess.Collection.Pipe([]bson.M{
+	pipe, err := sess.Collection.Aggregate(context.TODO(), []bson.M{
 		search,
 		limit,
 		project,
 	})
 	var result []types.SearchDoc
-	err := pipe.All(&result)
+	err = pipe.All(context.TODO(), &result)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -495,7 +502,7 @@ func SearchUser(query string, c int) ([]types.SearchDoc, error) {
 	return result, nil
 }
 
-func ResetPassword(id bson.ObjectId, newPassword string) error {
+func ResetPassword(id primitive.ObjectID, newPassword string) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -503,16 +510,17 @@ func ResetPassword(id bson.ObjectId, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	return coll.UpdateId(id, bson.M{"$set": bson.M{"password": string(hash)}})
+	_, err = coll.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": bson.M{"password": string(hash)}})
+	return err
 }
 
 // Updates the password of a given uid
-func UpdatePassword(uid bson.ObjectId, updatePasswordRequest types.UpdatePassword) error {
+func UpdatePassword(uid primitive.ObjectID, updatePasswordRequest types.UpdatePassword) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 	var u types.User
-	err := coll.FindId(uid).Select(bson.M{"password": 1}).One(&u)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"password": 1})).Decode(&u)
 	if err != nil {
 		return err
 	}
@@ -524,7 +532,8 @@ func UpdatePassword(uid bson.ObjectId, updatePasswordRequest types.UpdatePasswor
 	if err != nil {
 		return err
 	}
-	return coll.UpdateId(uid, bson.M{"$set": bson.M{"password": string(hash)}})
+	_, err = coll.UpdateOne(context.TODO(), bson.M{"_id": uid}, bson.M{"$set": bson.M{"password": string(hash)}})
+	return err
 }
 
 func FilterUsers(instituteName string) ([]types.SearchDoc, error) {
@@ -532,7 +541,8 @@ func FilterUsers(instituteName string) ([]types.SearchDoc, error) {
 	defer sess.Close()
 	coll := sess.Collection
 	var result []types.SearchDoc
-	err := coll.Find(bson.M{"institute": instituteName}).Select(bson.M{"_id": 1, "username": 1, "email": 1,
-		"handle": 1, "picture": 1, "fullname": 1, "institute": 1}).All(&result)
+	cursor, err := coll.Find(context.TODO(), bson.M{"institute": instituteName}, options.Find().SetProjection(bson.M{"_id": 1, "username": 1, "email": 1,
+		"handle": 1, "picture": 1, "fullname": 1, "institute": 1}))
+	cursor.All(context.TODO(), &result)
 	return result, err
 }
