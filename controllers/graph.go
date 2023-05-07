@@ -5,7 +5,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 )
@@ -27,11 +27,11 @@ type GraphController struct {
 // @router /activity/:uid [get]
 func (g *GraphController) GetActivityGraph() {
 	uidString := g.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = g.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = g.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		g.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		g.Data["json"] = BadInputError("Invalid UID")
@@ -64,11 +64,11 @@ func (g *GraphController) GetActivityGraph() {
 // @router /status/:uid [get]
 func (g *GraphController) GetStatusCounts() {
 	uidString := g.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = g.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = g.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		g.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		g.Data["json"] = BadInputError("Invalid UID")

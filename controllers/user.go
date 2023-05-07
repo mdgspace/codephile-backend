@@ -16,7 +16,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/gorilla/schema"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -89,12 +89,13 @@ func (u *UserController) CreateUser() {
 	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	sendConfirmationEmail(bson.ObjectIdHex(id), hostName, u.Ctx.Request.Context())
+	uid, err := primitive.ObjectIDFromHex(id)
+	sendConfirmationEmail(uid, hostName, u.Ctx.Request.Context())
 	u.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
 	u.Data["json"] = map[string]string{"id": id}
 	u.ServeJSON()
 }
-func sendConfirmationEmail(uid bson.ObjectId, hostName string, ctx context.Context) {
+func sendConfirmationEmail(uid primitive.ObjectID, hostName string, ctx context.Context) {
 	verified, err, email := models.IsUserVerified(uid)
 	if verified || err != nil {
 		return
@@ -149,11 +150,11 @@ func (u *UserController) GetAll() {
 // @router /:uid [get]
 func (u *UserController) Get() {
 	uidString := u.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = u.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid UID")
@@ -190,7 +191,7 @@ func (u *UserController) Get() {
 // @Failure 500 server_error
 // @router / [put]
 func (u *UserController) Put() {
-	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	newUser, err := u.parseRequestBody()
 	if err != nil {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
@@ -286,7 +287,7 @@ func (u *UserController) PasswordResetForm() {
 	uid := u.GetString(":uid")
 	uuid := u.GetString(":uuid")
 	client := redis.GetRedisClient()
-	if uuid == "" || uid == "" || client.Get(uid).Val() != uuid || !bson.IsObjectIdHex(uid) {
+	if uuid == "" || uid == "" || client.Get(uid).Val() != uuid || !primitive.IsValidObjectID(uid) {
 		u.TplName = "link_expired.html"
 		_ = u.Render()
 		return
@@ -305,7 +306,8 @@ func (u *UserController) PasswordResetForm() {
 			return
 		}
 		u.TplName = "reset_successful.html"
-		err := models.ResetPassword(bson.ObjectIdHex(uid), newPassword)
+		id, err := primitive.ObjectIDFromHex(uid)
+		err = models.ResetPassword(id, newPassword)
 		if err != nil {
 			hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 			hub.CaptureException(err)
@@ -428,7 +430,7 @@ func (u *UserController) Verify() {
 // @router /fetch/:site [post]
 func (u *UserController) Fetch() {
 	site := u.GetString(":site")
-	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	if !IsSiteValid(site) {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid contest site")
@@ -460,11 +462,11 @@ func (u *UserController) Fetch() {
 // @router /fetch/:uid [get]
 func (u *UserController) ReturnAllProfiles() {
 	uidString := u.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = u.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid UID")
@@ -492,7 +494,7 @@ func (u *UserController) ReturnAllProfiles() {
 // @Failure 400 could not get image
 // @router /picture [put]
 func (u *UserController) ProfilePic() {
-	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	f, fh, err := u.GetFile("image")
 	if err != nil {
 		u.Data["json"] = "could not get image"
@@ -577,7 +579,7 @@ func (u *UserController) IsAvailable() {
 // @Failure 500 server error
 // @router /password-reset [post]
 func (u *UserController) PasswordChange() {
-	uid := u.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := u.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	var passwordUpdateRequest types.UpdatePassword
 	err := json.Unmarshal(u.Ctx.Input.RequestBody, &passwordUpdateRequest)
 	if err != nil {
@@ -641,11 +643,12 @@ func (u *UserController) ConfirmEmail() {
 	client := redis.GetRedisClient()
 	uid := client.Get("confirm_" + uuid).Val()
 	fmt.Println(uid)
-	if uid == "" || !bson.IsObjectIdHex(uid) {
+	if uid == "" || !primitive.IsValidObjectID(uid) {
 		u.Redirect("/", http.StatusTemporaryRedirect)
 		return
 	}
-	if err := models.VerifyEmail(bson.ObjectIdHex(uid), u.Ctx.Request.Context()); err != nil {
+	id, err := primitive.ObjectIDFromHex(uid)
+	if err = models.VerifyEmail(id, u.Ctx.Request.Context()); err != nil {
 		hub := sentry.GetHubFromContext(u.Ctx.Request.Context())
 		hub.CaptureException(err)
 		log.Println(err.Error())
@@ -661,7 +664,7 @@ func (u *UserController) ConfirmEmail() {
 // @router /send-verify-email/:uid [post]
 func (u *UserController) SendVerifyEmail() {
 	uid := u.GetString(":uid")
-	if uid == "" || !bson.IsObjectIdHex(uid) {
+	if uid == "" || !primitive.IsValidObjectID(uid) {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError("Invalid UID")
 		u.ServeJSON()
@@ -673,5 +676,6 @@ func (u *UserController) SendVerifyEmail() {
 	} else {
 		hostName = "https://" + u.Ctx.Request.Host
 	}
-	sendConfirmationEmail(bson.ObjectIdHex(uid), hostName, u.Ctx.Request.Context())
+	id, _ := primitive.ObjectIDFromHex(uid)
+	sendConfirmationEmail(id, hostName, u.Ctx.Request.Context())
 }
