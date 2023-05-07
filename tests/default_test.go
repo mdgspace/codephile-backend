@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
 
@@ -25,7 +25,7 @@ func init() {
 // TestGet is a sample to run an endpoint test
 func TestGetAllUsers(t *testing.T) {
 	uid, _ := models.AddUser(types.User{
-		ID:        bson.NewObjectId(),
+		ID:        primitive.NewObjectID(),
 		Email:     "test@abc.com",
 		Username:  "test",
 		FullName:  "Test User",

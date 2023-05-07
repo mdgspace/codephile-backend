@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"strings"
-
-	"github.com/globalsign/mgo/bson"
+	"context"
+	
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	_ "github.com/mdg-iitr/Codephile/conf"
 
 	"os"
@@ -21,7 +23,8 @@ func main() {
 		fmt.Println("Usage: go run ./delete_user <uid>")
 		os.Exit(1)
 	}
-	user, err := models.GetUser(bson.ObjectIdHex(os.Args[1]))
+	id, _ := primitive.ObjectIDFromHex(os.Args[1])
+	user, err := models.GetUser(id)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +40,7 @@ func main() {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	err = coll.RemoveId(user.ID)
+	_, err = coll.DeleteOne(context.TODO(), bson.M{"_id": user.ID})
 	if err != nil {
 		panic(err)
 	}
