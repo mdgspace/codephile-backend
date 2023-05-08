@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Collection struct {
@@ -15,7 +16,7 @@ type Collection struct {
 
 func (c *Collection) Connect() {
 	c.s = service.Client()
-	database := *c.s.Database("")
+	database := *c.s.Database("codephile")
 	c.db = &database
 	collection := *c.db.Collection(c.name)
 	c.Collection = &collection

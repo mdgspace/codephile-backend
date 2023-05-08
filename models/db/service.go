@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type Service struct {
@@ -23,6 +25,9 @@ func (s *Service) New() error {
 	}
 	s.Open = 0
 	s.baseClient, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(s.URL))
+	if err = s.baseClient.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
+	}
 	return err
 }
 
@@ -33,10 +38,6 @@ func (s *Service) Client() *mongo.Client {
 }
 
 func (s *Service) Close(c *Collection) {
-	err := c.s.Disconnect(context.TODO()); 
-	if err != nil {
-		panic(err)
-	}
 	s.queue <- 1
 	s.Open--
 }
