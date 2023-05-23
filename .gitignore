@@ -9,6 +9,7 @@ todo/todo
 *.exe
 *.exe~
 build/
+vendor/
 # Intellij
 .idea/*
 
