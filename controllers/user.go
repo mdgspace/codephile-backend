@@ -16,7 +16,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/getsentry/sentry-go"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/gorilla/schema"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
@@ -27,6 +26,7 @@ import (
 	"github.com/mdg-iitr/Codephile/services/firebase"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"github.com/mdg-iitr/Codephile/services/worker"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var decoder = schema.NewDecoder()

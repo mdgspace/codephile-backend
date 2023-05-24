@@ -9,12 +9,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/getsentry/sentry-go"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/services/auth"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//Checks if token is valid and put valid token in context
+// Checks if token is valid and put valid token in context
 func Authenticate(ctx *context.Context) {
 	// signup and login endpoints
 	if (strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/login") && ctx.Request.Method == "POST") ||
