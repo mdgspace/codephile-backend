@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	_ "github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/services/auth"
 	"os"
@@ -13,9 +13,9 @@ func main() {
 		fmt.Println("Usage: go run ./blacklist_user <uid>")
 		os.Exit(1)
 	}
-	err := auth.WhitelistUser(bson.ObjectId(os.Args[1]))
+	id, _ := primitive.ObjectIDFromHex(os.Args[1])
+	err := auth.WhitelistUser(id)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-
 }

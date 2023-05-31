@@ -7,7 +7,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
+	// "github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models/db"
@@ -18,7 +21,7 @@ import (
 // Fetches Submissions which are made after the lastFetched time, and
 // adds that to the database.
 //Returns HandleNotFoundError/UserNotFoundError/error
-func AddSubmissions(uid bson.ObjectId, site string, ctx context.Context) error {
+func AddSubmissions(uid primitive.ObjectID, site string, ctx context.Context) error {
 	if !IsSiteValid(site) {
 		return errors.New("site invalid")
 	}
@@ -26,7 +29,7 @@ func AddSubmissions(uid bson.ObjectId, site string, ctx context.Context) error {
 	defer sess.Close()
 	coll := sess.Collection
 	var result map[string]interface{}
-	err := coll.FindId(uid).Select(bson.M{"handle": 1, "lastfetched": 1}).One(&result)
+	err := coll.FindOne(context.TODO(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"handle": 1, "lastfetched": 1})).Decode(&result)
 	if err != nil {
 		//handle the error (Invalid user)
 		return UserNotFoundError
@@ -50,7 +53,7 @@ func AddSubmissions(uid bson.ObjectId, site string, ctx context.Context) error {
 				"$sort": bson.M{"created_at": -1},
 			}},
 		"$set": bson.M{"lastfetched." + site: lastFetched}}
-	err = coll.UpdateId(uid, change)
+	_, err = coll.UpdateByID(context.TODO(), uid, change)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -58,17 +61,17 @@ func AddSubmissions(uid bson.ObjectId, site string, ctx context.Context) error {
 	return nil
 }
 
-func DeleteSubmissions(uid bson.ObjectId, site string) error {
+func DeleteSubmissions(uid primitive.ObjectID, site string) error {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
 
 	var resetTime time.Time
-	err := coll.UpdateId(uid, bson.M{
+	_, err := coll.UpdateByID(context.TODO(), uid, bson.M{
 		"$pull": bson.M{
 			"submissions": bson.M{
 				"url": bson.M{
-					"$regex": bson.RegEx{
+					"$regex": primitive.Regex{
 						Pattern: "^" + GetRegexSite(site)},
 				}},
 		},
@@ -78,7 +81,7 @@ func DeleteSubmissions(uid bson.ObjectId, site string) error {
 	return err
 }
 
-func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, error) {
+func GetSubmissions(ID primitive.ObjectID, before time.Time) ([]types.Submission, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -105,7 +108,7 @@ func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, err
 		"$limit": 100,
 	}
 	group := bson.M{"$group": bson.M{"_id": ID, "submissions": bson.M{"$push": "$submission"}}}
-	pipe := coll.Pipe([]bson.M{
+	pipe, err := coll.Aggregate(context.TODO(), []bson.M{
 		match,
 		project,
 		unwind,
@@ -113,14 +116,15 @@ func GetSubmissions(ID bson.ObjectId, before time.Time) ([]types.Submission, err
 		group,
 	})
 	var res types.User
-	err := pipe.One(&res)
+	err = pipe.Decode(&res)
 	return res.Submissions, err
 }
-func GetAllSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
+
+func GetAllSubmissions(ID primitive.ObjectID) ([]types.Submission, error) {
 	coll := db.NewUserCollectionSession()
 	defer coll.Close()
 	var user types.User
-	err := coll.Collection.FindId(ID).Select(bson.M{"submissions": 1}).One(&user)
+	err := coll.Collection.FindOne(context.TODO(), bson.M{"_id": ID}, options.FindOne().SetProjection(bson.M{"submissions": 1})).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +132,7 @@ func GetAllSubmissions(ID bson.ObjectId) ([]types.Submission, error) {
 }
 
 //TODO: Return proper errors in FilterSubmission
-func FilterSubmission(uid bson.ObjectId, status string, tag string, site string) ([]map[string]interface{}, error) {
+func FilterSubmission(uid primitive.ObjectID, status string, tag string, site string) ([]map[string]interface{}, error) {
 	c := db.NewUserCollectionSession()
 	defer c.Close()
 	fmt.Println(status)
@@ -150,12 +154,14 @@ func FilterSubmission(uid bson.ObjectId, status string, tag string, site string)
 		},
 	}
 	all := []bson.M{match1, unwind, match2, project}
-	pipe := c.Collection.Pipe(all)
+	cursor, _ := c.Collection.Aggregate(context.TODO(), all)
 
 	var result map[string]interface{}
-	iter := pipe.Iter()
 	var final []map[string]interface{}
-	for iter.Next(&result) {
+	for cursor.Next(context.TODO()) {
+		if err := cursor.Decode(&result); err != nil {
+			panic(err)
+		}
 		final = append(final, result["submission"].(map[string]interface{})[site].(map[string]interface{}))
 	}
 	return final, nil

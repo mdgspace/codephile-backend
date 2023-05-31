@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/models/db"
@@ -17,9 +18,10 @@ func main() {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
-	iter := coll.Find(nil).Select(bson.M{"_id": 1, "verified": 1}).Iter()
+	cursor, _ := coll.Find(context.TODO(), bson.M{}, options.Find().SetProjection(bson.M{"_id": 1, "verified": 1}))
 	var user types.User
-	for iter.Next(&user) {
+	for cursor.Next(context.TODO()) {
+		cursor.Decode(&user)
 		if !user.Verified {
 			continue
 		}

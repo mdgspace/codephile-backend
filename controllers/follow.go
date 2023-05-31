@@ -6,8 +6,8 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 )
@@ -25,15 +25,16 @@ type FriendsController struct {
 // @Failure 500 server_error
 // @router /follow [post]
 func (f *FriendsController) FollowUser() {
-	uid1 := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid1 := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	uid2 := f.GetString("uid2")
-	if uid2 == "" || !bson.IsObjectIdHex(uid2) {
+	if uid2 == "" || !primitive.IsValidObjectID(uid2) {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		f.Data["json"] = errors.BadInputError("Invalid UID")
 		f.ServeJSON()
 		return
 	}
-	err := models.FollowUser(uid1, bson.ObjectIdHex(uid2))
+	id2, _ := primitive.ObjectIDFromHex(uid2)
+	err := models.FollowUser(uid1, id2)
 	if err != nil {
 		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
 		hub.CaptureException(err)
@@ -57,16 +58,17 @@ func (f *FriendsController) FollowUser() {
 // @Failure 500 server_error
 // @router /unfollow [post]
 func (f *FriendsController) UnFollowUser() {
-	userUID := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	userUID := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	uid2 := f.GetString("uid2")
-	if uid2 == "" || !bson.IsObjectIdHex(uid2) {
+	if uid2 == "" || !primitive.IsValidObjectID(uid2) {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		f.Data["json"] = errors.BadInputError("Invalid UID")
 		f.ServeJSON()
 		return
 	}
-	err := models.UnFollowUser(userUID, bson.ObjectIdHex(uid2))
-	if err == mgo.ErrNotFound {
+	id2, _ := primitive.ObjectIDFromHex(uid2)
+	err := models.UnFollowUser(userUID, id2)
+	if err == mongo.ErrNoDocuments {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		f.Data["json"] = errors.NotFoundError("user not found")
 		f.ServeJSON()
@@ -93,15 +95,16 @@ func (f *FriendsController) UnFollowUser() {
 // @Failure 500 server_error
 // @router /compare [get]
 func (f *FriendsController) CompareUser() {
-	uid1 := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid1 := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	uid2 := f.GetString("uid2")
-	if uid2 == "" || !bson.IsObjectIdHex(uid2) {
+	if uid2 == "" || !primitive.IsValidObjectID(uid2) {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		f.Data["json"] = errors.BadInputError("Invalid UID")
 		f.ServeJSON()
 		return
 	}
-	worldRanks, err := models.CompareUser(uid1, bson.ObjectIdHex(uid2))
+	id2, _ := primitive.ObjectIDFromHex(uid2)
+	worldRanks, err := models.CompareUser(uid1, id2)
 	if err != nil {
 		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
 		hub.CaptureException(err)
@@ -122,7 +125,7 @@ func (f *FriendsController) CompareUser() {
 // @Failure 500 server_error
 // @router /following [get]
 func (f *FriendsController) GetFollowing() {
-	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	following, err := models.GetFollowingUsers(uid)
 	if err != nil {
 		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())

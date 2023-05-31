@@ -5,7 +5,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	r "github.com/go-redis/redis"
 	"github.com/mdg-iitr/Codephile/services/redis"
 	"log"
@@ -75,18 +75,20 @@ func IsTokenExpired(token *jwt.Token) bool {
 	return exp <= time.Now().UTC().Unix()
 }
 
-func BlacklistUser(uid bson.ObjectId) error {
+//TODO: check if uid.String() is working perfectly or not, earlier string(uid), uid bson.ObjectID
+
+func BlacklistUser(uid primitive.ObjectID) error {
 	client := redis.GetRedisClient()
-	_, err := client.Set(string(uid), UserBlacklisted, 0).Result()
+	_, err := client.Set(uid.String(), UserBlacklisted, 0).Result()
 	return err
 }
 
-func WhitelistUser(uid bson.ObjectId) error {
+func WhitelistUser(uid primitive.ObjectID) error {
 	client := redis.GetRedisClient()
-	val := client.Get(string(uid)).Val()
+	val := client.Get(uid.String()).Val()
 	if val != UserBlacklisted {
 		return errors.New("already whitelisted")
 	}
-	_, err := client.Del(string(uid)).Result()
+	_, err := client.Del(uid.String()).Result()
 	return err
 }

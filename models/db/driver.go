@@ -1,27 +1,33 @@
 package db
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo"
-	"github.com/mdg-iitr/Codephile/conf"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/astaxie/beego"
+	"github.com/getsentry/sentry-go"
+	"github.com/mdg-iitr/Codephile/conf"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var maxPool int
 
-var usernameIndex = mgo.Index{
-	Key:        []string{"username"},
-	Unique:     true,
-	Background: true,
+// var usernameIndex = mgo.Index{
+// 	Key:        []string{"username"},
+// 	Unique:     true,
+// 	Background: true,
+// }
+
+var emailIndex = mongo.IndexModel{
+	Keys:        []string{"email"},
+	Options:     options.Index().SetUnique(true).SetBackground(true),
 }
 
-var emailIndex = mgo.Index{
-	Key:        []string{"email"},
-	Unique:     true,
-	Background: true,
+var usernameIndex = mongo.IndexModel{
+	Keys:        []string{"username"},
+	Options:     options.Index().SetUnique(true).SetBackground(true),
 }
 
 func init() {
@@ -36,16 +42,7 @@ func init() {
 	// init method to start db
 	checkAndInitServiceConnection()
 	c := NewUserCollectionSession()
-	err = c.Collection.EnsureIndex(usernameIndex)
-	if err != nil {
-		log.Println(err.Error())
-		sentry.CurrentHub().CaptureException(err)
-	}
-	err = c.Collection.EnsureIndex(emailIndex)
-	if err != nil {
-		log.Println(err.Error())
-		sentry.CurrentHub().CaptureException(err)
-	}
+	//TODO: ensure that indexes are present
 	defer c.Close()
 	if err != nil {
 		sentry.CurrentHub().CaptureException(err)
@@ -55,7 +52,7 @@ func init() {
 }
 
 func checkAndInitServiceConnection() {
-	if service.baseSession == nil {
+	if service.baseClient == nil {
 		service.URL = os.Getenv("DBPath")
 		err := service.New()
 		if err != nil {

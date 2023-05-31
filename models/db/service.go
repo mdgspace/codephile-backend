@@ -1,12 +1,15 @@
 package db
 
 import (
-	"github.com/globalsign/mgo"
-	"time"
+	"context"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type Service struct {
-	baseSession *mgo.Session
+	baseClient  *mongo.Client
 	queue       chan int
 	URL         string
 	Open        int
@@ -21,23 +24,20 @@ func (s *Service) New() error {
 		s.queue <- 1
 	}
 	s.Open = 0
-	dialInfo, err := mgo.ParseURL(s.URL)
-	if err != nil {
+	s.baseClient, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(s.URL))
+	if err = s.baseClient.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
-	dialInfo.Timeout = 10 * time.Second
-	s.baseSession, err = mgo.DialWithInfo(dialInfo)
 	return err
 }
 
-func (s *Service) Session() *mgo.Session {
+func (s *Service) Client() *mongo.Client {
 	<-s.queue
 	s.Open++
-	return s.baseSession.Copy()
+	return s.baseClient
 }
 
 func (s *Service) Close(c *Collection) {
-	c.s.Close()
 	s.queue <- 1
 	s.Open--
 }

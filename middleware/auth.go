@@ -9,12 +9,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo/bson"
 	"github.com/mdg-iitr/Codephile/models"
 	"github.com/mdg-iitr/Codephile/services/auth"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//Checks if token is valid and put valid token in context
+// Checks if token is valid and put valid token in context
 func Authenticate(ctx *context.Context) {
 	// signup and login endpoints
 	if (strings.HasPrefix(ctx.Request.RequestURI, "/v1/user/login") && ctx.Request.Method == "POST") ||
@@ -40,7 +40,7 @@ func Authenticate(ctx *context.Context) {
 	}
 	if requestToken.Valid && !auth.IsTokenExpired(requestToken) && !auth.IsTokenBlacklisted(requestToken) {
 		claim := requestToken.Claims.(jwt.MapClaims)
-		uid := bson.ObjectIdHex(claim["sub"].(string))
+		uid, _ := primitive.ObjectIDFromHex(claim["sub"].(string))
 		if exists, _ := models.UidExists(uid); !exists {
 			ctx.ResponseWriter.WriteHeader(401)
 			_, _ = ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))

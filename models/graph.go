@@ -1,13 +1,16 @@
 package models
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"context"
+
 	"github.com/mdg-iitr/Codephile/conf"
 	"github.com/mdg-iitr/Codephile/models/db"
 	"github.com/mdg-iitr/Codephile/models/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func GetActivityGraph(uid bson.ObjectId) (types.ActivityGraph, error) {
+func GetActivityGraph(uid primitive.ObjectID) (types.ActivityGraph, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -26,18 +29,18 @@ func GetActivityGraph(uid bson.ObjectId) (types.ActivityGraph, error) {
 			},
 			"total": bson.M{"$sum": 1},
 		}}
-	pipe := coll.Pipe([]bson.M{
+	pipe, err := coll.Aggregate(context.TODO(), []bson.M{
 		match,
 		project,
 		unwind,
 		group,
 	})
 	var res types.ActivityGraph
-	err := pipe.All(&res)
+	err = pipe.All(context.TODO(), &res)
 	return res, err
 }
 
-func GetStatusCounts(uid bson.ObjectId) (types.StatusCounts, error) {
+func GetStatusCounts(uid primitive.ObjectID) (types.StatusCounts, error) {
 	sess := db.NewUserCollectionSession()
 	defer sess.Close()
 	coll := sess.Collection
@@ -53,13 +56,13 @@ func GetStatusCounts(uid bson.ObjectId) (types.StatusCounts, error) {
 			"mle_count": GetStatusQuery(conf.StatusMemoryLimitExceeded),
 			"ptl_count": GetStatusQuery(conf.StatusPartial),
 		}}
-	pipe := coll.Pipe([]bson.M{
+	pipe, err := coll.Aggregate(context.TODO(), []bson.M{
 		match,
 		project,
 	})
 
 	var statusCounts types.StatusCounts
-	err := pipe.One(&statusCounts)
+	err = pipe.Decode(&statusCounts)
 	return statusCounts, err
 }
 

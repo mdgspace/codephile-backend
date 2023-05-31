@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
 	"log"
@@ -43,7 +43,7 @@ func (f *FeedController) ContestsFeed() {
 // @Failure 500 server_error
 // @router /friend-activity/all [get]
 func (f *FeedController) AllFeed() {
-	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	feed, err := models.GetAllFeed(uid)
 	if err != nil {
 		hub := sentry.GetHubFromContext(f.Ctx.Request.Context())
@@ -68,7 +68,7 @@ func (f *FeedController) AllFeed() {
 // @Failure 500 server_error
 // @router /friend-activity [get]
 func (f *FeedController) PaginatedFeed() {
-	uid := f.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := f.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	before, err := f.GetInt64("before", time.Now().UTC().Unix())
 	if err != nil {
 		f.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)

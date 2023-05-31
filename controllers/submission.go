@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	. "github.com/mdg-iitr/Codephile/conf"
 	. "github.com/mdg-iitr/Codephile/errors"
 	"github.com/mdg-iitr/Codephile/models"
@@ -29,11 +29,11 @@ type SubmissionController struct {
 // @router /all/:uid [get]
 func (s *SubmissionController) GetAllSubmissions() {
 	uidString := s.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = s.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		s.Data["json"] = BadInputError("Invalid UID")
@@ -41,7 +41,7 @@ func (s *SubmissionController) GetAllSubmissions() {
 		return
 	}
 	subs, err := models.GetAllSubmissions(uid)
-	if err == mgo.ErrNotFound {
+	if err == mongo.ErrNoDocuments {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
 		s.Data["json"] = NotFoundError("User/Submission not found")
 		s.ServeJSON()
@@ -72,11 +72,11 @@ func (s *SubmissionController) GetAllSubmissions() {
 // @router /:uid [get]
 func (s *SubmissionController) PaginatedSubmissions() {
 	uidString := s.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = s.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		s.Data["json"] = BadInputError("Invalid UID")
@@ -94,7 +94,7 @@ func (s *SubmissionController) PaginatedSubmissions() {
 		before = time.Now().UTC().Unix()
 	}
 	feed, err := models.GetSubmissions(uid, time.Unix(before, 0))
-	if err == mgo.ErrNotFound {
+	if err == mongo.ErrNoDocuments {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusNotFound)
 		s.Data["json"] = NotFoundError("User not found")
 		s.ServeJSON()
@@ -122,7 +122,7 @@ func (s *SubmissionController) PaginatedSubmissions() {
 // @Failure 503 Could not save submission, try later
 // @router /:site [post]
 func (s *SubmissionController) SaveSubmission() {
-	uid := s.Ctx.Input.GetData("uid").(bson.ObjectId)
+	uid := s.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	site := s.GetString(":site")
 	if !IsSiteValid(site) {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
@@ -158,11 +158,11 @@ func (s *SubmissionController) SaveSubmission() {
 // @router /:site/:uid/filter [get]
 func (s *SubmissionController) FilterSubmission() {
 	uidString := s.GetString(":uid")
-	var uid bson.ObjectId
-	if bson.IsObjectIdHex(uidString) {
-		uid = bson.ObjectIdHex(uidString)
+	var uid primitive.ObjectID
+	if primitive.IsValidObjectID(uidString) {
+		uid, _ = primitive.ObjectIDFromHex(uidString)
 	} else if uidString == "" {
-		uid = s.Ctx.Input.GetData("uid").(bson.ObjectId)
+		uid = s.Ctx.Input.GetData("uid").(primitive.ObjectID)
 	} else {
 		s.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		s.Data["json"] = BadInputError("Invalid UID")
