@@ -47,7 +47,7 @@ type RankController struct {
 // @Failure 400 bad request no institute parameter
 // @Failure 500 server_error
 // @router /codechef[get]
-func (u *UserController) codechefRank() {
+func (u *RankController) codechefRank() {
 	instituteName := u.GetString("institute")
 	res, err := models.FilterUsers(instituteName)
 	if err != nil {
@@ -99,7 +99,7 @@ func (u *UserController) codechefRank() {
 // @Failure 400 bad request no institute parameter
 // @Failure 500 server_error
 // @router /codeforces[get]
-func (u *UserController) codeforcesRank() {
+func (u *RankController) codeforcesRank() {
 	instituteName := u.GetString("institute")
 	res, err := models.FilterUsers(instituteName)
 	if err != nil {
