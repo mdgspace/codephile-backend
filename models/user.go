@@ -7,7 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
-
+    
 	"github.com/astaxie/beego"
 	"github.com/getsentry/sentry-go"
 	"github.com/mdg-iitr/Codephile/services/firebase"
@@ -120,6 +120,7 @@ func AddUser(u types.User) (string, error) {
 	}
 	u.Password = string(hash)
 	err = collection.Collection.Insert(u)
+
 	if err != nil {
 		return "", UserAlreadyExistError
 	}

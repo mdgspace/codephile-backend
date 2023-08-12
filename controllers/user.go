@@ -55,6 +55,7 @@ type UserController struct {
 // @router /signup [post]
 func (u *UserController) CreateUser() {
 	user, err := u.parseRequestBody()
+	
 	if err != nil {
 		u.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		u.Data["json"] = BadInputError(err.Error())
@@ -229,6 +230,7 @@ func (u *UserController) Put() {
 func (u *UserController) Login() {
 	username := u.Ctx.Request.FormValue("username")
 	password := u.Ctx.Request.FormValue("password")
+	
 	user, err := models.AuthenticateUser(username, password)
 	if err == UserNotFoundError {
 		u.Data["json"] = map[string]string{"error": "invalid user credential"}
