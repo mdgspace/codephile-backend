@@ -51,6 +51,11 @@ func init() {
 				&controllers.GraphController{},
 			),
 		),
+		beego.NSNamespace("/rank",
+		    beego.NSInclude(
+               &controllers.RankController{},              
+			),
+	    ),
 	)
 	beego.SetStaticPath("/static", "static")
 	beego.Router("/", &controllers.HomePageController{})
